@@ -182,6 +182,24 @@ Réponses de Valentin du 2026-09-25 aux questions Q2 à Q6 de [D3](D3-plan-de-te
 | 81 | 2026-09-25 | Le critère de performance s'applique aux deux mesures : sans charge et avec appel vidéo simulé en boucle locale. Précise n° 37 et n° 75. | Sans appel vidéo, la mesure est optimiste | Mesure sans charge seulement | Arbitrage de Valentin, lot 3 (D3 Q5) |
 | 82 | 2026-09-25 | Au plus deux cycles d'ajustement avant de décider l'abandon de l'arbitrage tel que défini. Précise n° 77. | Borner le réglage | Nombre de cycles non limité | Arbitrage de Valentin, lot 3 (D3 Q6) |
 
-## 10. Questions ouvertes
+## 10. Valeurs de départ simulées
 
-Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.
+Valeurs de départ fournies par Valentin le 2026-09-25. Elles viennent d'un **modèle du signal MediaPipe**, pas de mesures : score neutre entre 0,03 et 0,35, sourire volontaire entre 0,55 et 0,95, pics de parole jusqu'à 0,4. Statut de chacune : « Simulé, à confirmer » par le prototype indiqué. Elles restent soumises à la méthode de réglage du prototype 0 (n° 76).
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 83 | 2026-09-25 | Seuil absolu = neutre + `k` × (sourire volontaire − neutre), `k` = 0,4. Modifie n° 64 (`k` = 0,5). Plafond `d_max` inchangé. Simulé, **à confirmer (P0)** | Non documentée | `k` = 0,5 | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 84 | 2026-09-25 | Durée de maintien : 500 ms. Modifie n° 19 et n° 58 (400 ms). Option « arbitre sévère » à 400 ms inscrite en dette produit. Simulé, **à confirmer (P0)** | Selon la simulation, la parole produit 0,5 faux positif par 20 min à 400 ms, quasi zéro à 500 ms. Coût accepté : la moitié des sourires réprimés de 250 ms ne sont plus détectés | 400 ms (source) | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 85 | 2026-09-25 | Horodatage d'une faute de sourire : début de la série au-dessus du seuil (rétroactif), pas la fin du maintien. Confirme n° 58. Simulé, **à confirmer (P0)** | Non documentée | Horodater à la confirmation | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 86 | 2026-09-25 | Cadence d'analyse : 15 images/s, plafonnée et identique sur les deux appareils. Nouvelle décision. Simulé, **à confirmer (P0)** | Des cadences différentes biaisent « qui a souri en premier » | Cadence libre, la plus haute possible par appareil | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 87 | 2026-09-25 | Lissage : moyenne mobile sur 3 images. Modifie n° 56 (200 ms, équivalent à 15 images/s). Simulé, **à confirmer (P0)** | Non documentée | Fenêtre de 200 ms | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 88 | 2026-09-25 | Fenêtre de simultanéité : 100 ms ; fenêtre effective `W = max(100 ms, 2 × erreur de synchro estimée)`. Modifie n° 23, n° 61 et n° 66 (200 ms). Simulé, **à confirmer (P2)** ; multiplicateur **à confirmer (P1)** | Non documentée | Plancher de 200 ms | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 89 | 2026-09-25 | Synchronisation des horloges : 5 allers-retours avant chaque révélation ; échantillons retenus au plus faible aller-retour. Précise n° 22 et n° 66. Simulé, **à confirmer (P1)** | Non documentée | Un seul échange au signal de révélation | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 90 | 2026-09-25 | Calibrage du neutre : 3 s, valeur = médiane du score lissé. Confirme n° 18, n° 56 et n° 64. Simulé, **à confirmer (P0)** | Non documentée | Non documentée | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 91 | 2026-09-25 | Calibrage du sourire volontaire : 2 s, valeur = maximum du score lissé. Modifie la définition de `v` (médiane de la dernière seconde). Simulé, **à confirmer (P0)** | Viser haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer | Médiane de la dernière seconde | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 92 | 2026-09-25 | Délai de visage perdu : 1,5 s, inchangé par la simulation. Confirme n° 21. Simulé, **à confirmer (P0)** | Non documentée | Non documentée | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+| 93 | 2026-09-25 | Durée de la manche : 60 s, inchangée par la simulation. Confirme n° 10. Simulé, **à confirmer (P2)** | Non documentée | Non documentée | Valeurs de départ simulées, [D2](D2-regles-jeu-arbitrage.md) §3 |
+
+## 11. Questions ouvertes
+
+Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 et des valeurs simulées sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.

@@ -5,7 +5,7 @@
 | Objet | Fixer les règles d'arbitrage et leurs réglages, assez précisément pour les coder sans interprétation |
 | Statut | Brouillon — partie arbitrage seulement (Priorité 1) ; le déroulé du match viendra au lot 4 (Priorité 2) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 18 à 26, 49, 56 à 72 |
+| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 18 à 26, 49, 56 à 72, 83 à 93 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (réglage des valeurs en P0) ; [D4](D4-architecture-technique.md) (messages, horloges) ; [D5](D5-parcours-maquettes.md) (écrans) ; [D7](D7-juridique-confidentialite.md) (image de preuve) |
 
 ## 1. Périmètre
@@ -24,10 +24,11 @@ Toutes les mesures viennent de MediaPipe Face Landmarker, exécuté sur l'appare
 | Image analysée | Une image de la caméra passée à Face Landmarker, avec son horodatage local en millisecondes |
 | Score brut `s` | Moyenne de `mouthSmileLeft` et `mouthSmileRight` (de 0 à 1). Formule de base. **À confirmer (P0)** |
 | Variante du score | `s` compté seulement si la moyenne de `cheekSquintLeft` et `cheekSquintRight` dépasse un plancher. Testée en P0 à côté de la formule de base, sans la remplacer (n° 72) |
-| Score lissé `S` | Moyenne des scores bruts des images valides des 200 dernières ms |
+| Cadence d'analyse | 15 images analysées par seconde, plafonnée et identique sur les deux appareils (5.8) |
+| Score lissé `S` | Moyenne mobile des scores bruts des 3 dernières images valides (200 ms à 15 images/s) |
 | Neutre `n` | Médiane de `S` pendant la phase neutre du calibrage (R1) |
-| Sourire volontaire `v` | Médiane de `S` pendant la dernière seconde de la phase sourire du calibrage (R1) |
-| Seuil `d` | Seuil propre au joueur : `d = min(k × (v − n), d_max)`. Une image est souriante au-dessus de `n + d` |
+| Sourire volontaire `v` | Maximum de `S` pendant la phase sourire du calibrage (R1) |
+| Seuil `d` | Seuil propre au joueur : `d = min(k × (v − n), d_max)`. Une image est souriante au-dessus de `n + d`, soit `n + k × (v − n)` hors plafond |
 | Marge `m` | Écart au-dessus du neutre en dessous duquel le joueur est « neutre » |
 | Image valide | Exactement un visage détecté, dont la largeur et les angles respectent les réglages (section 3) |
 | Image souriante | Image valide avec `S ≥ n + d` |
@@ -35,7 +36,7 @@ Toutes les mesures viennent de MediaPipe Face Landmarker, exécuté sur l'appare
 | Jauge `J` | `J = min(1, max(0, (S − n − m) / (d − m)))`, affichée en pourcentage |
 | t0 | Signal de révélation de la manche. Tous les temps de manche sont comptés depuis t0 |
 | Erreur d'horloge `e` | Incertitude estimée sur le décalage entre les horloges des deux appareils, mesurée avant chaque révélation ([D4](D4-architecture-technique.md)) |
-| Fenêtre effective `W` | `W = max(200 ms, 2 × e)` |
+| Fenêtre effective `W` | `W = max(100 ms, 2 × e)` |
 | Faute | Sourire confirmé (R2) ou deuxième perte de visage (R4). La première faute fait perdre la manche |
 | Aucun enregistrement | Aucun stockage persistant, nulle part : ni disque, ni stockage du navigateur, ni serveur. La mémoire vive est permise (n° 69) |
 
@@ -44,12 +45,12 @@ Largeur du visage : écart horizontal entre les repères extrêmes, rapporté à
 
 ## 3. Tableau des réglages
 
-Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur de départ choisie pour être testée, pas mesurée.
+Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur de départ choisie pour être testée, pas mesurée. « Simulé » : valeur de départ issue d'une simulation du signal MediaPipe (n° 83 à 93), pas d'une mesure.
 
 | Nom | Valeur de départ | Unité | Rôle | Origine | Validé par |
 |---|---|---|---|---|---|
-| Durée de la phase neutre | 3 | s | Mesure du neutre `n` | Source | **À confirmer (P0)** |
-| Durée de la phase sourire | 2 | s | Mesure du sourire volontaire `v` | Valentin (n° 64) | **À confirmer (P0)** |
+| Durée de la phase neutre | 3 | s | Mesure du neutre `n` (médiane de `S`) | Source ; simulation (n° 90) | Simulé, **à confirmer (P0)** |
+| Durée de la phase sourire | 2 | s | Mesure du sourire volontaire `v` (maximum de `S`) | Valentin (n° 64) ; simulation (n° 91) | Simulé, **à confirmer (P0)** |
 | Présence minimale au calibrage | 90 | % des images, par phase | Rejette un calibrage où le visage sort du champ | Hypothèse | **À confirmer (P0)** |
 | Largeur minimale du visage | 20 | % de la largeur de l'image | Rejette un visage trop loin ; image invalide en manche | Hypothèse | **À confirmer (P0)** |
 | Lacet maximal | 25 | degrés | Au-delà, image invalide (tête tournée) | Hypothèse | **À confirmer (P0)** |
@@ -58,20 +59,22 @@ Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur 
 | Écart-type maximal en phase neutre | 0,05 | score | Rejette un neutre où le visage bouge ou sourit | Hypothèse | **À confirmer (P0)** |
 | Plafond du neutre | 0,35 | score | Rejette un neutre trop haut | Hypothèse | **À confirmer (P0)** |
 | Amplitude minimale `v − n` | 0,15 | score | Rejette un sourire volontaire trop faible | Hypothèse | **À confirmer (P0)** |
-| Coefficient `k` | 0,5 | sans unité | Place le seuil à mi-chemin entre neutre et sourire volontaire | Hypothèse | **À confirmer (P0)** |
+| Coefficient `k` | 0,4 | sans unité | Place le seuil à 40 % du chemin entre neutre et sourire volontaire | Simulation (n° 83) | Simulé, **à confirmer (P0)** |
 | Seuil maximal `d_max` | 0,35 | score | Empêche de gonfler son seuil en exagérant le sourire volontaire (5.2, Q1) | Hypothèse, provisoire | **À confirmer (P0)** |
 | Plancher de la variante `cheekSquint` | 0,20 | score | Variante du score testée en P0 | Hypothèse | **À confirmer (P0)** |
-| Fenêtre de lissage | 200 | ms | Calcul de `S` ; évite qu'une image bruitée compte | Hypothèse | **À confirmer (P0)** |
+| Cadence d'analyse | 15 | images/s | Plafond commun aux deux appareils ; une cadence différente biaise « qui a souri en premier » | Simulation (n° 86) | Simulé, **à confirmer (P0)** |
+| Fenêtre de lissage | 3 | images | Moyenne mobile pour `S` ; évite qu'une image bruitée compte | Simulation (n° 87) | Simulé, **à confirmer (P0)** |
 | Marge `m` | 0,05 | score | Frontière neutre / zone de doute | Hypothèse | **À confirmer (P0)** |
-| Durée de maintien | 400 | ms | Durée minimale d'un sourire confirmé | Source | **À confirmer (P0)** |
+| Durée de maintien | 500 | ms | Durée minimale d'un sourire confirmé | Simulation (n° 84), modifie la source | Simulé, **à confirmer (P0)** |
 | Images minimales par sourire | 3 | images | Évite de confirmer sur deux images espacées | Hypothèse | **À confirmer (P0)** |
 | Images tolérées dans une série | 1 | image | Une image non souriante isolée n'interrompt pas la série | Hypothèse | **À confirmer (P0)** |
-| Délai de visage perdu | 1,5 | s | Au-delà, perte comptée | Source | **À confirmer (P0)** |
+| Délai de visage perdu | 1,5 | s | Au-delà, perte comptée | Source ; inchangé par la simulation (n° 92) | Simulé, **à confirmer (P0)** |
 | Perte continue maximale | 5 | s | Au-delà, la perte compte comme deuxième perte | Valentin (n° 65) | **À confirmer (P0)** |
 | Pertes avant manche perdue | 2 | pertes par manche | La deuxième perte est une faute | Source | **À confirmer (P0)** |
-| Fenêtre de simultanéité minimale | 200 | ms | Plancher de `W` | Source | **À confirmer (P2)** |
-| Multiplicateur de l'erreur d'horloge | 2 | sans unité | `W = max(200 ms, 2 × e)` | Valentin (n° 66) | **À confirmer (P1)** |
-| Durée de la manche | 60 | s | Départage au-delà | Source | **À confirmer (P2)** |
+| Fenêtre de simultanéité minimale | 100 | ms | Plancher de `W` | Simulation (n° 88), modifie la source | Simulé, **à confirmer (P2)** |
+| Multiplicateur de l'erreur d'horloge | 2 | sans unité | `W = max(100 ms, 2 × e)` | Valentin (n° 66) | **À confirmer (P1)** |
+| Allers-retours de synchronisation | 5 | allers-retours par révélation | Estimation du décalage des horloges ; échantillons retenus au plus faible aller-retour | Simulation (n° 89) | Simulé, **à confirmer (P1)** |
+| Durée de la manche | 60 | s | Départage au-delà | Source ; inchangée par la simulation (n° 93) | Simulé, **à confirmer (P2)** |
 | Écart de pics pour égalité | 0,05 | jauge (0 à 1) | Départage : pics plus proches = manche nulle | Valentin (n° 68) | **À confirmer (P2)** |
 
 ## 4. Règles d'arbitrage
@@ -82,7 +85,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 1. Le calibrage a lieu une fois par match, avant la première manche (n° 18, confirmé par n° 71).
 2. **Phase neutre** : le joueur regarde la caméra, visage neutre, pendant 3 s.
-3. **Phase sourire** : le joueur sourit franchement pendant 2 s.
+3. **Phase sourire** : le joueur sourit franchement pendant 2 s. `v` est le maximum de `S` sur la phase. On vise haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer (n° 91).
 4. Le calibrage est rejeté si une seule de ces conditions est vraie :
    - moins de 90 % d'images valides dans l'une des phases ;
    - largeur médiane du visage sous 20 % ;
@@ -92,7 +95,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
    - neutre `n` au-dessus de 0,35 ;
    - amplitude `v − n` sous 0,15.
 5. En cas de rejet, l'application affiche la **première** cause rencontrée, dans l'ordre ci-dessus, et fait recommencer les deux phases. Le nombre d'essais n'est pas limité.
-6. En cas de succès, l'appareil garde `n` et calcule `d = min(0,5 × (v − n), 0,35)`. La manche ne peut pas démarrer tant que les deux joueurs n'ont pas réussi leur calibrage.
+6. En cas de succès, l'appareil garde `n` et calcule `d = min(0,4 × (v − n), 0,35)`. La manche ne peut pas démarrer tant que les deux joueurs n'ont pas réussi leur calibrage.
 7. Si le seuil est plafonné par `d_max`, rien n'est affiché au joueur. Le plafonnement est noté pour l'analyse des tests P0.
 
 | Cas | Comportement attendu |
@@ -109,16 +112,16 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 1. Une série commence à la première image souriante dont l'horodatage est ≥ t0.
 2. La série continue tant que les images sont souriantes. Une seule image non souriante (doute, neutre ou invalide) est tolérée par série, à condition que l'image suivante soit souriante. Sinon, la série s'arrête et rien n'est compté.
-3. Le sourire est **confirmé** dès que la série couvre au moins 400 ms (entre sa première et sa dernière image souriante) et contient au moins 3 images souriantes.
-4. L'horodatage du sourire est celui de la **première image** de la série, pas celui de la confirmation.
+3. Le sourire est **confirmé** dès que la série couvre au moins 500 ms (entre sa première et sa dernière image souriante) et contient au moins 3 images souriantes.
+4. L'horodatage du sourire est celui de la **première image** de la série, pas celui de la confirmation : horodatage rétroactif (n° 85).
 5. Un sourire confirmé est une faute. Il ne compte que si son horodatage est dans [t0 ; t0 + 60 s[ (voir R6).
 6. L'analyse continue pendant l'écran noir et le compte à rebours, pour que `S` soit déjà calculé à t0. Les images antérieures à t0 ne comptent pas pour les fautes.
 7. En P0 seulement, la variante `cheekSquint` est calculée en parallèle et journalisée. Elle ne décide rien en jeu (n° 72).
 
 | Cas | Comportement attendu |
 |---|---|
-| Parole | Autorisée (n° 8). Les syllabes brèves ne tiennent pas 400 ms : pas de faute. Une voyelle tenue qui étire la bouche (« iii ») peut produire une faute : risque mesuré en P0 avec la variante `cheekSquint`. |
-| Bâillement | Aucune exception. Si `S` dépasse le seuil 400 ms, c'est une faute. À mesurer en P0. |
+| Parole | Autorisée (n° 8). Les syllabes brèves ne tiennent pas 500 ms : pas de faute. Selon la simulation, 0,5 faux positif par 20 min à 400 ms, quasi zéro à 500 ms (n° 84). Une voyelle tenue qui étire la bouche (« iii ») peut produire une faute : risque mesuré en P0 avec la variante `cheekSquint`. |
+| Bâillement | Aucune exception. Si `S` dépasse le seuil 500 ms, c'est une faute. À mesurer en P0. |
 | Rire sans sourire | Un rire sonore sans sourire visible n'est pas une faute (la détection sonore est reportée en v2, n° 34). Un rire bouche ouverte fait monter `mouthSmile` : faute normale. |
 | Lunettes | Rien de particulier : le score ne dépend que de la bouche. |
 | Barbe | Rien de particulier : le seuil est propre au joueur. |
@@ -166,12 +169,12 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ### 4.5 R5 — Horodatage et simultanéité
 
-1. Avant chaque révélation, les deux appareils estiment le décalage de leurs horloges et l'erreur `e` de cette estimation. Ils fixent ensemble la fenêtre effective `W = max(200 ms, 2 × e)`, identique sur les deux appareils (n° 66). La méthode relève de [D4](D4-architecture-technique.md). **À confirmer (P1)**
+1. Avant chaque révélation, les deux appareils estiment le décalage de leurs horloges et l'erreur `e` de cette estimation, par 5 allers-retours ; seuls les échantillons au plus faible aller-retour sont retenus (n° 89). Ils fixent ensemble la fenêtre effective `W = max(100 ms, 2 × e)`, identique sur les deux appareils (n° 66, n° 88). Le détail des messages relève de [D4](D4-architecture-technique.md). **À confirmer (P1)**
 2. Chaque faute est horodatée localement, en temps de manche (ms depuis t0 sur cet appareil, corrigé du décalage estimé).
 3. La première faute d'un appareil, d'horodatage T, est annoncée à l'autre appareil.
 4. Chaque appareil déclare ensuite son statut jusqu'à T + W :
    - soit sa propre première faute, avec son horodatage ;
-   - soit « aucune faute commencée avant T + W ». Il ne peut le déclarer qu'une fois son horloge au-delà de T + W + 400 ms + un intervalle d'image, car une série commencée avant T + W peut encore être confirmée.
+   - soit « aucune faute commencée avant T + W ». Il ne peut le déclarer qu'une fois son horloge au-delà de T + W + 500 ms + un intervalle d'image, car une série commencée avant T + W peut encore être confirmée.
 5. Décision, calculée à l'identique sur les deux appareils :
    - une seule faute, ou deux fautes séparées d'au moins `W` : perd le joueur dont la faute est la plus ancienne ;
    - deux fautes séparées de moins de `W` : manche nulle, rejouée (n° 23). Pertes et pics sont remis à zéro. `W` est recalculée avant la nouvelle révélation.
@@ -190,7 +193,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 ### 4.6 R6 — Départage à 60 s
 
 1. Si aucune faute n'a d'horodatage dans [t0 ; t0 + 60 s[, la manche se joue au départage.
-2. La décision attend la fin de R5 : une série commencée avant 60 s peut encore être confirmée jusqu'à 60 s + 400 ms environ.
+2. La décision attend la fin de R5 : une série commencée avant 60 s peut encore être confirmée jusqu'à 60 s + 500 ms environ.
 3. Chaque appareil envoie le pic de jauge de son joueur (R3).
 4. Perd le joueur au pic le plus haut (n° 24, n° 49).
 5. Si l'écart entre les pics est inférieur à 0,05 : manche nulle, rejouée (n° 68).
@@ -232,12 +235,13 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 ### 5.1 Seuil propre à chaque joueur — décidé (n° 64)
 
 - Un seuil fixe est injuste : l'amplitude d'un sourire mesuré varie selon le visage (barbe, bouche naturellement relevée).
-- Décision : calibrage en deux temps, seuil `d = k × (v − n)`. La jauge devient comparable d'un joueur à l'autre.
+- Décision : calibrage en deux temps, seuil `d = k × (v − n)`, `k` = 0,4 (n° 83). La jauge devient comparable d'un joueur à l'autre.
 
 ### 5.2 Exagérer le sourire volontaire — nouveau risque
 
 - Avec un seuil proportionnel, un joueur qui exagère son sourire volontaire relève son propre seuil. Il pourra ensuite sourire franchement sans faute.
 - Parade provisoire : plafond `d_max = 0,35`. Voir Q1.
+- Prendre le maximum de `S` pour `v` (n° 91) rend l'exagération plus facile qu'avec une médiane : un pic bref suffit. Le plafond `d_max` devient la seule parade.
 - Parades déjà en place contre un neutre truqué : plafond du neutre, écart-type maximal, amplitude minimale.
 
 ### 5.3 Perte prolongée — décidé (n° 65)
@@ -258,12 +262,23 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ### 5.6 Synchronisation des horloges — décidé (n° 66)
 
-- La latence réseau (souvent 50 à 150 ms, asymétrique) est du même ordre que 200 ms.
-- Décision : estimation du décalage avant chaque révélation, `W = max(200 ms, 2 × e)`. **À confirmer (P1)**
+- La latence réseau (souvent 50 à 150 ms, asymétrique) est du même ordre que la fenêtre.
+- Décision : 5 allers-retours avant chaque révélation, échantillons au plus faible aller-retour, `W = max(100 ms, 2 × e)` (n° 66, n° 88, n° 89). **À confirmer (P1)**
+- Limite : à 15 images/s, chaque horodatage n'est connu qu'à un intervalle d'image près (67 ms). Deux fautes mesurées à 100 ms d'écart peuvent être séparées en réalité de 33 à 167 ms. Voir Q3.
 
 ### 5.7 Deux visages dans le champ — décidé (n° 67)
 
 - MediaPipe ne reconnaît pas les personnes. Deux visages = image invalide : c'est plus simple et cela empêche de se faire remplacer.
+
+### 5.8 Cadence d'analyse commune — simulé (n° 86)
+
+- Un appareil qui analyse plus d'images par seconde confirme une série plus tôt et la date plus finement : les cadences différentes biaisent « qui a souri en premier ».
+- Décision : cadence plafonnée à 15 images/s, identique sur les deux appareils. Les images en surplus ne sont pas analysées. Voir Q2 pour un appareil qui ne tient pas 15 images/s.
+
+### 5.9 Arbitre sévère — dette produit (n° 84)
+
+- Passer le maintien de 400 à 500 ms supprime presque les faux positifs dus à la parole. Coût : la moitié des sourires réprimés de 250 ms ne sont plus détectés.
+- Dette produit : option « arbitre sévère » à 400 ms. Non prévue en v1.
 
 ## 6. Déroulé du match
 
@@ -276,3 +291,6 @@ Q1 à Q8 du premier brouillon ont été tranchées par Valentin le 2026-09-25 (n
 | N° | Question | Proposition |
 |---|---|---|
 | Q1 | Le seuil proportionnel crée un nouveau risque : exagérer son sourire volontaire pour relever son seuil (5.2). Plafonner le seuil à `d_max` ? | Oui, `d_max = 0,35` **À confirmer (P0)** ; en P0, relever la fréquence des seuils plafonnés |
+| Q2 | Si un appareil ne tient pas 15 images/s (le critère P0 n'en exige que 10, n° 37), que fait l'autre ? | Les deux appareils s'alignent sur la cadence la plus basse, mesurée avant chaque révélation **À confirmer (P0)** |
+| Q3 | À 15 images/s, l'erreur d'horodatage d'un appareil atteint 67 ms. Ajouter l'intervalle d'image à la fenêtre : `W = max(100 ms, 2 × e + intervalle d'image)` ? | Oui : on évite de désigner un perdant sur un écart que la cadence ne permet pas de mesurer **À confirmer (P2)** |
+| Q4 | [D3](D3-plan-de-tests.md) utilise encore 400 ms (pic soutenu, §1.5.1) et une fenêtre de lissage en ms (§1.5, étape 9). Les aligner sur 500 ms et 3 images ? | Oui, au prochain lot qui touche D3 |
