@@ -3,15 +3,15 @@
 | Champ | Valeur |
 |---|---|
 | Objet | Fixer les règles d'arbitrage et leurs réglages, assez précisément pour les coder sans interprétation |
-| Statut | Brouillon — partie arbitrage seulement (Priorité 1) ; le déroulé du match viendra au lot 4 (Priorité 2) |
+| Statut | Brouillon — complet : arbitrage (lots 2 et 3) et déroulé du match (lot 4) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 18 à 26, 49, 56 à 72, 83 à 96 |
+| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 17 à 29, 40, 49, 56 à 72, 83 à 96, 97 à 110 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (réglage des valeurs en P0) ; [D4](D4-architecture-technique.md) (messages, horloges) ; [D5](D5-parcours-maquettes.md) (écrans) ; [D7](D7-juridique-confidentialite.md) (image de preuve) |
 
 ## 1. Périmètre
 
 - Ce document couvre l'arbitrage : calibrage, détection, jauge, visage perdu, simultanéité, départage, arrêt sur image.
-- Le déroulé du match (salon, écran noir, compte à rebours, revanche, déconnexion, abandon) relève du lot 4 (section 6).
+- Le déroulé du match (salon, écran noir, compte à rebours, revanche, déconnexion, abandon, jauges, règles affichées) est en section 6.
 - Le transport des messages et la synchronisation des horloges relèvent de [D4](D4-architecture-technique.md).
 - Chaque appareil juge **son propre joueur** (n° 13). Les règles ci-dessous s'appliquent à l'identique sur les deux appareils.
 
@@ -190,7 +190,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 | Lunettes | Rien de particulier. |
 | Barbe | Rien de particulier. |
 | Deux visages | Une faute par perte due à deux visages est une faute comme une autre, horodatée selon R4. |
-| Caméra coupée | L'appareil du joueur privé de caméra peut encore déclarer son statut : sa perte est une faute horodatée. Si l'appareil lui-même ne répond plus, c'est une déconnexion : lot 4. |
+| Caméra coupée | L'appareil du joueur privé de caméra peut encore déclarer son statut : sa perte est une faute horodatée. Si l'appareil lui-même ne répond plus, c'est une déconnexion : voir 6.4. |
 
 ### 4.6 R6 — Départage à 60 s
 
@@ -220,7 +220,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 6. Manche perdue par visage perdu : aucune image (il n'y a pas de visage). Message « Visage perdu ».
 7. Départage à 60 s : aucune image. Affichage des deux pics de jauge.
 8. Manche nulle : aucune image. Message « Égalité, manche rejouée ».
-9. La durée d'affichage relève du lot 4.
+9. L'arrêt sur image dure 5 s (6.7).
 
 | Cas | Comportement attendu |
 |---|---|
@@ -285,7 +285,238 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ## 6. Déroulé du match
 
-*Lot 4 — à rédiger.*
+Les valeurs marquées « Hypothèse à valider » ont été prises au lot 4 sans arbitrage de Valentin, en retenant l'option la plus prudente. Elles figurent dans le tableau 6.7 et dans les questions ouvertes (section 7).
+
+### 6.1 Vocabulaire
+
+| Terme | Définition |
+|---|---|
+| Session | Tout ce qui se passe dans un salon, du premier match à la dernière revanche |
+| Match | Suite de manches jusqu'à 2 manches gagnées par un joueur **À confirmer (P2)** |
+| Manche | De la révélation t0 à la décision (faute, départage ou manche nulle) |
+| Salon | Lieu de rendez-vous des deux joueurs, désigné par un code aléatoire dans le lien d'invitation (n° 28) |
+| Hôte | Joueur qui crée le salon et partage le lien |
+| Invité | Joueur qui ouvre le lien |
+| Canal | Connexion pair à pair entre les deux appareils : vidéo, audio et messages ([D4](D4-architecture-technique.md)) |
+| Adversaire injoignable | Aucun message reçu de l'autre appareil depuis 3 s **Hypothèse à valider, à confirmer (P1)** |
+
+Hôte et invité ont les mêmes règles. Seuls l'accueil et l'attente diffèrent.
+
+### 6.2 Machine à états
+
+Chaque appareil tient sa propre copie de l'état. Les deux copies avancent ensemble grâce aux messages du canal ([D4](D4-architecture-technique.md)). Les états Accueil, Autorisation et Erreur sont propres à chaque appareil ; les autres sont partagés.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Accueil
+    Accueil --> Autorisation : case 18 ans cochée + Continuer
+    Autorisation --> Attente : accordée (hôte)
+    Autorisation --> Connexion : accordée (invité)
+    Autorisation --> ErreurCamera : refusée
+    Autorisation --> ErreurSalon : lien invalide (invité)
+    ErreurCamera --> Autorisation : Réessayer
+    Attente --> Connexion : l'invité rejoint
+    Attente --> SalonExpire : 15 min sans invité
+    Connexion --> ErreurConnexion : échec après 20 s
+    ErreurConnexion --> Connexion : Réessayer
+    Connexion --> EnJeu : canal établi
+
+    state EnJeu {
+        [*] --> Calibrage
+        Calibrage --> EcranNoir : deux calibrages réussis
+        EcranNoir --> CompteARebours : synchronisation et cadence prêtes
+        CompteARebours --> Manche : t0
+        Manche --> Decision : faute annoncée ou 60 s écoulées
+        Decision --> ArretSurImage : décision calculée
+        ArretSurImage --> EcranNoir : match non terminé ou manche rejouée
+        ArretSurImage --> [*] : 2 manches gagnées
+    }
+
+    EnJeu --> Interrompu : adversaire injoignable
+    Interrompu --> EnJeu : reconnexion en moins de 30 s
+    Interrompu --> FinMatch : 30 s dépassées (forfait)
+    Interrompu --> FinSession : match annulé ou aucun vainqueur
+    EnJeu --> FinMatch : fin normale ou abandon
+    FinMatch --> EnJeu : les deux acceptent la revanche
+    FinMatch --> FinSession : Quitter, départ de l'autre ou 60 s sans accord
+    SalonExpire --> [*]
+    ErreurSalon --> [*]
+    FinSession --> [*]
+```
+
+États :
+
+| État | Rôle | Durée |
+|---|---|---|
+| Accueil | Explication avant la caméra, règles (6.8), case « j'ai 18 ans ou plus » (n° 29) | Libre |
+| Autorisation | Demande d'accès caméra et micro par le navigateur | Libre |
+| Attente | L'hôte voit son image et le lien à partager | 15 min au plus **Hypothèse à valider, à confirmer (P2)** |
+| Connexion | Établissement du canal ([D4](D4-architecture-technique.md)) | 20 s au plus **Hypothèse à valider, à confirmer (P1)** |
+| Calibrage | R1, sur chaque appareil, une fois par match (n° 71) | Libre (essais illimités) |
+| Écran noir | Écran noir ; synchronisation des horloges et mesure de la cadence (R5, 5.8) | 2 s au moins **Hypothèse à valider, à confirmer (P1)** |
+| Compte à rebours | 3, 2, 1, puis révélation simultanée (n° 17) | 3 s |
+| Manche | Jeu ; R2 à R4 | 60 s au plus **À confirmer (P2)** |
+| Décision | Attente des déclarations de R5 ; la vidéo continue, rien n'est annoncé | Moins de 1 s |
+| Arrêt sur image | R7 ; score du match | 5 s **Hypothèse à valider, à confirmer (P2)** |
+| Fin de match | Vainqueur, score, revanche | 60 s au plus pour la revanche **Hypothèse à valider, à confirmer (P2)** |
+| Interrompu | Adversaire injoignable ; attente de reconnexion | 30 s au plus **Hypothèse à valider, à confirmer (P1)** |
+| Fin de session | Le salon expire | — |
+| Erreurs | Caméra refusée, connexion impossible, salon introuvable ou complet, appareil trop lent | Libre |
+
+### 6.3 Tableau des transitions
+
+« A » désigne le joueur à l'origine de l'événement, « B » l'autre joueur. Quand l'événement concerne les deux, une seule colonne est remplie.
+
+| N° | État | Événement | État suivant | Ce que voit A | Ce que voit B |
+|---|---|---|---|---|---|
+| T1 | — | Ouverture de l'application (hôte) ou du lien (invité) | Accueil | Explication, règles, case d'âge, bouton « Continuer » désactivé tant que la case n'est pas cochée | — |
+| T2 | Accueil | Case cochée, « Continuer » | Autorisation | Demande du navigateur : caméra et micro | — |
+| T3 | Autorisation | Accès refusé ou aucune caméra | Erreur caméra | Message d'erreur et marche à suivre ([D5](D5-parcours-maquettes.md)) | — |
+| T4 | Autorisation | Accès accordé, A est l'hôte | Attente | Son image, le lien, bouton « Partager » | — |
+| T5 | Autorisation | Accès accordé, A est l'invité ; salon ouvert et libre | Connexion | « Connexion à votre adversaire… » | « Votre adversaire arrive… » |
+| T6 | Autorisation | Accès accordé, A est l'invité ; salon introuvable, expiré ou complet | Erreur salon | « Ce lien n'est plus valable » | — |
+| T7 | Attente | 15 min sans invité | Salon expiré | « Personne n'a rejoint. Le lien a expiré. » ; bouton « Créer un nouveau salon » | — |
+| T8 | Connexion | Canal établi | Calibrage | Les deux : l'image de l'adversaire apparaît ; consignes de calibrage | |
+| T9 | Connexion | Échec après 20 s | Erreur connexion | Les deux : « Impossible de joindre votre adversaire » ; « Réessayer » | |
+| T10 | Calibrage | A réussit son calibrage, B pas encore | Calibrage | « En attente de votre adversaire… » | Sa propre consigne ; mention « Votre adversaire est prêt » |
+| T11 | Calibrage | A échoue (R1) | Calibrage | Cause du rejet ; nouvel essai | « Votre adversaire recommence son calibrage » |
+| T12 | Calibrage ou Arrêt sur image | Deux calibrages réussis, ou fin de l'arrêt sur image sans fin de match | Écran noir | Les deux : écran noir, « Manche N », score ; le son reste ouvert **Hypothèse à valider** | |
+| T13 | Écran noir | Synchronisation (5 allers-retours) faite, cadence commune ≥ 10 images/s, les deux appareils prêts, 2 s écoulées | Compte à rebours | Les deux : 3, 2, 1, calés sur le même t0 ([D4](D4-architecture-technique.md)) | |
+| T14 | Écran noir | Cadence de A sous 10 images/s | Écran noir | « Appareil trop lent : fermez les autres applications » ; nouvelle mesure toutes les 5 s **Hypothèse à valider, à confirmer (P0)** | « Votre adversaire a un souci technique… » |
+| T15 | Compte à rebours | t0 atteint | Manche | Les deux : révélation des deux visages, deux jauges, chronomètre 60 s | |
+| T16 | Manche | Première perte comptée de A (R4) | Manche | Avertissement « Visage perdu : encore une fois et vous perdez la manche » | Mention « Visage perdu » près de l'image de A |
+| T17 | Manche | Faute de A annoncée (R2 ou R4) | Décision | Rien de visible pendant moins d'une seconde | Idem |
+| T18 | Manche | 60 s écoulées sans faute | Décision | Les deux : chronomètre à zéro, vidéo continue | |
+| T19 | Décision | Une faute retenue (R5) ou pics séparés d'au moins 0,05 (R6) | Arrêt sur image | Perdant : image fixe de son sourire, ou « Visage perdu », ou les deux pics ; « Manche perdue » | Gagnant : la même image ou le même message ; « Manche gagnée » |
+| T20 | Décision | Fautes séparées de moins de `W`, ou pics séparés de moins de 0,05 | Arrêt sur image | Les deux : « Égalité, manche rejouée » | |
+| T21 | Décision | Les deux appareils calculent des décisions différentes | Arrêt sur image | Les deux : « Égalité, manche rejouée » **Hypothèse à valider** | |
+| T22 | Arrêt sur image | 5 s écoulées, aucun joueur à 2 manches | Écran noir | Voir T12 | |
+| T23 | Arrêt sur image | 5 s écoulées, un joueur à 2 manches | Fin de match | Vainqueur : « Vous avez gagné 2–1 » | Perdant : « Vous avez perdu 1–2 » ; les deux : « Revanche » et « Quitter » |
+| T24 | En jeu | A abandonne (6.5) | Fin de match | « Vous avez abandonné » | « Votre adversaire a abandonné. Victoire. » |
+| T25 | En jeu | B devient injoignable | Interrompu | « Votre adversaire a perdu la connexion. Attente… 30 s » avec compte à rebours ; vidéo de B figée ou noire | Selon sa propre connexion : « Connexion perdue. Reconnexion… » |
+| T26 | Interrompu | Reconnexion en moins de 30 s | En jeu, selon 6.4 | Les deux : « Reprise » | |
+| T27 | Interrompu | 30 s dépassées | Fin de match (forfait) ou fin de session | Voir 6.4.3 | |
+| T28 | Fin de match | A accepte la revanche, B pas encore | Fin de match | « En attente de votre adversaire… » | « Votre adversaire veut une revanche » ; bouton « Revanche » mis en avant |
+| T29 | Fin de match | Les deux acceptent | Calibrage | Les deux : nouveau match, score 0–0, calibrage (n° 71) **Hypothèse à valider** | |
+| T30 | Fin de match | A quitte | Fin de session | Retour à l'accueil | « Votre adversaire est parti » ; « Créer un nouveau salon » |
+| T31 | Fin de match | 60 s sans accord des deux | Fin de session | Les deux : « Le salon a expiré » ; « Créer un nouveau salon » | |
+
+### 6.4 Déconnexions
+
+#### 6.4.1 Détection
+
+- Un appareil déclare l'adversaire injoignable quand il ne reçoit plus rien de lui depuis 3 s, ou quand le canal se ferme ([D4](D4-architecture-technique.md)). **Hypothèse à valider, à confirmer (P1)**
+- Le serveur de mise en relation sert d'arbitre de présence : il sait quel appareil lui est encore relié ([D4](D4-architecture-technique.md)). **Hypothèse à valider, à confirmer (P1)**
+- Délai de reconnexion : 30 s, identique dans tous les états. **Hypothèse à valider, à confirmer (P1)**
+
+#### 6.4.2 Selon l'état
+
+| État au moment de la coupure | Pendant l'attente | Reconnexion en moins de 30 s | Au-delà de 30 s |
+|---|---|---|---|
+| Attente (l'hôte se coupe) | Le salon reste ouvert jusqu'à 15 min | L'hôte retrouve son salon s'il rouvre le même lien | Un invité qui arrive voit « Ce lien n'est plus valable » |
+| Connexion | — | — | Erreur connexion (T9) |
+| Calibrage | Le calibrage de chacun est suspendu | Le joueur coupé recommence son calibrage ; celui qui l'avait réussi le garde | Match annulé : « Le match n'a pas pu commencer » ; aucun vainqueur |
+| Écran noir ou compte à rebours | Écran noir, t0 annulé | Retour à l'écran noir ; nouvelle synchronisation | Forfait du joueur coupé si au moins une manche est terminée ; sinon match annulé |
+| Manche ou décision | Chronomètre arrêté ; les fautes déjà horodatées sont gardées | Voir ci-dessous | Forfait du joueur coupé |
+| Arrêt sur image | La décision, déjà connue des deux, est gardée | Suite normale (T22 ou T23) | Forfait du joueur coupé, sauf si la manche décisive était déjà gagnée : fin de match normale |
+| Fin de match | La revanche en attente est annulée | Retour à la fin de match | Fin de session |
+
+Coupure pendant une manche, reconnexion en moins de 30 s :
+
+1. Si une faute a été annoncée avant la coupure, R5 se termine avec les déclarations échangées à la reconnexion. La décision est rendue normalement.
+2. Sinon, la manche est **interrompue** : ni gagnée ni perdue, rejouée depuis l'écran noir. Pertes et pics sont remis à zéro. **Hypothèse à valider**
+3. Garde-fou : la deuxième manche interrompue par une coupure du même joueur dans le match est perdue par ce joueur. Couper son réseau ne doit pas permettre d'échapper à un sourire. **Hypothèse à valider**
+
+#### 6.4.3 Forfait
+
+- Au-delà de 30 s, le forfait est déclaré contre le joueur que le serveur ne voit plus. **Hypothèse à valider, à confirmer (P1)**
+- Le joueur resté relié au serveur voit : « Votre adversaire n'est pas revenu. Victoire par forfait. » Le score affiché est celui du moment de la coupure.
+- Le joueur coupé, s'il revient après 30 s, voit : « Match perdu par forfait. » ; bouton « Créer un nouveau salon ».
+- Si aucun des deux appareils n'est relié au serveur, aucun vainqueur n'est désigné. Chacun voit : « Connexion perdue. Match interrompu. »
+- Un forfait avant qu'une manche soit terminée donne un match annulé, pas une victoire.
+- Pas de revanche après un forfait : le salon expire.
+
+#### 6.4.4 Page masquée ou appareil en veille
+
+- Changer d'application, verrouiller l'écran ou mettre l'appareil en veille coupe la caméra : c'est une perte de visage (R4), sans exception (5.3). Faute après 5 s au plus.
+- Si le canal tombe aussi, les règles de déconnexion s'appliquent en plus.
+- Hors manche (calibrage, écran noir, compte à rebours), un appareil dont la page est masquée n'est pas prêt : la révélation attend.
+
+### 6.5 Abandon volontaire et revanche
+
+#### 6.5.1 Abandon
+
+1. Un bouton « Abandonner » est présent en calibrage, écran noir, compte à rebours, manche et arrêt sur image.
+2. Il demande une confirmation : « Abandonner le match ? » La manche continue pendant la question : la confirmation n'arrête ni le chronomètre ni l'arbitrage.
+3. Une faute commise pendant la question compte normalement.
+4. Après confirmation, l'adversaire gagne le match. Si aucune manche n'est terminée, le match est annulé.
+5. Les deux joueurs arrivent en fin de match. La revanche reste possible.
+6. Fermer l'onglet n'est pas un abandon : c'est une coupure (6.4). « Quitter », en fin de match, prévient l'autre immédiatement.
+
+#### 6.5.2 Revanche
+
+1. En fin de match, chaque joueur voit « Revanche » et « Quitter ».
+2. La revanche démarre quand les deux l'ont acceptée, dans les 60 s qui suivent la fin du match. **Hypothèse à valider, à confirmer (P2)**
+3. Nouveau match : score à 0–0, nouveau calibrage (n° 71), même salon, même canal. **Hypothèse à valider**
+4. Le nombre de revanches n'est pas limité.
+5. Une revanche est « spontanée » (n° 40) si les deux joueurs l'acceptent sans qu'on le leur demande. Sa mesure relève de [D3](D3-plan-de-tests.md).
+
+#### 6.5.3 Salon et revanche
+
+- La source dit que le salon expire « à la fin du match » (n° 28). Pris à la lettre, cela interdit la revanche et la reconnexion.
+- Hypothèse retenue : le salon se **verrouille** dès que l'invité arrive (personne d'autre ne peut entrer). Il reste ouvert pour la reconnexion et la revanche. Il expire à la fin de la session : départ d'un joueur, forfait, ou 60 s sans revanche. **Hypothèse à valider** (Q7)
+
+### 6.6 Comportement des jauges
+
+| Moment | Jauge du joueur | Jauge de l'adversaire |
+|---|---|---|
+| Accueil, attente, connexion | Absente | Absente |
+| Calibrage | Absente ; une barre de progression par phase | Absente ; mention « prêt » ou « calibre » |
+| Écran noir, compte à rebours | Cachée : l'analyse tourne mais rien ne s'affiche (R2 point 6) | Cachée |
+| Manche | `J` en direct, à chaque image analysée (R3) | Dernière valeur reçue ; retard réseau accepté |
+| Décision | Figée | Figée |
+| Arrêt sur image | Figée ; pic affiché en cas de départage | Idem |
+| Fin de match | Absente | Absente |
+| Interrompu | Figée | Grisée, marquée « — » |
+
+Règles d'affichage :
+
+1. Les deux jauges ont la même taille et la même échelle, de 0 à 100 %.
+2. 100 % signifie « au seuil de sourire », pas « faute » : une faute demande en plus 500 ms de maintien (R2). Aucun message n'est affiché quand une jauge atteint 100 %.
+3. Un repère fixe montre le pic de la manche sur chaque jauge : le départage (R6) devient visible avant la fin. **Hypothèse à valider**
+4. Si aucune valeur de l'adversaire n'arrive depuis 1 s pendant la manche, sa jauge est grisée jusqu'à la valeur suivante. **Hypothèse à valider, à confirmer (P1)**
+5. Sur image invalide, la jauge est figée (R3 point 4) et la mention « Visage perdu » s'affiche à côté dès que la perte est comptée.
+6. Seule la valeur de `J` circule, jamais les scores bruts ni les images ([D4](D4-architecture-technique.md)).
+
+### 6.7 Réglages du déroulé
+
+Complètent le tableau de la section 3. Toutes les valeurs sont des hypothèses du lot 4.
+
+| Nom | Valeur de départ | Unité | Rôle | Validé par |
+|---|---|---|---|---|
+| Durée de vie d'un salon sans invité | 15 | min | Expiration du lien non utilisé | **Hypothèse à valider, à confirmer (P2)** |
+| Délai de connexion | 20 | s | Au-delà, erreur connexion | **Hypothèse à valider, à confirmer (P1)** |
+| Silence avant « adversaire injoignable » | 3 | s | Détection d'une coupure | **Hypothèse à valider, à confirmer (P1)** |
+| Délai de reconnexion | 30 | s | Au-delà, forfait ou match annulé | **Hypothèse à valider, à confirmer (P1)** |
+| Manches interrompues tolérées | 1 | par joueur et par match | La suivante est perdue | **Hypothèse à valider, à confirmer (P2)** |
+| Durée minimale de l'écran noir | 2 | s | Temps de la synchronisation et de la mesure de cadence | **Hypothèse à valider, à confirmer (P1)** |
+| Compte à rebours | 3 | s | 3-2-1 (source) | Source (n° 17) |
+| Durée de l'arrêt sur image | 5 | s | Temps de voir la preuve | **Hypothèse à valider, à confirmer (P2)** |
+| Délai de revanche | 60 | s | Au-delà, fin de session | **Hypothèse à valider, à confirmer (P2)** |
+| Nouvelle mesure de cadence | 5 | s | Appareil trop lent (T14) | **Hypothèse à valider, à confirmer (P0)** |
+| Absence de jauge avant grisé | 1 | s | Affichage de la jauge adverse | **Hypothèse à valider, à confirmer (P1)** |
+
+### 6.8 Règles affichées aux joueurs
+
+Texte exact, affiché à l'accueil (6.2) et accessible pendant le jeu. Les nombres suivent le tableau des réglages : si un réglage change, le texte change.
+
+> 1. Le premier qui sourit perd la manche ; deux manches gagnées remportent le match.
+> 2. Parlez, grimacez, faites rire l'autre : tout est permis.
+> 3. Gardez votre visage visible et seul à l'écran, sinon vous perdez la manche.
+> 4. Votre jauge monte quand vous êtes près de sourire, et votre adversaire la voit.
+> 5. Si personne ne craque en 60 secondes, perd celui dont la jauge est montée le plus haut.
+
+La règle 3 simplifie R4 (avertissement, puis faute) : l'avertissement explique le détail au moment où il survient (T16).
 
 ## 7. Questions ouvertes
 
@@ -294,5 +525,13 @@ Q1 à Q8 du premier brouillon ont été tranchées par Valentin le 2026-09-25 (n
 | N° | Question | Proposition |
 |---|---|---|
 | Q1 | Le seuil proportionnel crée un nouveau risque : exagérer son sourire volontaire pour relever son seuil (5.2). Plafonner le seuil à `d_max` ? | Oui, `d_max = 0,35` **À confirmer (P0)** ; en P0, relever la fréquence des seuils plafonnés |
-| Q5 | Que se passe-t-il si un appareil tombe sous 10 images/s : avant la révélation, puis pendant la manche ? | Avant : la manche ne démarre pas, message « Appareil trop lent ». Pendant : la manche continue ; la cadence est réévaluée à la révélation suivante **À confirmer (P0)** |
+| Q5 | Que se passe-t-il si un appareil tombe sous 10 images/s : avant la révélation, puis pendant la manche ? | Avant : la manche ne démarre pas, message « Appareil trop lent », nouvelle mesure toutes les 5 s. Pendant : la manche continue ; la cadence est réévaluée à la révélation suivante **À confirmer (P0)**. Appliquée comme hypothèse au lot 4 (T14) |
 | Q6 | La simulation justifie 100 ms par « erreur de synchro + une image » (24 + 67 = 91 ms). La formule retenue double `e` : `W` vaut environ 115 ms à 15 images/s et 148 ms à 10 images/s, donc le plancher de 100 ms ne sert presque jamais. Garder le multiplicateur 2, ou passer à `W = max(100 ms, e + i)` ? | Passer le multiplicateur à 1, conforme à la simulation **À confirmer (P1)** |
+| Q7 | Le salon « expire à la fin du match » (n° 28) : pris à la lettre, cela interdit la revanche et la reconnexion. Garder le salon verrouillé à deux joueurs jusqu'à la fin de la session (6.5.3) ? | Oui, hypothèse appliquée au lot 4 |
+| Q8 | Revanche : recalibrer à chaque match (n° 71 à la lettre) ou garder le calibrage du match précédent ? Recalibrer coûte au moins 5 s et un essai possible de plus avant chaque revanche, alors que la revanche est le critère de réussite (n° 50) | Recalibrer, hypothèse appliquée ; à revoir si les testeurs de P2 s'en plaignent |
+| Q9 | Coupure en pleine manche sans faute annoncée : manche rejouée, et la deuxième coupure du même joueur dans le match fait perdre la manche (6.4.2) ? | Oui, hypothèse appliquée |
+| Q10 | Forfait déclaré contre le joueur que le serveur de mise en relation ne voit plus ; aucun vainqueur si aucun des deux n'est vu (6.4.3) ? | Oui, hypothèse appliquée ; faisabilité à vérifier dans [D4](D4-architecture-technique.md) |
+| Q11 | Durées du déroulé (6.7) : 15 min, 20 s, 3 s, 30 s, 2 s, 5 s, 60 s. Les valider comme valeurs de départ ? | Oui, à mesurer en P1 et P2 |
+| Q12 | Le son reste-t-il ouvert pendant l'écran noir et le compte à rebours ? L'ouvrir garde la conversation ; le couper renforce la surprise de la révélation | Ouvert, hypothèse appliquée |
+| Q13 | Afficher un repère du pic sur chaque jauge pendant la manche (6.6) ? | Oui : rend le départage compréhensible avant la fin |
+| Q14 | Si les deux appareils calculent des décisions différentes (anomalie), la manche est rejouée (T21) ? | Oui, hypothèse appliquée ; détection dans [D4](D4-architecture-technique.md) |
