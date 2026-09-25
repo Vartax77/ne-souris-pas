@@ -5,7 +5,7 @@
 | Objet | Fixer les règles d'arbitrage et leurs réglages, assez précisément pour les coder sans interprétation |
 | Statut | Brouillon — partie arbitrage seulement (Priorité 1) ; le déroulé du match viendra au lot 4 (Priorité 2) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 18 à 26, 49, 56 à 72, 83 à 93 |
+| Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 18 à 26, 49, 56 à 72, 83 à 96 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (réglage des valeurs en P0) ; [D4](D4-architecture-technique.md) (messages, horloges) ; [D5](D5-parcours-maquettes.md) (écrans) ; [D7](D7-juridique-confidentialite.md) (image de preuve) |
 
 ## 1. Périmètre
@@ -24,7 +24,8 @@ Toutes les mesures viennent de MediaPipe Face Landmarker, exécuté sur l'appare
 | Image analysée | Une image de la caméra passée à Face Landmarker, avec son horodatage local en millisecondes |
 | Score brut `s` | Moyenne de `mouthSmileLeft` et `mouthSmileRight` (de 0 à 1). Formule de base. **À confirmer (P0)** |
 | Variante du score | `s` compté seulement si la moyenne de `cheekSquintLeft` et `cheekSquintRight` dépasse un plancher. Testée en P0 à côté de la formule de base, sans la remplacer (n° 72) |
-| Cadence d'analyse | 15 images analysées par seconde, plafonnée et identique sur les deux appareils (5.8) |
+| Cadence d'analyse | Nombre d'images analysées par seconde : 15 au plus, identique sur les deux appareils, alignée sur l'appareil le plus lent, 10 au moins (5.8) |
+| Intervalle d'image `i` | 1 s divisée par la cadence commune : 67 ms à 15 images/s, 100 ms à 10 images/s |
 | Score lissé `S` | Moyenne mobile des scores bruts des 3 dernières images valides (200 ms à 15 images/s) |
 | Neutre `n` | Médiane de `S` pendant la phase neutre du calibrage (R1) |
 | Sourire volontaire `v` | Maximum de `S` pendant la phase sourire du calibrage (R1) |
@@ -36,7 +37,7 @@ Toutes les mesures viennent de MediaPipe Face Landmarker, exécuté sur l'appare
 | Jauge `J` | `J = min(1, max(0, (S − n − m) / (d − m)))`, affichée en pourcentage |
 | t0 | Signal de révélation de la manche. Tous les temps de manche sont comptés depuis t0 |
 | Erreur d'horloge `e` | Incertitude estimée sur le décalage entre les horloges des deux appareils, mesurée avant chaque révélation ([D4](D4-architecture-technique.md)) |
-| Fenêtre effective `W` | `W = max(100 ms, 2 × e)` |
+| Fenêtre effective `W` | `W = max(100 ms, 2 × e + i)` |
 | Faute | Sourire confirmé (R2) ou deuxième perte de visage (R4). La première faute fait perdre la manche |
 | Aucun enregistrement | Aucun stockage persistant, nulle part : ni disque, ni stockage du navigateur, ni serveur. La mémoire vive est permise (n° 69) |
 
@@ -62,7 +63,8 @@ Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur 
 | Coefficient `k` | 0,4 | sans unité | Place le seuil à 40 % du chemin entre neutre et sourire volontaire | Simulation (n° 83) | Simulé, **à confirmer (P0)** |
 | Seuil maximal `d_max` | 0,35 | score | Empêche de gonfler son seuil en exagérant le sourire volontaire (5.2, Q1) | Hypothèse, provisoire | **À confirmer (P0)** |
 | Plancher de la variante `cheekSquint` | 0,20 | score | Variante du score testée en P0 | Hypothèse | **À confirmer (P0)** |
-| Cadence d'analyse | 15 | images/s | Plafond commun aux deux appareils ; une cadence différente biaise « qui a souri en premier » | Simulation (n° 86) | Simulé, **à confirmer (P0)** |
+| Cadence d'analyse maximale | 15 | images/s | Plafond commun aux deux appareils ; une cadence différente biaise « qui a souri en premier » | Simulation (n° 86) | Simulé, **à confirmer (P0)** |
+| Cadence d'analyse minimale | 10 | images/s | Plancher de la cadence commune | Valentin (n° 94) | **À confirmer (P0)** |
 | Fenêtre de lissage | 3 | images | Moyenne mobile pour `S` ; évite qu'une image bruitée compte | Simulation (n° 87) | Simulé, **à confirmer (P0)** |
 | Marge `m` | 0,05 | score | Frontière neutre / zone de doute | Hypothèse | **À confirmer (P0)** |
 | Durée de maintien | 500 | ms | Durée minimale d'un sourire confirmé | Simulation (n° 84), modifie la source | Simulé, **à confirmer (P0)** |
@@ -72,7 +74,7 @@ Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur 
 | Perte continue maximale | 5 | s | Au-delà, la perte compte comme deuxième perte | Valentin (n° 65) | **À confirmer (P0)** |
 | Pertes avant manche perdue | 2 | pertes par manche | La deuxième perte est une faute | Source | **À confirmer (P0)** |
 | Fenêtre de simultanéité minimale | 100 | ms | Plancher de `W` | Simulation (n° 88), modifie la source | Simulé, **à confirmer (P2)** |
-| Multiplicateur de l'erreur d'horloge | 2 | sans unité | `W = max(100 ms, 2 × e)` | Valentin (n° 66) | **À confirmer (P1)** |
+| Multiplicateur de l'erreur d'horloge | 2 | sans unité | `W = max(100 ms, 2 × e + i)` (n° 95) | Valentin (n° 66) | **À confirmer (P1)** |
 | Allers-retours de synchronisation | 5 | allers-retours par révélation | Estimation du décalage des horloges ; échantillons retenus au plus faible aller-retour | Simulation (n° 89) | Simulé, **à confirmer (P1)** |
 | Durée de la manche | 60 | s | Départage au-delà | Source ; inchangée par la simulation (n° 93) | Simulé, **à confirmer (P2)** |
 | Écart de pics pour égalité | 0,05 | jauge (0 à 1) | Départage : pics plus proches = manche nulle | Valentin (n° 68) | **À confirmer (P2)** |
@@ -169,7 +171,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ### 4.5 R5 — Horodatage et simultanéité
 
-1. Avant chaque révélation, les deux appareils estiment le décalage de leurs horloges et l'erreur `e` de cette estimation, par 5 allers-retours ; seuls les échantillons au plus faible aller-retour sont retenus (n° 89). Ils fixent ensemble la fenêtre effective `W = max(100 ms, 2 × e)`, identique sur les deux appareils (n° 66, n° 88). Le détail des messages relève de [D4](D4-architecture-technique.md). **À confirmer (P1)**
+1. Avant chaque révélation, les deux appareils estiment le décalage de leurs horloges et l'erreur `e` de cette estimation, par 5 allers-retours ; seuls les échantillons au plus faible aller-retour sont retenus (n° 89). Ils mesurent aussi la cadence de chacun et fixent la cadence commune (5.8). Ils en déduisent la fenêtre effective `W = max(100 ms, 2 × e + i)`, identique sur les deux appareils (n° 66, n° 88, n° 95). Le détail des messages relève de [D4](D4-architecture-technique.md). **À confirmer (P1)**
 2. Chaque faute est horodatée localement, en temps de manche (ms depuis t0 sur cet appareil, corrigé du décalage estimé).
 3. La première faute d'un appareil, d'horodatage T, est annoncée à l'autre appareil.
 4. Chaque appareil déclare ensuite son statut jusqu'à T + W :
@@ -263,17 +265,18 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 ### 5.6 Synchronisation des horloges — décidé (n° 66)
 
 - La latence réseau (souvent 50 à 150 ms, asymétrique) est du même ordre que la fenêtre.
-- Décision : 5 allers-retours avant chaque révélation, échantillons au plus faible aller-retour, `W = max(100 ms, 2 × e)` (n° 66, n° 88, n° 89). **À confirmer (P1)**
-- Limite : à 15 images/s, chaque horodatage n'est connu qu'à un intervalle d'image près (67 ms). Deux fautes mesurées à 100 ms d'écart peuvent être séparées en réalité de 33 à 167 ms. Voir Q3.
+- Décision : 5 allers-retours avant chaque révélation, échantillons au plus faible aller-retour, `W = max(100 ms, 2 × e + i)` (n° 66, n° 88, n° 89, n° 95). **À confirmer (P1)**
+- Chaque horodatage n'est connu qu'à un intervalle d'image près (67 ms à 15 images/s). L'intervalle `i` est donc ajouté à la fenêtre : on ne désigne pas de perdant sur un écart que la cadence ne permet pas de mesurer (n° 95).
 
 ### 5.7 Deux visages dans le champ — décidé (n° 67)
 
 - MediaPipe ne reconnaît pas les personnes. Deux visages = image invalide : c'est plus simple et cela empêche de se faire remplacer.
 
-### 5.8 Cadence d'analyse commune — simulé (n° 86)
+### 5.8 Cadence d'analyse commune — décidé (n° 86, n° 94)
 
 - Un appareil qui analyse plus d'images par seconde confirme une série plus tôt et la date plus finement : les cadences différentes biaisent « qui a souri en premier ».
-- Décision : cadence plafonnée à 15 images/s, identique sur les deux appareils. Les images en surplus ne sont pas analysées. Voir Q2 pour un appareil qui ne tient pas 15 images/s.
+- Décision : cadence plafonnée à 15 images/s, identique sur les deux appareils. Les images en surplus ne sont pas analysées.
+- Avant chaque révélation, chaque appareil mesure sa cadence. Les deux s'alignent sur la plus basse, avec un plancher de 10 images/s (n° 94). Le cas d'un appareil sous 10 images/s reste ouvert (Q5).
 
 ### 5.9 Arbitre sévère — dette produit (n° 84)
 
@@ -286,11 +289,10 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ## 7. Questions ouvertes
 
-Q1 à Q8 du premier brouillon ont été tranchées par Valentin le 2026-09-25 (n° 64 à 71).
+Q1 à Q8 du premier brouillon ont été tranchées par Valentin le 2026-09-25 (n° 64 à 71). Q2 à Q4 des valeurs simulées l'ont été le même jour (n° 94 à 96).
 
 | N° | Question | Proposition |
 |---|---|---|
 | Q1 | Le seuil proportionnel crée un nouveau risque : exagérer son sourire volontaire pour relever son seuil (5.2). Plafonner le seuil à `d_max` ? | Oui, `d_max = 0,35` **À confirmer (P0)** ; en P0, relever la fréquence des seuils plafonnés |
-| Q2 | Si un appareil ne tient pas 15 images/s (le critère P0 n'en exige que 10, n° 37), que fait l'autre ? | Les deux appareils s'alignent sur la cadence la plus basse, mesurée avant chaque révélation **À confirmer (P0)** |
-| Q3 | À 15 images/s, l'erreur d'horodatage d'un appareil atteint 67 ms. Ajouter l'intervalle d'image à la fenêtre : `W = max(100 ms, 2 × e + intervalle d'image)` ? | Oui : on évite de désigner un perdant sur un écart que la cadence ne permet pas de mesurer **À confirmer (P2)** |
-| Q4 | [D3](D3-plan-de-tests.md) utilise encore 400 ms (pic soutenu, §1.5.1) et une fenêtre de lissage en ms (§1.5, étape 9). Les aligner sur 500 ms et 3 images ? | Oui, au prochain lot qui touche D3 |
+| Q5 | Que se passe-t-il si un appareil tombe sous 10 images/s : avant la révélation, puis pendant la manche ? | Avant : la manche ne démarre pas, message « Appareil trop lent ». Pendant : la manche continue ; la cadence est réévaluée à la révélation suivante **À confirmer (P0)** |
+| Q6 | La simulation justifie 100 ms par « erreur de synchro + une image » (24 + 67 = 91 ms). La formule retenue double `e` : `W` vaut environ 115 ms à 15 images/s et 148 ms à 10 images/s, donc le plancher de 100 ms ne sert presque jamais. Garder le multiplicateur 2, ou passer à `W = max(100 ms, e + i)` ? | Passer le multiplicateur à 1, conforme à la simulation **À confirmer (P1)** |

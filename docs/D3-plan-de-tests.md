@@ -5,7 +5,7 @@
 | Objet | Dire, pour chaque prototype, quel résultat valide ou invalide chaque risque, et quelle décision en découle |
 | Statut | Brouillon — partie prototype 0 seulement (Priorité 1) ; prototypes 1 et 2 au lot 7 (Priorité 2) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 37, 51, 52, 64 à 82 |
+| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 37, 51, 52, 64 à 96 |
 | Utilisé par | [D2](D2-regles-jeu-arbitrage.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (lot du prototype 0) |
 
 ## 1. Prototype 0 — détection seule, sans réseau
@@ -276,7 +276,7 @@ Réalisable dans un tableur, à partir des grilles 1.4.3 à 1.4.5. Le groupe de 
 
 #### 1.5.1 Pic soutenu
 
-- `P` = la plus haute valeur de `S − n` que le testeur **garde pendant au moins 400 ms** dans une séquence.
+- `P` = la plus haute valeur de `S − n` que le testeur **garde pendant au moins 500 ms** dans une séquence (durée de maintien, n° 84).
 - Comme le seuil est `d = k × (v − n)`, une faute survient quand `P ≥ k × (v − n)`.
 - Le calcul ignore l'image tolérée et le minimum de 3 images de R2 : c'est une approximation. L'étape 10 la vérifie.
 
@@ -303,7 +303,7 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 | 6 | Luminance minimale | B1 à B3 | La plus basse luminance où les conditions restent sans faux positif et où les francs sont détectés |
 | 7 | Lacet, tangage, largeur minimale | A7 | Juste sous le point de décrochage le plus bas observé |
 | 8 | Délai de visage perdu, perte continue maximale | A1 à A6 | Aucune perte comptée en jeu normal. Sinon, allonger le délai |
-| 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 300, 500, 600 ms et 100, 300 ms, puis recalculer 1.5.2 |
+| 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 400 et 600 ms de maintien, et avec 2 et 4 images de lissage, puis recalculer 1.5.2 |
 | 10 | Vérification | Journal du groupe de validation | Rejouer R1 à R4 **en entier** avec les valeurs retenues, sans les retoucher. Remplir la colonne « Validation » de 1.4.9 |
 
 Les pourcentages et marges de ce tableau sont des règles de méthode, pas des réglages du jeu : ils ne passent pas dans [D2](D2-regles-jeu-arbitrage.md).
