@@ -10,7 +10,7 @@ Source de vérité : [cadrage des lots 1, 2 et 3](../sources/cadrage-lots-1-2-3.
 | D4 | [Architecture technique](D4-architecture-technique.md) | Priorité 2 | Brouillon | 2026-09-25 |
 | D5 | [Parcours utilisateur et maquettes d'écrans](D5-parcours-maquettes.md) | Priorité 2 | Brouillon | 2026-09-25 |
 | D6 | [Découpage en lots de développement](D6-lots-developpement.md) | Priorité 2 | Brouillon | 2026-09-25 |
-| D7 | [Documents juridiques et confidentialité](D7-juridique-confidentialite.md) | Priorité 3 | Non commencé | — |
+| D7 | [Documents juridiques et confidentialité](D7-juridique-confidentialite.md) | Priorité 3 | Brouillon (à faire relire) | 2026-09-25 |
 | D8 | [Journal des décisions](D8-journal-decisions.md) | Continue | Brouillon | 2026-09-25 |
 
 Priorité 1 : avant de coder le prototype 0. Priorité 2 : avant les prototypes 1 et 2. Priorité 3 : avant que le lien circule hors du cercle proche. P0, P1, P2 désignent uniquement les prototypes.

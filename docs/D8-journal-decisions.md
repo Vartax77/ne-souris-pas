@@ -282,6 +282,24 @@ Décisions prises au lot 7 sans arbitrage de Valentin. Les **hypothèses à vali
 | 146 | 2026-09-25 | Critères P2 : V1 (revanche, critère de réussite), E1 (ennui), A1 (aucune contestation fondée), A2 (au plus 10 % de manches nulles, aucune divergence), A3 (triche par la main dans 2 matchs sur 10 au plus), T1 (preuve reçue en 2 s). Seuils de A2 et A3 : **Hypothèse à valider** (D3 Q8) | Garde-fous mesurables autour du critère de réussite (n° 50) | — | [D3](D3-plan-de-tests.md) §3.7 |
 | 147 | 2026-09-25 | Suites de P2 : v1 réussie ; jeu à retravailler (nouvelle série de 10 matchs) ; arbitrage à retravailler (5 matchs de contrôle) ; technique à corriger (3 matchs de contrôle). **Hypothèse à valider** | Borner les tests de contrôle | Refaire 10 matchs dans tous les cas | [D3](D3-plan-de-tests.md) §3.7 |
 
-## 15. Questions ouvertes
+## 15. Lot documentaire 8 — D7, juridique et confidentialité
+
+Décisions prises au lot 8 sans arbitrage de Valentin ni relecture juridique. Les **hypothèses à valider** figurent dans [D7](D7-juridique-confidentialite.md) §8 et §9.
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 148 | 2026-09-25 | L'éditeur se considère responsable des traitements d'adresses IP (mise en relation, relais, hébergement). L'analyse locale du visage, les flux pair à pair et l'image de preuve ne sont pas retenus comme traitements de l'éditeur, par application de la recommandation CNIL « applications mobiles ». La politique décrit quand même la partie locale. **Hypothèse à valider** (D7 V2) | Adresse IP = donnée personnelle ; traitement local, cloisonné, à l'initiative du joueur | Se déclarer responsable de tout, y compris du flux vidéo | [D7](D7-juridique-confidentialite.md) §2.1 |
+| 149 | 2026-09-25 | Vocabulaire imposé : « détection du sourire », jamais « détection des émotions » ni « de la joie ». | Rester hors de la biométrie (CEPD 3/2019) et de la reconnaissance des émotions (AI Act, considérant 18) | — | [D7](D7-juridique-confidentialite.md) §2.2 |
+| 150 | 2026-09-25 | Bases légales : exécution du service pour la mise en relation et le relais ; intérêt légitime pour les journaux de l'hébergement. | Service impossible sans adresse IP ; le consentement ne serait pas libre | Consentement | [D7](D7-juridique-confidentialite.md) §2.3 |
+| 151 | 2026-09-25 | Identité de l'éditeur publiée dans les mentions légales et la politique de confidentialité, plutôt que l'anonymat permis par la LCEN. **Hypothèse à valider** (D7 V1, Q4) | Le RGPD impose l'identité du responsable ; un hébergeur gratuit ne recueille pas forcément l'identité de l'éditeur | Anonymat LCEN | [D7](D7-juridique-confidentialite.md) §2.6 |
+| 152 | 2026-09-25 | Aucun cookie, traceur ni stockage dans le navigateur, donc aucun bandeau de consentement ; l'accès caméra et micro est exempté de consentement (service expressément demandé). Confirme n° 111. | Article 82 de la loi Informatique et Libertés, exemption du service demandé | Bandeau de consentement | [D7](D7-juridique-confidentialite.md) §2.4 |
+| 153 | 2026-09-25 | Registre simplifié tenu (mise en relation et relais, hébergement, tests), même si l'exemption pouvait s'appliquer. | Traitement non occasionnel ; coût faible | Aucun registre | [D7](D7-juridique-confidentialite.md) §6 |
+| 154 | 2026-09-25 | Pas d'analyse d'impact en v1 entre amis ; analyse d'impact préalable au mode inconnus. Précise n° 46. | Détection locale absente de la liste CNIL ; risques propres aux rencontres entre inconnus | AIPD dès la v1 | [D7](D7-juridique-confidentialite.md) §2.5, §8.2 |
+| 155 | 2026-09-25 | Conditions d'utilisation : 18 ans minimum déclarés ; neuf comportements interdits, dont filmer ou diffuser l'adversaire sans son accord et jouer avec un mineur ; lien vers Pharos. Précise n° 5 et n° 29. | L'application ne peut pas empêcher une capture d'écran (n° 132) | — | [D7](D7-juridique-confidentialite.md) §5 |
+| 156 | 2026-09-25 | Une adresse électronique de contact unique, pour les droits, les signalements et, le cas échéant, le point de contact du DSA. | Option prudente, que le DSA s'applique ou non | Aucun contact | [D7](D7-juridique-confidentialite.md) §2.8, §3 |
+| 157 | 2026-09-25 | Les journaux de test (P0 et P2) sont inscrits au registre comme traitement de l'éditeur, sur la base de l'accord oral des testeurs. Précise n° 73, n° 78 et n° 138. **Hypothèse à valider** (D7 V10) | Données pseudonymes, mais données personnelles | Les laisser hors registre | [D7](D7-juridique-confidentialite.md) §6 |
+| 158 | 2026-09-25 | Relecture par un professionnel proposée dès l'ouverture au-delà des proches (11 points), puis avant le mode inconnus (8 points). Étend n° 47. **Hypothèse à valider** (D7 Q1) | Plusieurs points non tranchés par les sources officielles | Relecture seulement avant le mode inconnus | [D7](D7-juridique-confidentialite.md) §8 |
+
+## 16. Questions ouvertes
 
 Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 et des valeurs simulées sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.
