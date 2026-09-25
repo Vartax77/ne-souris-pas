@@ -36,6 +36,13 @@
       "input_tokens": 0,
       "output_tokens": 0,
       "files": 9
+    },
+    {
+      "date": "2026-09-25T20:00:14.128523+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 10,
+      "note": "subagent tokens ~1.1M total (10 extraction agents, first coarse pass discarded)"
     }
   ],
   "total_input_tokens": 236982,
