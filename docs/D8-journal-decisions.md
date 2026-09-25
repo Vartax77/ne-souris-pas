@@ -158,6 +158,18 @@ Réponses de Valentin du 2026-09-25 aux questions Q1 à Q8 du premier brouillon 
 | 71 | 2026-09-25 | Calibrage une fois par match. Confirme n° 18. | Conforme à la source | Calibrage avant chaque manche | Arbitrage de Valentin, lot 2 (D2 Q8) |
 | 72 | 2026-09-25 | Variante du score avec `cheekSquint` testée en P0 à côté de la formule de base (n° 56), sans la remplacer. **À confirmer (P0)** | Réduire les faux positifs dus à la parole | Remplacer d'emblée la formule de base | Arbitrage de Valentin, lot 2 |
 
-## 8. Questions ouvertes
+## 8. Lot documentaire 3 — D3, partie prototype 0
 
-Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 sont dans [D2](D2-regles-jeu-arbitrage.md) §7.
+Précisions de méthode pour le prototype 0. Elles complètent les n° 36, 37, 51 et 52 sans les contredire. Les propositions qui ajoutent un critère restent dans les questions ouvertes de [D3](D3-plan-de-tests.md) §4 jusqu'à l'accord de Valentin.
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 73 | 2026-09-25 | Le prototype 0 tient un journal numérique image par image (scores, angles, luminance, états), sans image ni son ni nom. Il reste sur l'ordinateur de Valentin et est supprimé à la clôture du prototype 0. Précise n° 36 ; compatible avec n° 26 et n° 69, qui portent sur le jeu. | Rejouer l'arbitrage avec d'autres valeurs sans refaire les sessions | Enregistrer la vidéo des sessions pour l'annoter (contraire à l'esprit de n° 26) ; noter à la main sans journal (réglage impossible) | [D3](D3-plan-de-tests.md) §1.4.1 |
+| 74 | 2026-09-25 | Faux positif = sourire confirmé que le testeur juge « pas un sourire » sur l'image de preuve et que l'opérateur n'a pas vu. « Conditions normales » rendues mesurables (calibrage réussi, luminance, largeur, angles). Toute condition acceptée par le calibrage compte comme jouable et doit respecter le critère. Précise n° 36 et n° 51. **À confirmer (P0)** | Une vérité terrain sans vidéo ; un calibrage qui accepte la pénombre engage l'arbitrage en pénombre | Vérité terrain par l'opérateur seul | [D3](D3-plan-de-tests.md) §1.2.2, §1.3.4 |
+| 75 | 2026-09-25 | Chauffe excessive = une fenêtre de 10 s sous 10 images/s pendant les 5 premières minutes, ou ralentissement visible, ou appareil brûlant au toucher. Précise n° 37 et n° 51. **À confirmer (P0)** | Rendre le critère vérifiable dans le journal | Moyenne sur 5 min (masque les chutes) | [D3](D3-plan-de-tests.md) §1.3.8 |
+| 76 | 2026-09-25 | Méthode de réglage : pic soutenu par séquence, intervalle de `k` commun à tous les testeurs, `k` au milieu de l'intervalle ; groupe de réglage (2/3 des testeurs) et groupe de validation (1/3) ; exposition cible de 60 min de non-sourire en conditions normales. | Réglage faisable au tableur ; éviter un seuil ajusté aux seuls testeurs qui ont servi à le régler | Essais et erreurs en direct ; réglage sur tous les testeurs sans validation | [D3](D3-plan-de-tests.md) §1.2.4, §1.5 |
+| 77 | 2026-09-25 | Critères de décision du prototype 0 : go, ajustement, abandon de l'arbitrage tel que défini, avec l'effet de chacun sur [D2](D2-regles-jeu-arbitrage.md). En cas d'abandon, les options (arbitrage contestable, sourire franc seulement, restriction des appareils, arrêt) sont soumises à Valentin. Précise n° 36, n° 37 et n° 52. | La source ne prévoyait que « revoir le seuil » | Aucun cas d'abandon | [D3](D3-plan-de-tests.md) §1.6 |
+
+## 9. Questions ouvertes
+
+Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.
