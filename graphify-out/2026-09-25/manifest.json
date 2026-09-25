@@ -1,0 +1,32 @@
+{
+  "CLAUDE.md": {
+    "mtime": 1790342937.4129157,
+    "seen": 1790343258.0508513,
+    "ast_hash": "aca02c7c9294c7ebaff2da25c5978191",
+    "semantic_hash": "aca02c7c9294c7ebaff2da25c5978191"
+  },
+  "sources/cadrage-lots-1-2-3.md": {
+    "mtime": 1790342901.7525232,
+    "seen": 1790343258.050858,
+    "ast_hash": "5bb737442c59607401c13b4ae190cdb8",
+    "semantic_hash": "5bb737442c59607401c13b4ae190cdb8"
+  },
+  "docs/D1-note-de-cadrage.md": {
+    "mtime": 1790344168.0602298,
+    "seen": 1790344170.13131,
+    "ast_hash": "5df6a2b8196bee85ed8e1ac7b55b7fa8",
+    "semantic_hash": ""
+  },
+  "docs/D8-journal-decisions.md": {
+    "mtime": 1790344132.51751,
+    "seen": 1790344170.1313157,
+    "ast_hash": "ec81b12552ffb68116229bbe85eef909",
+    "semantic_hash": ""
+  },
+  "docs/README.md": {
+    "mtime": 1790344159.0532403,
+    "seen": 1790344170.1313186,
+    "ast_hash": "858ce0df39519a119297667c6601e61a",
+    "semantic_hash": ""
+  }
+}
