@@ -14,3 +14,5 @@ Source de vérité : [cadrage des lots 1, 2 et 3](../sources/cadrage-lots-1-2-3.
 | D8 | [Journal des décisions](D8-journal-decisions.md) | Continue | Brouillon | 2026-09-25 |
 
 Priorité 1 : avant de coder le prototype 0. Priorité 2 : avant les prototypes 1 et 2. Priorité 3 : avant que le lien circule hors du cercle proche. P0, P1, P2 désignent uniquement les prototypes.
+
+Rapport de la session du 2026-09-25 (lots 4 à 9, contrôle de cohérence, questions ouvertes) : [RAPPORT-SESSION](RAPPORT-SESSION.md).
