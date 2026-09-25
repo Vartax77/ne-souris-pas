@@ -57,22 +57,35 @@
 
 ## 6. À quoi saura-t-on que la v1 a réussi
 
-Protocoles détaillés : [D3](D3-plan-de-tests.md).
+Protocoles détaillés : [D3](D3-plan-de-tests.md). Décisions : [D8](D8-journal-decisions.md), n° 36 à 42 et 50 à 54.
+
+### 6.1 Critère de réussite
 
 | Prototype | Critère | Si échec |
 |---|---|---|
-| P0 — détection seule | Aucun faux positif en conditions normales sur 5 à 10 visages | Revoir le seuil |
-| P0 — performance | Au moins 10 images analysées par seconde, sans chauffe excessive en 5 minutes, sur l'appareil le plus ancien | Non défini (Q3) |
-| P1 — appel vidéo seul | 100 % des connexions aboutissent avec le relais | Non défini (Q3) |
-| P2 — duel complet, 10 matchs | Revanche spontanée dans au moins la moitié des matchs | Non défini (Q3) |
+| P2 — duel complet, 10 matchs | Revanche spontanée dans au moins la moitié des matchs | Réintroduire des provocations |
+
+### 6.2 Prérequis et garde-fous
+
+Ils conditionnent le passage au prototype suivant, pas la réussite de la v1.
+
+| Prototype | Critère | Si échec |
+|---|---|---|
+| P0 — détection seule | Aucun faux positif en conditions normales, sur 5 à 10 visages | Revoir le seuil |
+| P0 — performance | Au moins 10 images analysées par seconde, sans chauffe excessive en 5 minutes, sur l'appareil le plus ancien | Réduire la fréquence d'analyse ou la résolution, puis retester |
+| P1 — appel vidéo seul | 100 % des connexions aboutissent avec le relais | Changer de service de relais |
 | P2 — ennui | Au plus la moitié des manches vont au bout des 60 s | Réintroduire des provocations |
 
-Tous les seuils ci-dessus sont des décisions de cadrage, pas encore des mesures.
+### 6.3 Définitions provisoires
+
+À préciser dans [D3](D3-plan-de-tests.md).
+
+| Terme | Définition | Statut |
+|---|---|---|
+| Conditions normales | Intérieur éclairé, visage de face, à moins d'un mètre | **À confirmer (P0)** |
+| Chauffe excessive | L'appareil ralentit visiblement, ou la détection passe sous 10 images par seconde avant 5 minutes | **À confirmer (P0)** |
+| 100 % des connexions | Sur 10 essais par combinaison de réseaux | **À confirmer (P1)** |
 
 ## 7. Questions ouvertes
 
-| N° | Question |
-|---|---|
-| Q1 | La v1 est-elle réussie si tous les critères de la section 6 sont atteints, ou le critère de revanche (P2) suffit-il ? |
-| Q2 | Que signifient « conditions normales » (P0), « chauffe excessive » (P0) et « 100 % des connexions » (P1 : sur combien d'essais) ? |
-| Q3 | Quelle décision prendre si P0-performance, P1 ou le critère de revanche échouent ? |
+Aucune à ce jour.
