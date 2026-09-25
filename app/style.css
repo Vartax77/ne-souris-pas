@@ -27,7 +27,8 @@ h1 {
 video {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  max-height: 55vh;
+  object-fit: contain;
   background: #000;
   transform: scaleX(-1);
   border-radius: .5rem;
@@ -52,4 +53,13 @@ button {
   color: #fb7;
   font-size: .85rem;
   word-break: break-all;
+}
+
+#mesures {
+  background: #1b1b1b;
+  padding: .75rem;
+  border-radius: .5rem;
+  font-size: .8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
 }

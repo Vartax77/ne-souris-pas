@@ -202,7 +202,7 @@ Le temps écoulé depuis t0 est mesuré sur l'horloge monotone de chaque apparei
 | Cadence commune sous 10 images/s | La manche ne démarre pas ([D2](D2-regles-jeu-arbitrage.md) T14, n° 107) |
 | Pendant la manche | Cadence inchangée. Si un appareil ne tient plus la cadence, il analyse moins d'images ; la cadence est revue à la manche suivante ([D2](D2-regles-jeu-arbitrage.md) §5.8, n° 184) |
 
-Plafonnement : une image n'est analysée que si au moins `1000 / cadence` ms se sont écoulées depuis la précédente. Les images de la caméra en surplus sont ignorées par la détection, pas par la vidéo envoyée.
+Plafonnement (n° 230) : chaque image de la caméra est examinée à son arrivée. Elle n'est analysée que si deux conditions sont remplies. D'abord, son échéance est atteinte : l'échéance avance de `1000 / cadence` ms à chaque image analysée, avec une marge de 8 ms pour l'irrégularité de la caméra. Ensuite, moins de `cadence` images ont été analysées dans la dernière seconde. La cadence ne dépasse donc jamais le plafond. Contrepartie : avec une caméra irrégulière, elle peut descendre jusqu'à 1 image/s sous le plafond (14 à 15 au lieu de 15). Les images de la caméra en surplus sont ignorées par la détection, pas par la vidéo envoyée.
 
 ## 6. Source de vérité de l'arbitrage
 

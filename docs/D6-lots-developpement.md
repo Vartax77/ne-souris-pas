@@ -90,9 +90,9 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Face Landmarker avec blendshapes, matrice de transformation, jusqu'à 2 visages ([D2](D2-regles-jeu-arbitrage.md) §2) ; calcul du lacet, du tangage, de la largeur, de la luminance ; cadence plafonnée à 15 images/s ; mesure de la cadence par fenêtre de 10 s ; affichage du mode de calcul (processeur graphique ou central, [D4](D4-architecture-technique.md) RT1) |
+| Tâches | Face Landmarker avec blendshapes, matrice de transformation, jusqu'à 2 visages ([D2](D2-regles-jeu-arbitrage.md) §2) ; calcul du lacet, du tangage, de la largeur, de la luminance ; cadence plafonnée à 15 images/s ; mesure de la cadence par fenêtre de 10 s ; affichage du mode de calcul (processeur graphique ou central, [D4](D4-architecture-technique.md) RT1). Fichiers : `app/js/detection.js`, `mesures.js`, `cadence.js` ; vérification automatique `tests/mesures.test.mjs` (n° 230 à 234) |
 | Modules | Détection |
-| Terminé quand | La cadence mesurée s'affiche et ne dépasse jamais 15 images/s ; les valeurs brutes s'affichent en direct |
+| Terminé quand | Sur les trois appareils : la cadence mesurée sur 10 s s'affiche et ne dépasse jamais 15 images/s ; le mode de calcul s'affiche ; les valeurs brutes s'affichent en direct et réagissent aux mouvements (tête tournée, penchée, recul, lumière, sourire, visage caché, deuxième visage) ; la détection fonctionne avec les statistiques de MediaPipe bloquées (n° 225) |
 | Test | [D3](D3-plan-de-tests.md) §1.3.8, critère G3 |
 | Dépend de | L0.1 |
 
