@@ -3,10 +3,10 @@
 | Champ | Valeur |
 |---|---|
 | Objet | Dire, pour chaque prototype, quel résultat valide ou invalide chaque risque, et quelle décision en découle |
-| Statut | Brouillon — partie prototype 0 seulement (Priorité 1) ; prototypes 1 et 2 au lot 7 (Priorité 2) |
+| Statut | Brouillon — complet : prototype 0 (lot 3), prototypes 1 et 2 (lot 7) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 37, 51, 52, 64 à 96 |
-| Utilisé par | [D2](D2-regles-jeu-arbitrage.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (lot du prototype 0) |
+| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [D4](D4-architecture-technique.md) ; [D6](D6-lots-developpement.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 42, 50 à 54, 64 à 96, 97 à 125, 134 à 147 |
+| Utilisé par | [D2](D2-regles-jeu-arbitrage.md) et [D4](D4-architecture-technique.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (test associé à chaque lot) |
 
 ## 1. Prototype 0 — détection seule, sans réseau
 
@@ -344,18 +344,357 @@ Options en cas d'abandon, **non décidées** :
 
 ## 2. Prototype 1 — appel vidéo seul
 
-*Lot 7 — à rédiger.*
+### 2.1 Objectif et risques testés
+
+Objectif : prouver que deux appareils sur des réseaux différents se connectent **toujours**, relais compris (n° 38), puis mesurer ce dont l'arbitrage dépend : horloges, coupures, charge réelle. Lots testés : L1.1 à L1.5 de [D6](D6-lots-developpement.md).
+
+| Risque | Critère | Référence |
+|---|---|---|
+| Connexion impossible sur certains réseaux | C1 : 100 % des connexions aboutissent avec le relais | n° 38, n° 51 ; [D4](D4-architecture-technique.md) RT3 |
+| Connexion trop lente | C2 : établissement en 20 s au plus | [D2](D2-regles-jeu-arbitrage.md) §6.7 |
+| Horloges mal synchronisées | C3 : erreur réelle couverte par l'erreur estimée `e` | n° 89, n° 95, n° 114 ; [D2](D2-regles-jeu-arbitrage.md) Q6 ; [D4](D4-architecture-technique.md) Q1 |
+| Coupure mal gérée | C4 : reconnexion, présence et forfait conformes à [D2](D2-regles-jeu-arbitrage.md) §6.4 | n° 99 à 102 |
+| Performance avec un vrai appel | C5 : critère G3 (§1.6.1) tenu avec un appel réel | n° 81 ; [D4](D4-architecture-technique.md) RT2 |
+| Vidéo ou son muets sur iOS | C6 : image et son des deux côtés dans tous les essais | [D4](D4-architecture-technique.md) RT8 |
+
+Valeurs **À confirmer (P1)** relevées par ce prototype : multiplicateur de l'erreur d'horloge et allers-retours ([D2](D2-regles-jeu-arbitrage.md) §3) ; délai de connexion, silence de 3 s, reconnexion de 30 s, écran noir de 2 s, grisé de la jauge ([D2](D2-regles-jeu-arbitrage.md) §6.7) ; calcul de `e`, chargement, retard vidéo, résolution et codec ([D4](D4-architecture-technique.md) §5.1, §7.4).
+
+### 2.2 Réseaux, appareils, volume
+
+#### 2.2.1 Combinaisons de réseaux
+
+| Code | Appareil A | Appareil B | Lieu | Personnes |
+|---|---|---|---|---|
+| R1 | Wi-Fi, box de l'opérateur X | Wi-Fi, box d'un autre opérateur | Deux domiciles | Valentin + un proche |
+| R2 | Wi-Fi | 4G ou 5G | Même lieu | Valentin seul |
+| R3 | 4G | 4G, même opérateur | Même lieu | Valentin seul |
+| R4 | 4G | 4G, autre opérateur | Même lieu | Valentin + un proche (deuxième carte SIM) |
+| R5 | Wi-Fi restrictif (public, entreprise ou invité) | 4G | Selon disponibilité | Valentin seul |
+| R6 | Wi-Fi | Même Wi-Fi | Même lieu | Valentin seul (témoin) |
+| RF | Relais forcé : tout passe par le relais, quelle que soit la combinaison | — | Même lieu | Valentin seul |
+
+- R5 n'est testé que si un tel réseau est disponible (Q2). Sinon, RF en tient lieu : RF prouve que le relais fonctionne, y compris en TLS sur le port 443.
+- Dans chaque combinaison, au moins 3 essais sur 10 avec un iPhone sous Safari, et au moins 3 avec un ordinateur.
+
+#### 2.2.2 Volume
+
+| Élément | Valeur |
+|---|---|
+| Essais de connexion | 10 par combinaison (n° 51) : 70 essais avec R5 |
+| Mesure des horloges | 20 flashs par combinaison, sur R2, R3 et R6 |
+| Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android |
+| Charge réelle | 10 min par appareil, sur l'appareil le plus ancien et sur l'iPhone |
+| Chargement | 5 premiers chargements en 4G, cache vidé |
+| Durée totale estimée | Deux séances de 3 heures |
+
+### 2.3 Protocole
+
+#### 2.3.1 Essais de connexion
+
+1. L'hôte crée un salon et envoie le lien par messagerie.
+2. L'invité ouvre le lien, coche la case, rejoint, autorise.
+3. Chronomètre : de l'appui sur « Rejoindre le duel » jusqu'à l'image et au son de l'adversaire affichés **des deux côtés**.
+4. Réussite si l'appel est établi en 20 s au plus, avec image et son des deux côtés. Sinon, échec : noter le message affiché.
+5. Garder l'appel 60 s ; noter les gels d'image.
+6. Quitter des deux côtés. Essai suivant : nouveau salon.
+
+#### 2.3.2 Relais forcé (RF)
+
+Comme 2.3.1, avec l'option « relais forcé » de L1.2. Sur 10 essais : 4 avec le relais en UDP, 3 en TCP, 3 en TLS sur le port 443.
+
+#### 2.3.3 Mesure des horloges par flash commun
+
+Principe : les deux appareils filment le même événement ; l'écart entre leurs horodatages, une fois convertis dans l'horloge de l'hôte, mesure l'erreur réelle de synchronisation.
+
+1. Placer les deux appareils côte à côte, caméras tournées vers un troisième écran.
+2. Le troisième écran alterne noir et blanc toutes les 2 s (page de test de L1.4).
+3. Chaque appareil repère l'image où la luminance moyenne saute, et note son horodatage.
+4. L'hôte convertit l'horodatage de l'invité avec le décalage θ, et calcule l'écart pour chaque flash.
+5. À chaque flash, noter aussi `e` et `W` de la dernière synchronisation.
+6. 20 flashs par combinaison. Resynchroniser (5 allers-retours) tous les 5 flashs, comme avant chaque manche.
+
+L'écart mesuré contient l'erreur de synchronisation et au plus un intervalle d'image par appareil. On le compare donc à `e + i`.
+
+Même montage pour le **retard vidéo** : l'appareil B compare l'instant où il voit le flash par sa propre caméra et l'instant où il le voit dans la vidéo reçue de A. Les deux instants sont sur l'horloge de B.
+
+#### 2.3.4 Coupures
+
+| Scénario | Action | Attendu ([D2](D2-regles-jeu-arbitrage.md) §6.4) |
+|---|---|---|
+| K1 | Couper le Wi-Fi de A pendant 10 s, puis le rétablir | B affiche « Votre adversaire a perdu la connexion » après environ 3 s ; reprise |
+| K2 | Couper le Wi-Fi de A pendant 40 s | Après 30 s, le serveur désigne A absent ; B voit la victoire par forfait |
+| K3 | A passe dans une autre application 5 s, puis revient | La caméra de A est coupée ; l'appel reprend |
+| K4 | A passe dans une autre application 40 s | Selon l'état du canal : reprise ou forfait. Noter lequel |
+| K5 | A verrouille son écran 10 s | Idem K3. Noter si la caméra revient seule |
+| K6 | A ferme l'onglet | B voit « adversaire injoignable », puis le forfait |
+| K7 | A et B coupent leur réseau en même temps pendant 40 s | Aucun vainqueur : « Connexion perdue. Match interrompu. » |
+
+Mesures : délai de détection, reconnexion réussie ou non, réponse du serveur de présence, message affiché.
+
+#### 2.3.5 Charge réelle
+
+1. Appel établi, détection active sur les deux appareils (L1.5), visage dans le champ.
+2. 10 min. Cadence relevée par fenêtre de 10 s ; batterie au début et à la fin ; toucher à 5 et 10 min.
+3. Mêmes règles que la session performance de P0 (§1.3.8).
+
+#### 2.3.6 Chargement
+
+Cache du navigateur vidé, 4G, lien ouvert : chronométrer l'accueil affiché, puis le modèle prêt (bouton « Commencer » actif au calibrage). 5 essais.
+
+### 2.4 Journal P1
+
+Une ligne par essai de connexion. Aucune image, aucun son.
+
+| Colonne | Contenu |
+|---|---|
+| `essai` | Numéro |
+| `combi` | R1 à R6, RF |
+| `app_a`, `app_b` | Appareil et navigateur |
+| `reussi` | 1 ou 0 ; message si échec |
+| `t_etab` | Temps d'établissement, s |
+| `candidat` | Direct local, direct public, relais |
+| `relais_proto` | UDP, TCP, TLS |
+| `rtt` | Aller-retour médian, ms |
+| `debit` | Débit vidéo reçu, kbit/s |
+| `pertes` | Paquets perdus, % |
+| `gels` | Nombre de gels d'image en 60 s |
+| `son_img` | Image et son présents des deux côtés : 1 ou 0 |
+
+Journal des flashs : combinaison, numéro, écart mesuré (ms), `e`, `i`, `W`, aller-retour minimal.
+
+### 2.5 Grille de résultats
+
+| Combinaison | Réussites / 10 | `t_etab` maximal (s) | Part relayée | Rtt médian (ms) | Échecs : message |
+|---|---|---|---|---|---|
+| R1 | | | | | |
+| R2 | | | | | |
+| R3 | | | | | |
+| R4 | | | | | |
+| R5 | | | | | |
+| R6 | | | | | |
+| RF | | | 100 % | | |
+
+| Horloges | R2 | R3 | R6 |
+|---|---|---|---|
+| Flashs avec écart ≤ `e + i` / 20 | | | |
+| Écart réel, 95e centile (ms) | | | |
+| `e` médian (ms) | | | |
+| `W` médian (ms) | | | |
+| Retard vidéo médian (ms) | | | |
+
+| Coupure | Répétitions conformes / 5 (iPhone) | Répétitions conformes / 5 (Android) | Délai de détection médian (s) |
+|---|---|---|---|
+| K1 à K7 | | | |
+
+| Charge réelle | Appareil le plus ancien | iPhone |
+|---|---|---|
+| Fenêtre de 10 s la plus basse (images/s) | | |
+| Chauffe excessive (§1.3.8) | | |
+
+| Chargement (4G, cache vide) | Médiane | Maximum |
+|---|---|---|
+| Accueil affiché (s) | | |
+| Modèle prêt (s) | | |
+
+### 2.6 Critères de décision
+
+| Code | Critère | Mesure |
+|---|---|---|
+| C1 | 10 réussites sur 10 dans chaque combinaison testée, RF compris | 2.5 |
+| C2 | Toutes les réussites établies en 20 s au plus | 2.5 |
+| C3 | Au moins 19 flashs sur 20 avec un écart ≤ `e + i`, dans chaque combinaison | 2.5 |
+| C4 | Tous les scénarios K1 à K7 conformes, sur iPhone et Android | 2.5 |
+| C5 | Critère G3 (§1.6.1) tenu pendant l'appel réel, sur les deux appareils | 2.5 |
+| C6 | Image et son des deux côtés dans tous les essais iOS | Journal, `son_img` |
+
+Seuils de C3 (19 sur 20) : **Hypothèse à valider** (Q3).
+
+| Décision | Condition | Actions | Effet sur les documents |
+|---|---|---|---|
+| **Go** | C1 à C6 respectés | Coder le prototype 2 ([D6](D6-lots-developpement.md) L2.1) | [D2](D2-regles-jeu-arbitrage.md) §3 et §6.7 : valeurs P1 passées à « Validé (P1) » ; [D4](D4-architecture-technique.md) §7.4 : cibles mesurées |
+| **Changer de relais** | C1 échoue | Changer de service (n° 53), puis refaire 10 essais dans la combinaison en échec et en RF | [D4](D4-architecture-technique.md) §8.4 |
+| **Changer de mise en relation** | Échecs dus au serveur public PeerJS (lenteur, indisponibilité) | Passer au serveur auto-hébergé plus tôt que prévu : question de budget (Q4) | [D4](D4-architecture-technique.md) §8.4 |
+| **Revoir les délais** | C2 ou C4 échoue | Allonger le délai concerné, puis refaire le scénario | [D2](D2-regles-jeu-arbitrage.md) §6.7 |
+| **Revoir `e`** | C3 échoue | Augmenter le multiplicateur de `e` ou passer à une borne plus large ; refaire 2.3.3 | [D2](D2-regles-jeu-arbitrage.md) R5, Q6 ; [D4](D4-architecture-technique.md) §5.1 |
+| **Alléger la charge** | C5 échoue | Baisser la résolution envoyée, puis la cadence commune vers 10 (n° 52) | [D4](D4-architecture-technique.md) §7.4 |
+| **Corriger iOS** | C6 échoue | Corriger la lecture (geste, `playsinline`) ; refaire les essais iOS | [D4](D4-architecture-technique.md) RT8 |
+
+Enseignement pour P2 : si `W` dépasse souvent 200 ms (réseaux lents), s'attendre à plus de manches nulles et le vérifier par le critère A2 (§3.7).
 
 ## 3. Prototype 2 — duel complet
 
-*Lot 7 — à rédiger.*
+### 3.1 Objectif et risques testés
 
-Note pour le lot 7 : la fréquence de la triche par la main (n° 70) ne peut s'observer qu'en jeu réel. Le prototype 0 montre seulement si un sourire caché est détecté.
+Objectif : savoir si le jeu donne envie de rejouer (critère de réussite de la v1, n° 50), et si l'arbitrage tient en situation réelle. Lots testés : L2.1 à L2.6 de [D6](D6-lots-developpement.md).
+
+| Risque | Hypothèse | Critère | Référence |
+|---|---|---|---|
+| Le jeu ne donne pas envie de rejouer | H3, H5 | V1 : revanche spontanée dans au moins la moitié des matchs | n° 40, n° 50 |
+| Ennui : personne ne craque | H2 | E1 : au plus la moitié des manches vont au bout des 60 s | n° 42 |
+| Arbitrage contesté en jeu | H1 | A1 : aucune contestation fondée | n° 36, n° 80 |
+| Trop de manches nulles ou divergentes | H1 | A2 | n° 95, n° 108 |
+| Triche par la main devant la bouche | H1 | A3 | n° 70 |
+| Défaillance technique en match | — | T1 | [D4](D4-architecture-technique.md) RT7, RT10, RT11 |
+| Demande pour le mode inconnus | — | Aucun seuil : la réponse oriente ce chantier | n° 41 |
+| Gêne d'être filmé et analysé | H4 | Aucun seuil : information pour [D7](D7-juridique-confidentialite.md) | Source §2.1 |
+
+Valeurs **À confirmer (P2)** relevées par ce prototype : durée de la manche, 2 manches gagnantes, fenêtre de simultanéité minimale, écart de pics ([D2](D2-regles-jeu-arbitrage.md) §3) ; durée de vie du salon, manches interrompues tolérées, arrêt sur image, délai de revanche ([D2](D2-regles-jeu-arbitrage.md) §6.7) ; image de preuve ([D4](D4-architecture-technique.md) §4.3).
+
+### 3.2 Panel et organisation
+
+| Élément | Règle |
+|---|---|
+| Matchs comptés | **10 matchs** (n° 39) : le **premier match** de 10 sessions distinctes. Les revanches sont jouées et journalisées, mais ne comptent pas parmi les 10. **Hypothèse à valider** (Q5) |
+| Joueurs | Des proches, 18 ans ou plus. Chaque joueur participe à 2 matchs comptés au plus |
+| Valentin | Ne joue dans aucun match compté : il voudrait la revanche et fausserait V1. **Hypothèse à valider** (Q6) |
+| Appareils | Au moins 3 matchs avec un iPhone, au moins 3 avec un ordinateur, au moins 3 entre deux téléphones |
+| Distance | Chaque joueur chez lui (n° 1) ; au moins 3 matchs sur des réseaux différents |
+| Observation | Valentin assiste en silence à 5 matchs sur 10, à côté d'un des joueurs. Les 5 autres se jouent sans lui. **Hypothèse à valider** (Q7) |
+| Préalable | Accord oral des deux joueurs, noté (n° 78) ; pages de [D7](D7-juridique-confidentialite.md) en ligne ([D6](D6-lots-developpement.md) L2.6, Q3) |
+
+### 3.3 Déroulé des 10 matchs
+
+Pour chaque session :
+
+1. **Invitation.** Valentin envoie au futur hôte un seul message : « Voici le jeu Ne souris pas. Défie [prénom] quand vous êtes libres tous les deux : [lien]. » Aucune autre consigne ; en particulier, rien sur la revanche.
+2. **Accord.** Avant de jouer, chaque joueur donne son accord oral à Valentin (message ou appel) pour le journal et le questionnaire.
+3. **Match.** L'hôte crée le duel et envoie le lien ; les joueurs jouent. Personne n'intervient.
+4. **Revanche.** Pendant les 60 s qui suivent la fin du match, personne d'autre que les joueurs ne parle de revanche. Les joueurs peuvent se lancer le défi entre eux : cela reste spontané.
+5. **Suite.** Les joueurs enchaînent autant de revanches qu'ils veulent.
+6. **Fin.** Quand la session se termine, l'hôte exporte le journal (L2.5) et l'envoie à Valentin.
+7. **Questionnaire.** Chaque joueur répond au questionnaire (3.5), le jour même, séparément.
+8. **Matchs observés.** Valentin note en plus, pendant le jeu : réactions à l'arrêt sur image, contestations orales, main devant la bouche, incidents.
+
+Définitions :
+
+| Terme | Définition |
+|---|---|
+| Revanche spontanée | Les deux joueurs appuient sur « Revanche » dans les 60 s, sans que personne d'autre qu'eux ne l'ait suggéré |
+| Manche au bout des 60 s | Manche décidée par le départage (R6), ou manche nulle au départage |
+| Contestation | Un joueur dit, pendant le jeu ou dans le questionnaire, qu'une manche perdue par sourire ne l'était pas |
+| Contestation fondée | Contestation pour laquelle les deux joueurs disent, dans le questionnaire, que l'image de preuve ne montrait pas de sourire |
+| Triche par la main | Un joueur cache sa bouche avec la main pour masquer un sourire, vu par Valentin (matchs observés) ou avoué dans le questionnaire |
+
+### 3.4 Métriques
+
+Journal P2 (L2.5), une ligne par manche. Aucune image, aucun son.
+
+| Colonne | Contenu |
+|---|---|
+| `session`, `match`, `manche` | Numéros ; match compté ou revanche |
+| `app_hote`, `app_invite` | Appareil et navigateur |
+| `duree` | Durée de la manche, s |
+| `cause` | Sourire, perte, départage, nulle (simultanéité), nulle (pics), interrompue |
+| `perdant` | Hôte, invité, aucun |
+| `ecart_fautes` | Écart entre les deux fautes, ms, s'il y en a deux |
+| `pics` | Pics de jauge des deux joueurs |
+| `e`, `w`, `cadence` | Synchronisation et cadence commune de la manche |
+| `divergence` | 1 si T21 |
+| `preuve` | Image reçue : délai en s, ou « non reçue » |
+| `coupures` | Nombre et durée |
+| `revanche` | Pour la dernière manche d'un match : oui ou non, délai en s |
+| `t_lien_duel` | Pour le premier match : temps entre l'ouverture du lien par l'invité et la révélation, s |
+
+Indicateurs calculés sur les 10 matchs comptés :
+
+| Indicateur | Calcul |
+|---|---|
+| Taux de revanche | Matchs comptés suivis d'une revanche spontanée / 10 |
+| Taux de manches au bout des 60 s | Manches au bout des 60 s / manches jouées dans les matchs comptés |
+| Taux de manches nulles | Manches nulles / manches jouées |
+| Divergences | Nombre total |
+| Contestations, contestations fondées | Nombre total |
+| Durée médiane d'une manche | s |
+| Nombre moyen de revanches par session | Toutes sessions |
+
+### 3.5 Questionnaire aux testeurs
+
+Rempli par chaque joueur, séparément, le jour même. Environ 5 minutes. Sans nom : code de session et rôle (hôte ou invité).
+
+| N° | Question | Réponse |
+|---|---|---|
+| 1 | Vous êtes-vous amusé ? | 1 (pas du tout) à 5 (beaucoup) |
+| 2 | Qu'est-ce qui vous a fait rire, ou pas ? | Texte libre |
+| 3 | L'arbitrage vous a-t-il paru juste ? | 1 à 5 |
+| 4 | Une manche vous a-t-elle paru mal jugée ? Laquelle, et l'image montrait-elle un sourire ? | Oui / non ; texte |
+| 5 | Avez-vous souri sans que le jeu le voie ? | Oui / non / je ne sais pas |
+| 6 | Avez-vous caché votre bouche avec la main ? | Oui / non |
+| 7 | Avez-vous ri sans sourire (rire sonore, bouche fermée) ? | Oui / non |
+| 8 | Les manches de 60 s étaient-elles… | Trop courtes / bien / trop longues |
+| 9 | Le match en 2 manches gagnantes était-il… | Trop court / bien / trop long |
+| 10 | Auriez-vous aimé que le jeu vous aide à faire rire l'autre (défis, images, sons) ? | Oui / non / peut-être |
+| 11 | Auriez-vous voulu garder ou partager l'image du moment où l'un a craqué ? | Oui / non |
+| 12 | Être filmé et analysé vous a-t-il gêné ? | 1 (pas du tout) à 5 (beaucoup) ; texte |
+| 13 | Rejoueriez-vous avec un autre ami ? | Oui / non / peut-être |
+| 14 | Joueriez-vous avec un inconnu ? | Oui / non / peut-être ; pourquoi |
+| 15 | Qu'avez-vous trouvé difficile ou confus dans l'application ? | Texte libre |
+
+Correspondances : question 7 → détection sonore du rire (n° 34) ; 10 → provocations (n° 3) ; 11 → clip partageable (n° 32) ; 12 → H4 ; 14 → mode inconnus (n° 41).
+
+### 3.6 Grille de résultats
+
+| Session | Appareils | Réseaux | Observé | Manches | Causes | Au bout des 60 s | Nulles | Revanche spontanée | Revanches jouées | Contestations (fondées) | Main | Incidents |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| S01 | | | | | | | | | | | | |
+| S02 | | | | | | | | | | | | |
+| S03 | | | | | | | | | | | | |
+| S04 | | | | | | | | | | | | |
+| S05 | | | | | | | | | | | | |
+| S06 | | | | | | | | | | | | |
+| S07 | | | | | | | | | | | | |
+| S08 | | | | | | | | | | | | |
+| S09 | | | | | | | | | | | | |
+| S10 | | | | | | | | | | | | |
+
+Synthèse :
+
+| Indicateur | Valeur | Critère |
+|---|---|---|
+| Matchs suivis d'une revanche spontanée | | ≥ 5 / 10 |
+| Manches au bout des 60 s | | ≤ 50 % |
+| Contestations fondées | | 0 |
+| Manches nulles | | ≤ 10 % |
+| Divergences | | 0 |
+| Matchs avec triche par la main | | ≤ 2 / 10 |
+| Images de preuve reçues en 2 s au plus | | 100 % |
+| Question 14 : « oui » | | Information |
+| Question 12 : moyenne | | Information |
+| Questions 8 et 9 : majorité | | Ajuste 60 s et 2 manches |
+
+### 3.7 Critères de décision
+
+| Code | Critère | Si échec |
+|---|---|---|
+| V1 | Revanche spontanée dans au moins 5 matchs comptés sur 10 (n° 40) | Réintroduire des provocations (n° 54) : nouveau lot, [D6](D6-lots-developpement.md) §4 |
+| E1 | Au plus 50 % des manches vont au bout des 60 s (n° 42) | Réintroduire des provocations (n° 42) |
+| A1 | Aucune contestation fondée | Retour au réglage du prototype 0 : rejeu des journaux P0 avec les cas contestés en tête (L0.7) |
+| A2 | Au plus 10 % de manches nulles, et aucune divergence | Nulles : revoir `W` ([D2](D2-regles-jeu-arbitrage.md) Q6, [D4](D4-architecture-technique.md) Q1). Divergence : corriger L2.2 |
+| A3 | Triche par la main dans 2 matchs comptés sur 10 au plus | Mesurer Hand Landmarker (n° 70) : nouveau lot |
+| T1 | 100 % des images de preuve reçues en 2 s au plus ; aucun plantage | Corriger L2.3 ([D4](D4-architecture-technique.md) RT10, RT11) |
+
+Seuils de A2 (10 %) et A3 (2 matchs) : **Hypothèse à valider** (Q8).
+
+| Décision | Condition | Suite |
+|---|---|---|
+| **v1 réussie** | V1 respecté, et garde-fous E1, A1, A2, A3 et T1 respectés | Préparer l'ouverture au-delà des proches ([D7](D7-juridique-confidentialite.md) §7) ; décider du mode inconnus selon la question 14 |
+| **Jeu à retravailler** | V1 ou E1 échoue | Provocations, puis nouvelle série de 10 matchs |
+| **Arbitrage à retravailler** | A1, A2 ou A3 échoue, V1 tient | Corrections ciblées, puis 5 matchs de contrôle |
+| **Technique à corriger** | T1 échoue | Correction, puis 3 matchs de contrôle |
+
+Rappel : seule V1 est un critère de réussite de la v1 (n° 50). Les autres sont des garde-fous.
 
 ## 4. Questions ouvertes
 
-Q2 à Q6 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82).
+Q2 à Q6 du lot 3 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82). Q2 à Q9 ci-dessous sont nouvelles (lot 7).
 
 | N° | Question | Proposition |
 |---|---|---|
 | Q1 | Quels appareils sont disponibles : le plus ancien (modèle, année), un iPhone (modèle), un ordinateur avec webcam (modèle ou type) ? La réponse du 2026-09-25 contenait encore les champs à remplir, sans les modèles. | — |
+| Q2 | Un réseau Wi-Fi restrictif (public, entreprise, invité) est-il disponible pour la combinaison R5 ? | Sinon, le relais forcé en TLS sur le port 443 (RF) en tient lieu |
+| Q3 | Critère C3 : au moins 19 flashs sur 20 avec un écart couvert par `e + i` ? | Oui, hypothèse appliquée |
+| Q4 | Si le serveur public PeerJS fait échouer P1, accepter environ 4,57 € par mois avant la fin des prototypes pour passer au serveur auto-hébergé (budget prototype : 0 €, n° 7) ? | — |
+| Q5 | Les « 10 matchs » (n° 39) sont-ils les premiers matchs de 10 sessions distinctes, revanches exclues du compte ? Compter les revanches gonflerait le taux de revanche | Oui, hypothèse appliquée |
+| Q6 | Valentin ne joue dans aucun match compté ? | Oui, hypothèse appliquée |
+| Q7 | Valentin observe en silence 5 matchs sur 10 ? | Oui, hypothèse appliquée |
+| Q8 | Seuils des garde-fous P2 : au plus 10 % de manches nulles ; triche par la main dans 2 matchs sur 10 au plus ? | Oui, hypothèse appliquée |
+| Q9 | Un proche est-il disponible pour R1 (deux domiciles) et R4 (deuxième opérateur) en P1 ? | — |
