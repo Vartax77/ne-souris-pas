@@ -192,7 +192,7 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `faute` | Vide, sourire ou perte |
 | `op` | 1 si la touche « sourire vu » est pressée |
 
-Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; la protection BitLocker du disque est activée avant le premier test ([D6](D6-lots-developpement.md) L0.6, n° 216). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
+Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; le disque est protégé par BitLocker et les journaux restent hors du dépôt public (n° 222, n° 223). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
 #### 1.4.2 Fiche testeur
 

@@ -27,7 +27,9 @@ Reprise de [D4](D4-architecture-technique.md) §3 et §9.3.
 
 Aucun compte, aucun cookie, aucune mesure d'audience, aucune publicité ([D4](D4-architecture-technique.md) §1). Aucune donnée personnelle n'est stockée dans le navigateur. Seul le cache des fichiers de l'application (pages, modèle, WebAssembly, gardés par le service worker, [D4](D4-architecture-technique.md) §3) y est écrit : il est strictement nécessaire au fonctionnement et ne contient aucune donnée personnelle (n° 180).
 
-Ordinateur de l'éditeur : son disque est chiffré par BitLocker, mais la protection est désactivée (aucun protecteur de clés) ; il n'est donc pas protégé en l'état. Les journaux de test sont conservés dans un dossier chiffré séparé, et la protection BitLocker est activée avant le premier test P0 ([D6](D6-lots-developpement.md) L0.6, n° 216).
+Ordinateur de l'éditeur : disque chiffré par BitLocker, protection activée (n° 223). Les journaux de test sont en plus conservés dans un dossier chiffré séparé, hors du dépôt de code public (n° 216, n° 222).
+
+La bibliothèque MediaPipe tente d'envoyer à Google des statistiques d'usage. La page bloque cet envoi : aucune donnée, pas même l'adresse IP, ne part vers Google par ce biais (n° 225).
 
 Services utilisés ([D4](D4-architecture-technique.md) §8.4) :
 
@@ -242,7 +244,7 @@ Sur le modèle de la CNIL [J11]. Une fiche par traitement.
 | Destinataires | Prestataire de mise en relation, prestataire de relais (prototypes) ; aucun ensuite | Hébergeur | L'éditeur seul |
 | Transferts hors UE | Prototypes : possibles, à vérifier (V7). Ensuite : aucun | Prototypes : selon l'hébergeur. Ensuite : aucun | Aucun |
 | Durée | Fin de session ; journaux 7 jours | Selon l'hébergeur ; 7 jours sur le serveur de l'éditeur | Jusqu'à la clôture du prototype concerné |
-| Sécurité | Connexions chiffrées (TLS, DTLS-SRTP) ; codes de salon aléatoires de 16 caractères au moins ; aucune donnée de jeu sur le serveur | HTTPS ; aucun script tiers | Fichiers sur l'ordinateur de l'éditeur, dans un dossier chiffré séparé ; protection BitLocker du disque activée avant le premier test P0 ([D6](D6-lots-developpement.md) L0.6, n° 216) |
+| Sécurité | Connexions chiffrées (TLS, DTLS-SRTP) ; codes de salon aléatoires de 16 caractères au moins ; aucune donnée de jeu sur le serveur | HTTPS ; aucun script tiers | Fichiers sur l'ordinateur de l'éditeur, dans un dossier chiffré séparé, hors du dépôt public ; disque protégé par BitLocker (n° 216, n° 222, n° 223) |
 
 Hors registre (traitements de l'éditeur non retenus, 2.1) : analyse du visage, flux vidéo et audio, image de preuve, jauges.
 

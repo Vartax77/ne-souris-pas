@@ -278,7 +278,8 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | Délégué GPU essayé d'abord, CPU en secours ; le mode retenu est journalisé | Défaillances GPU possibles sur iOS [S7] ; RT1 |
 | Un seul flux caméra et micro, partagé entre détection et envoi | [S15] |
 | Vidéo envoyée en H.264 quand un appareil iOS est dans le duel (n° 205) **À confirmer (P1)** | Économie de processeur, partagé avec MediaPipe [S21] |
-| Fichiers MediaPipe servis par l'hébergement de la PWA, version figée | Pas de CDN tiers (principe 5) ; RT12 |
+| Fichiers MediaPipe servis par l'hébergement de la PWA, version figée (1.0.1, n° 220) | Pas de CDN tiers (principe 5) ; RT12 |
+| Politique de sécurité de la page : tout chargement externe bloqué, y compris les statistiques d'usage que MediaPipe envoie à Google (n° 221, n° 225) | Principe 5 vérifiable sur iPhone ; l'envoi des statistiques ne peut pas être désactivé dans la bibliothèque |
 | Modèle et WebAssembly chargés dès l'accueil, en arrière-plan | 15 Mo au premier chargement ; prêts avant le calibrage |
 
 ### 7.4 Performances cibles

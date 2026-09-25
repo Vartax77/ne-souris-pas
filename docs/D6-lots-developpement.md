@@ -5,7 +5,7 @@
 | Objet | Dire ce que livre chaque lot de développement, comment on sait qu'il est terminé, quel test de D3 le valide, et quel lot abandonner ou modifier si un test échoue |
 | Statut | Brouillon |
 | Date | 2026-09-25 |
-| Dépend de | [D2](D2-regles-jeu-arbitrage.md) ; [D3](D3-plan-de-tests.md) ; [D4](D4-architecture-technique.md) ; [D5](D5-parcours-maquettes.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7, §4.1 ; [D8](D8-journal-decisions.md) n° 35, 44, 52 à 54, 70, 77, 82, 134 à 147, 175 à 178, 181, 210 à 212, 216 |
+| Dépend de | [D2](D2-regles-jeu-arbitrage.md) ; [D3](D3-plan-de-tests.md) ; [D4](D4-architecture-technique.md) ; [D5](D5-parcours-maquettes.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7, §4.1 ; [D8](D8-journal-decisions.md) n° 35, 44, 52 à 54, 70, 77, 82, 134 à 147, 175 à 178, 181, 210 à 212, 216, 219 à 225 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (renvois aux lots) |
 
 ## 1. Conventions
@@ -79,9 +79,9 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Page installable (manifeste, service worker minimal), sauf sur iOS : aucune installation n'y est proposée ([D4](D4-architecture-technique.md) §7.2, n° 202) ; accès caméra avec la caméra frontale ; vidéo en miroir ; bibliothèque MediaPipe, modèle et WebAssembly servis par l'hébergement de la PWA ([D4](D4-architecture-technique.md) §1, principe 5) ; mise en ligne en HTTPS sur GitHub Pages (n° 204) |
+| Tâches | Accès caméra avec la caméra frontale, sur un geste du joueur ; vidéo en miroir ; bibliothèque MediaPipe 1.0.1, modèle et WebAssembly servis depuis `app/` et chargés une fois pour vérifier le service ([D4](D4-architecture-technique.md) §1, principe 5, n° 220) ; politique de sécurité qui bloque tout chargement externe, tentatives bloquées affichées (n° 221, n° 225) ; mise en ligne en HTTPS : dépôt public `Vartax77/ne-souris-pas`, branche `main`, action GitHub `.github/workflows/pages.yml` qui publie `app/` sur GitHub Pages (n° 204, n° 219). Manifeste et service worker reportés à L2.4 (n° 224) |
 | Modules | Interface, Capture, Hébergement |
-| Terminé quand | La page affiche la caméra sur les trois appareils de test ([D3](D3-plan-de-tests.md) §1.2.3), l'onglet Réseau du navigateur ne montre aucune requête vers un autre domaine, et Safari iOS ne propose pas l'installation |
+| Terminé quand | Sur les trois appareils de test ([D3](D3-plan-de-tests.md) §1.2.3) : la caméra s'affiche en miroir, « MediaPipe prêt » s'affiche, et aucun chargement externe n'a abouti (seule tentative bloquée attendue : les statistiques de MediaPipe, n° 225) |
 | Test | [D3](D3-plan-de-tests.md) §1.2.3 |
 | Dépend de | — |
 
@@ -129,9 +129,9 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), enregistré dans un dossier chiffré séparé ; pic soutenu `P` en fin de séquence ; **activer la protection BitLocker** de l'ordinateur de Valentin avant le premier test P0 ([D7](D7-juridique-confidentialite.md) §6, n° 216) |
+| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence. Protection BitLocker déjà activée (n° 223) |
 | Modules | Interface |
-| Terminé quand | Une session à blanc de 30 min (Valentin seul) produit un journal complet et lisible au tableur, dans le dossier chiffré ; la protection BitLocker est active (au moins un protecteur de clés) |
+| Terminé quand | Une session à blanc de 30 min (Valentin seul) produit un journal complet et lisible au tableur, dans le dossier chiffré |
 | Test | [D3](D3-plan-de-tests.md) §1.3 entier |
 | Dépend de | L0.5 |
 
@@ -245,7 +245,7 @@ L2.1 a été coupé en deux avant de commencer : toute la machine à états en u
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Écrans E1 à E11 et ER1 à ER15 de [D5](D5-parcours-maquettes.md), textes exacts ; mise en page portrait et paysage ([D4](D4-architecture-technique.md) §10) ; maintien de l'écran allumé |
+| Tâches | Écrans E1 à E11 et ER1 à ER15 de [D5](D5-parcours-maquettes.md), textes exacts ; manifeste et service worker, avec installation non proposée sur iOS (n° 202, n° 224) ; mise en page portrait et paysage ([D4](D4-architecture-technique.md) §10) ; maintien de l'écran allumé |
 | Modules | Interface |
 | Terminé quand | Chaque écran s'affiche sur téléphone portrait et ordinateur paysage ; chaque erreur a été provoquée une fois |
 | Test | [D3](D3-plan-de-tests.md) §3.3, questionnaire §3.5 |

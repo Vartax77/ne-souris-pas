@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Aucun tiers dans la page (D4 principe 5, D8 n° 221) : tout chargement hors du site est bloqué,
+       y compris les statistiques que MediaPipe envoie à Google (n° 225).
+       'wasm-unsafe-eval' : nécessaire pour compiler le WebAssembly de MediaPipe. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; worker-src 'self' blob:; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Ne souris pas — prototype 0</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Ne souris pas — prototype 0</h1>
+    <p class="lot">Lot L0.1 — socle</p>
+
+    <video id="video" autoplay muted playsinline></video>
+
+    <button id="demarrer" type="button">Démarrer la caméra</button>
+
+    <ul id="etat">
+      <li>Caméra : <span id="etat-camera">pas encore demandée</span></li>
+      <li>MediaPipe : <span id="etat-mediapipe">chargement…</span></li>
+      <li>Chargements externes bloqués : <span id="etat-bloques">0</span></li>
+    </ul>
+    <ul id="bloques"></ul>
+
+    <p class="version">MediaPipe tasks-vision 1.0.1 · modèle face_landmarker float16 v1</p>
+  </main>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
