@@ -66,7 +66,7 @@ Appareils disponibles (n° 192) :
 | Ordinateur, référence haute | PC portable Windows 11, webcam intégrée ; Intel Core i7-13650HX, 32 Go de mémoire, carte graphique dédiée 8 Go | Chrome ou Edge ([D4](D4-architecture-technique.md) §7.2) | Sessions ; performance haute |
 
 - L'appareil le plus ancien est un iPhone : G3 est donc jugé sur Safari iOS.
-- Aucun appareil Android n'est disponible. Android reste une cible de [D4](D4-architecture-technique.md) §7.2, non mesurée en P0 (Q10).
+- Aucun appareil Android n'est disponible pour l'instant ; Valentin en cherche un à emprunter. Android reste une cible de [D4](D4-architecture-technique.md) §7.2, non mesurée en P0 si aucun Android n'est emprunté (n° 218).
 - L'iPhone XR ne reçoit plus les versions d'iOS postérieures à iOS 18, d'après la liste de compatibilité d'Apple, à vérifier sur l'appareil. Or des défauts du calcul graphique de MediaPipe sont signalés sur iOS 18 ([D4](D4-architecture-technique.md) §7.1). Noter la version d'iOS et le mode de calcul dans le journal.
 
 #### 1.2.4 Volume et durée
@@ -388,7 +388,7 @@ Valeurs **À confirmer (P1)** relevées par ce prototype : multiplicateur de l'e
 |---|---|
 | Essais de connexion | 10 par combinaison (n° 51) : 70 essais avec R5 |
 | Mesure des horloges | 20 flashs par combinaison, sur R2, R3 et R6 |
-| Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android (Android non disponible : Q10) |
+| Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android ; sans Android emprunté, sur iPhone et ordinateur (n° 218) |
 | Charge réelle | 10 min par appareil, sur l'iPhone XR (le plus ancien) et sur l'iPhone 15 |
 | Chargement | 5 premiers chargements en 4G, cache vidé |
 | Durée totale estimée | Deux séances de 3 heures |
@@ -698,8 +698,6 @@ Rappel : seule V1 est un critère de réussite de la v1 (n° 50). Les autres son
 
 ## 4. Questions ouvertes
 
-Q2 à Q6 du lot 3 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82). Q1 à Q9 du lot 7 l'ont été le même jour : appareils (n° 192), réseau restrictif ou relais forcé (n° 193), C3 (n° 194), budget de 4,57 € par mois (n° 163), organisation des 10 matchs (n° 195), seuils A2 et A3 (n° 196), proche disponible (n° 197).
+Q2 à Q6 du lot 3 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82). Q1 à Q9 du lot 7 l'ont été le même jour : appareils (n° 192), réseau restrictif ou relais forcé (n° 193), C3 (n° 194), budget de 4,57 € par mois (n° 163), organisation des 10 matchs (n° 195), seuils A2 et A3 (n° 196), proche disponible (n° 197). Q10 (appareil Android) l'a été aussi : Valentin cherche un Android à emprunter ; sans Android avant le prototype 0, K1 à K7 se font sur iPhone et sur l'ordinateur, C4 est jugé sans Android, et Android Chrome reste « à tester » jusqu'au premier joueur Android de P2 (n° 218).
 
-| N° | Question | Proposition |
-|---|---|---|
-| Q10 | Aucun appareil Android n'est disponible. Or les coupures K1 à K7 sont prévues « sur un iPhone et sur un Android » (§2.2.2, C4), et Android Chrome est une cible de [D4](D4-architecture-technique.md) §7.2. Un proche peut-il prêter un téléphone Android pour P0 (performance) et P1 (coupures) ? | Oui si possible, au moins pour K1 à K7. Sinon : K1 à K7 sur iPhone et sur l'ordinateur, C4 jugé sans Android, et Android Chrome reste « à tester » dans [D4](D4-architecture-technique.md) §7.2 jusqu'au premier joueur Android de P2 |
+Aucune question ouverte.

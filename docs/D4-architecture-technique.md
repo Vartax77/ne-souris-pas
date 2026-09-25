@@ -261,7 +261,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 |---|---|---|---|
 | iPhone, iPad | Safari, version 15 ou plus | Cible | P0 : cadence, délégué GPU ou CPU, chauffe. P1 : lecture, arrière-plan |
 | iPhone | Chrome ou Firefox pour iOS (moteur WebKit) | À tester | P1 : accès caméra non confirmé par les sources ; aucun iPhone de test ne l'utilise par défaut |
-| Android | Chrome récent | Cible | Aucun appareil Android de test ([D3](D3-plan-de-tests.md) Q10) |
+| Android | Chrome récent | Cible | Android à emprunter ; sinon « à tester » jusqu'au premier joueur Android de P2 (n° 218) |
 | Ordinateur | Chrome, Edge récents | Cible | P0 : PC portable Windows 11 de référence haute ([D3](D3-plan-de-tests.md) §1.2.3) |
 | Ordinateur | Safari macOS 15 ou plus | Cible | Aucun Mac de test |
 | Ordinateur | Firefox récent | À tester | P0 : non cité par MediaPipe |

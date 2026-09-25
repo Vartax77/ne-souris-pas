@@ -280,7 +280,7 @@ Valeurs attendues de `W`. Les allers-retours sont des exemples, pas des mesures.
 | 4G | 200 ms | 100 ms | 167 ms | 200 ms |
 | 4G lente ou relayée | 340 ms | 170 ms | 237 ms | 270 ms |
 
-- `W` réel attendu : de 100 ms à environ 270 ms selon le réseau et la cadence.
+- `W` réel attendu : de 100 ms à environ 270 ms selon le réseau et la cadence (n° 217).
 - En P1, le test du flash commun compare cette borne à l'erreur réellement mesurée : critère C3 de [D3](D3-plan-de-tests.md) §2.6 (écart mesuré ≤ `e + i`).
 
 ### 5.7 Deux visages dans le champ — décidé (n° 67)
