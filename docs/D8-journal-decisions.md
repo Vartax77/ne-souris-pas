@@ -127,6 +127,21 @@ Les exclusions déjà tracées ne sont pas répétées : mode inconnus (n° 6), 
 | 54 | 2026-09-25 | Si le critère de revanche échoue (n° 40) : réintroduire des provocations. Étend n° 42, qui ne prévoyait les provocations qu'en cas d'ennui. | Non documentée | Non documentée | Arbitrage de Valentin, lot 1 |
 | 55 | 2026-09-25 | Marquage : la synchronisation des horloges (n° 22) passe de P2 à P1 ; le visage perdu à 1,5 s (n° 21) reste P0. | La synchronisation est un test réseau | Garder P2 | Arbitrage de Valentin, lot 1 |
 
-## 6. Questions ouvertes
+## 6. Lot documentaire 2 — D2, partie arbitrage
 
-Aucune. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25.
+Précisions nécessaires pour coder l'arbitrage. Elles complètent les n° 18 à 25 sans les contredire. Les propositions qui modifient une décision restent dans les questions ouvertes de [D2](D2-regles-jeu-arbitrage.md) §7 jusqu'à l'accord de Valentin.
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 56 | 2026-09-25 | Score de sourire = moyenne de `mouthSmileLeft` et `mouthSmileRight` (MediaPipe), lissée sur 200 ms. Neutre = médiane du score lissé pendant le calibrage. **À confirmer (P0)** | Mesure simple, disponible sur tous les navigateurs ; le lissage évite qu'une image bruitée décide | Maximum des deux côtés (plus de faux positifs en parlant) ; variante avec `cheekSquint` (à comparer en P0) | [D2](D2-regles-jeu-arbitrage.md) §2 |
+| 57 | 2026-09-25 | Critères de rejet du calibrage : présence < 90 %, visage < 20 % de la largeur, angles hors limites, luminance < 60/255, écart-type > 0,05, neutre > 0,35. Essais illimités, première cause affichée. Précise n° 18. **À confirmer (P0)** | Rendre « qualité insuffisante » mesurable ; empêcher un neutre truqué | Limiter le nombre d'essais | [D2](D2-regles-jeu-arbitrage.md) R1 |
+| 58 | 2026-09-25 | Sourire confirmé = série d'images souriantes couvrant au moins 400 ms et au moins 3 images, une image non souriante tolérée. Horodatage = première image de la série. Précise n° 19. **À confirmer (P0)** | Rendre la durée de maintien indépendante de la cadence ; dater le sourire au moment où il apparaît | Horodatage à la confirmation (retarde tous les sourires de 400 ms sans rien gagner) | [D2](D2-regles-jeu-arbitrage.md) R2 |
+| 59 | 2026-09-25 | Jauge = (S − n − m) / (d − m), bornée entre 0 et 1 ; figée sur image invalide ; pic remis à zéro à chaque manche. Précise n° 20 et n° 49. **À confirmer (P0)** | Jauges comparables entre joueurs ; pas de pic créé par une image invalide | Jauge brute non normalisée | [D2](D2-regles-jeu-arbitrage.md) R3 |
+| 60 | 2026-09-25 | Image invalide = aucun visage, deux visages, visage trop petit ou angles hors limites ; elle compte comme visage perdu. La faute par deuxième perte est datée au début de la perte + 1,5 s. Précise n° 21. **À confirmer (P0)** ; traitement des deux visages provisoire (D2 Q4) | Empêcher d'échapper au jugement en tournant la tête ; dater la faute quand elle est constituée | Suivre le visage calibré (D2 Q4) | [D2](D2-regles-jeu-arbitrage.md) R4 |
+| 61 | 2026-09-25 | La règle de simultanéité (200 ms) s'applique à toute faute, sourire ou deuxième perte. Chaque appareil déclare sa première faute ou son absence de faute jusqu'à T + 200 ms ; décision identique sur les deux appareils. Précise n° 22 et n° 23. | Un seul ordre des fautes, quel que soit leur type | Priorité du sourire sur la perte | [D2](D2-regles-jeu-arbitrage.md) R5 |
+| 62 | 2026-09-25 | Une faute compte si son horodatage est dans [t0 ; t0 + 60 s[ ; une série commencée avant 60 s peut être confirmée après. Précise n° 24. | Pas de faute perdue à la dernière seconde | Couper l'analyse à 60 s pile | [D2](D2-regles-jeu-arbitrage.md) R2, R6 |
+| 63 | 2026-09-25 | Arrêt sur image : image prise par l'appareil du joueur qui sourit, au score le plus haut de la série, gardée en mémoire seulement, effacée à la révélation suivante. Aucune image pour une perte, un départage ou une manche nulle. Précise n° 25. Transmission entre appareils en attente (D2 Q6). | Image nette et exacte, sans enregistrement | Figer le flux reçu (retardé, compressé) | [D2](D2-regles-jeu-arbitrage.md) R7 |
+
+## 7. Questions ouvertes
+
+Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 sont dans [D2](D2-regles-jeu-arbitrage.md) §7.
