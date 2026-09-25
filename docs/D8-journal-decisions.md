@@ -246,6 +246,21 @@ Décisions prises au lot 5 sans arbitrage de Valentin. Les **hypothèses à vali
 | 124 | 2026-09-25 | Vidéo envoyée en 640 × 480, 1,7 Mbit/s au plus, en H.264 quand un appareil iOS joue. **Hypothèse à valider, à confirmer (P1)** (D4 Q9) | Économie de processeur (partagé avec MediaPipe) et de volume relayé | 720p ; VP8 | [D4](D4-architecture-technique.md) §7.3, §7.4 |
 | 125 | 2026-09-25 | Journaux du serveur auto-hébergé (adresse IP, code de salon, date, volume) conservés 7 jours. **Hypothèse à valider** (D4 Q4) | Minimisation ; seule donnée personnelle conservée par le service | 6 mois à 1 an (recommandation générale de la CNIL sur la journalisation) | [D4](D4-architecture-technique.md) §9.3 |
 
-## 13. Questions ouvertes
+## 13. Lot documentaire 6 — D5, parcours et maquettes
+
+Décisions prises au lot 6 sans arbitrage de Valentin. Les **hypothèses à valider** figurent dans [D5](D5-parcours-maquettes.md) §6.
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 126 | 2026-09-25 | Explication, règles et case d'âge réunies sur un seul écran d'accueil, avant la demande du navigateur ; bouton désactivé tant que la case n'est pas cochée ; case non mémorisée d'une visite à l'autre. Précise n° 29. | Un geste de moins ; rien n'est stocké | Deux écrans successifs ; mémoriser la case dans le navigateur | [D5](D5-parcours-maquettes.md) §3.1 |
+| 127 | 2026-09-25 | Bouton « Commencer » avant chaque calibrage. **Hypothèse à valider** (D5 Q3) | Le joueur est en place avant la mesure du neutre ; évite des rejets | Calibrage automatique dès la connexion | [D5](D5-parcours-maquettes.md) §2.3 |
+| 128 | 2026-09-25 | Nombre de gestes : 5 pour l'invité du lien au duel, 7 pour l'hôte (partage compris), 2 pour une revanche. | Mesure demandée par la source (§4.1) | — | [D5](D5-parcours-maquettes.md) §2.3 |
+| 129 | 2026-09-25 | Vouvoiement dans toute l'interface. **Hypothèse à valider** (D5 Q1) | Neutre tant que le public n'est pas testé | Tutoiement | [D5](D5-parcours-maquettes.md) §1 |
+| 130 | 2026-09-25 | L'invité ne voit pas le nom de l'hôte ; aucun champ prénom. **Hypothèse à valider** (D5 Q2) | Aucune saisie, aucune donnée de plus ; la messagerie qui transmet le lien dit déjà qui l'envoie | Champ prénom facultatif | [D5](D5-parcours-maquettes.md) §2.2 |
+| 131 | 2026-09-25 | Textes exacts des écrans E1 à E11 et des erreurs ER1 à ER14, dont les messages de rejet du calibrage non prévus par D2 (présence, largeur, angles, neutre trop haut). Complète n° 57. | Coder l'interface sans interprétation | — | [D5](D5-parcours-maquettes.md) §3, §4 |
+| 132 | 2026-09-25 | L'image de preuve n'est ni téléchargeable ni partageable depuis l'interface. Une capture d'écran reste possible et ne peut pas être empêchée par une page web. Précise n° 69. | Cohérence avec « aucun enregistrement » ; limite à dire dans [D7](D7-juridique-confidentialite.md) | Bouton de partage (c'est le clip v2, n° 32) | [D5](D5-parcours-maquettes.md) §3.8 |
+| 133 | 2026-09-25 | Le panneau des règles, ouvert pendant une manche, ne suspend ni le chronomètre ni l'arbitrage. **Hypothèse à valider** (D5 Q4) | Même logique que la confirmation d'abandon (n° 103) | Pause pendant la lecture des règles | [D5](D5-parcours-maquettes.md) §3.11 |
+
+## 14. Questions ouvertes
 
 Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 et des valeurs simulées sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.
