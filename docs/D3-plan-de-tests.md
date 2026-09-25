@@ -61,13 +61,14 @@ Appareils disponibles (n° 192) :
 
 | Rôle | Appareil | Navigateur | Utilisé pour |
 |---|---|---|---|
-| Le plus ancien, référence basse | iPhone XR (2018) | Safari | Performance (critère G3) ; une partie des sessions |
-| iPhone récent | iPhone 15 (2023) | Safari | Sessions ; performance sur Safari iOS |
+| Le plus ancien, référence basse | iPhone XR (2018), iOS 18.7.9 | Safari | Performance (critère G3) ; une partie des sessions |
+| iPhone récent | iPhone 15 Pro (2023), iOS 26.6.2 | Safari | Sessions ; performance sur Safari iOS |
 | Ordinateur, référence haute | PC portable Windows 11, webcam intégrée ; Intel Core i7-13650HX, 32 Go de mémoire, carte graphique dédiée 8 Go | Chrome ou Edge ([D4](D4-architecture-technique.md) §7.2) | Sessions ; performance haute |
 
 - L'appareil le plus ancien est un iPhone : G3 est donc jugé sur Safari iOS.
 - Aucun appareil Android n'est disponible pour l'instant ; Valentin en cherche un à emprunter. Android reste une cible de [D4](D4-architecture-technique.md) §7.2, non mesurée en P0 si aucun Android n'est emprunté (n° 218).
-- L'iPhone XR ne reçoit plus les versions d'iOS postérieures à iOS 18, d'après la liste de compatibilité d'Apple, à vérifier sur l'appareil. Or des défauts du calcul graphique de MediaPipe sont signalés sur iOS 18 ([D4](D4-architecture-technique.md) §7.1). Noter la version d'iOS et le mode de calcul dans le journal.
+- L'iPhone XR est bloqué à iOS 18 : iOS 18.7.9 est la dernière version disponible pour cet appareil (vérifié le 2026-09-25). Or des défauts du calcul graphique de MediaPipe sont signalés sur iOS 18 ([D4](D4-architecture-technique.md) §7.1). Noter la version d'iOS et le mode de calcul dans le journal.
+- Les iPhone fournissent une image en portrait (480 × 640), le PC en paysage (640 × 480).
 
 #### 1.2.4 Volume et durée
 
@@ -348,6 +349,27 @@ Options en cas d'abandon, **non décidées** :
 | Restreindre les appareils compatibles | [D1](D1-note-de-cadrage.md) §2 et H6 |
 | Arrêter le projet | [D1](D1-note-de-cadrage.md) |
 
+### 1.7 Relevés des lots de développement
+
+#### 1.7.1 Lot L0.1 — socle (2026-09-25)
+
+Relevés de Valentin sur la page publiée ([D6](D6-lots-developpement.md) L0.1, n° 227). « MediaPipe prêt » : temps entre le lancement du script de la page et la création du détecteur ; il ne compte pas l'affichage de la page.
+
+| Appareil | Système | Navigateur, réseau | Image caméra | MediaPipe prêt | Chargements externes |
+|---|---|---|---|---|---|
+| PC portable, i7-13650HX | Windows 11 | Chrome et Edge | 640 × 480 | 0,2 à 0,3 s, avec SIMD | 8 requêtes, toutes vers `vartax77.github.io` ; 1 bloqué après une minute : `odml.pa.googleapis.com/v1/log` |
+| iPhone 15 Pro | iOS 26.6.2 | Safari, 5G, cache vide | 480 × 640 | 2,6 s, avec SIMD | 1 bloqué après une minute : `odml.pa.googleapis.com` |
+| iPhone 15 Pro | iOS 26.6.2 | Navigateur intégré de Messenger, Wi-Fi | Fonctionne | 0,4 s | Script `connect.facebook.net/en_US/pcm.js` injecté par Messenger, bloqué |
+| iPhone XR | iOS 18.7.9 | Safari, 4G | 480 × 640 | 2,1 s, avec SIMD | Non relevé |
+| iPhone XR | iOS 18.7.9 | Navigateur intégré de Messenger, Wi-Fi | Fonctionne | 0,7 s | Non relevé |
+
+Conclusions :
+
+- **L0.1 terminé** sur les trois appareils.
+- La politique de sécurité fonctionne sur Chrome, Edge, Safari iOS 18 et iOS 26, et dans le navigateur intégré de Messenger (n° 221). Elle y bloque aussi le script injecté par Messenger (n° 228).
+- Le chargement complet reste sous la cible de 15 s en 4G ([D4](D4-architecture-technique.md) §7.4, information seulement).
+- La détection ne tourne pas encore : que MediaPipe fonctionne normalement avec ses statistiques bloquées (n° 225) reste **à confirmer** en L0.2.
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés
@@ -389,7 +411,7 @@ Valeurs **À confirmer (P1)** relevées par ce prototype : multiplicateur de l'e
 | Essais de connexion | 10 par combinaison (n° 51) : 70 essais avec R5 |
 | Mesure des horloges | 20 flashs par combinaison, sur R2, R3 et R6 |
 | Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android ; sans Android emprunté, sur iPhone et ordinateur (n° 218) |
-| Charge réelle | 10 min par appareil, sur l'iPhone XR (le plus ancien) et sur l'iPhone 15 |
+| Charge réelle | 10 min par appareil, sur l'iPhone XR (le plus ancien) et sur l'iPhone 15 Pro |
 | Chargement | 5 premiers chargements en 4G, cache vidé |
 | Durée totale estimée | Deux séances de 3 heures |
 
@@ -447,6 +469,26 @@ Mesures : délai de détection, reconnexion réussie ou non, réponse du serveur
 
 Cache du navigateur vidé, 4G, lien ouvert : chronométrer l'accueil affiché, puis le modèle prêt (bouton « Commencer » actif au calibrage). 5 essais.
 
+#### 2.3.7 Navigateurs intégrés des messageries
+
+En pratique, les invitations sont ouvertes depuis une messagerie : la page s'exécute alors dans le navigateur intégré de l'application, pas dans Safari ni dans Chrome (n° 228, n° 229).
+
+| Code | Navigateur | Appareils |
+|---|---|---|
+| M1 | Messenger | iPhone XR, iPhone 15 Pro |
+| M2 | WhatsApp | iPhone XR, iPhone 15 Pro |
+| M3 | Instagram | iPhone XR, iPhone 15 Pro |
+
+Pour chacun :
+
+1. Envoyer le lien d'invitation depuis l'application, puis l'ouvrir d'un appui.
+2. Noter le navigateur réellement utilisé : intégré à l'application, ou Safari.
+3. Vérifier : caméra, MediaPipe prêt, appel établi avec image et son des deux côtés (comme 2.3.1).
+4. Noter les chargements bloqués par la politique de sécurité : domaine et nature (script injecté par l'application, statistiques…).
+5. Passer dans une autre application 5 s, puis revenir : l'appel reprend-il (comme K3) ?
+
+Résultat : il informe [D5](D5-parcours-maquettes.md) Q8 (proposer « Ouvrir dans Safari ») et la ligne « navigateurs intégrés » de [D4](D4-architecture-technique.md) §7.2.
+
 ### 2.4 Journal P1
 
 Une ligne par essai de connexion. Aucune image, aucun son.
@@ -492,7 +534,7 @@ Journal des flashs : combinaison, numéro, écart mesuré (ms), `e`, `i`, `W`, a
 |---|---|---|---|
 | K1 à K7 | | | |
 
-| Charge réelle | iPhone XR (le plus ancien) | iPhone 15 |
+| Charge réelle | iPhone XR (le plus ancien) | iPhone 15 Pro |
 |---|---|---|
 | Fenêtre de 10 s la plus basse (images/s) | | |
 | Chauffe excessive (§1.3.8) | | |

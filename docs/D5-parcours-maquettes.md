@@ -652,7 +652,7 @@ Vérification faite en lisant [D2](D2-regles-jeu-arbitrage.md) §6 et [D4](D4-ar
 
 ## 6. Questions ouvertes
 
-Aucune. Q1 à Q7 ont été tranchées par Valentin le 2026-09-25 :
+Q1 à Q7 ont été tranchées par Valentin le 2026-09-25 :
 
 | N° | Réponse | Décision |
 |---|---|---|
@@ -663,3 +663,9 @@ Aucune. Q1 à Q7 ont été tranchées par Valentin le 2026-09-25 :
 | Q5 | Vidéos empilées en portrait ([D4](D4-architecture-technique.md) Q5) | n° 201 |
 | Q6 | Graphe à relancer par Valentin (`/graphify . --update`) | — |
 | Q7 | Nom de domaine et nom du jeu reportés ; adresse GitHub Pages pendant les prototypes | n° 206 |
+
+Question ouverte :
+
+| N° | Question | Proposition |
+|---|---|---|
+| Q8 | Quand la page détecte un navigateur intégré de messagerie (Messenger, WhatsApp, Instagram…), faut-il proposer « Ouvrir dans Safari » (ou dans le navigateur habituel) ? La page fonctionne dans celui de Messenger (n° 228), mais WhatsApp, Instagram et l'appel vidéo n'y sont pas encore testés ([D3](D3-plan-de-tests.md) §2.3.7). ER8 ne s'applique pas à un navigateur intégré qui fonctionne | Attendre les tests P1 M1 à M3. Si les trois fonctionnent : laisser jouer, sans écran supplémentaire (un geste de moins). Si l'un échoue : ER8 pour celui-là seulement, avec le bouton « Copier le lien » et une explication propre à l'application |

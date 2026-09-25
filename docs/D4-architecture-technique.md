@@ -254,6 +254,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | iOS, PWA installée | Caméra en mode installé corrigée en iOS 13.4, puis vidéo noire signalée de 16.3 à 18.5 ; permission caméra non conservée pour une PWA installée | [S16], [S17], [S18] |
 | iOS, arrière-plan | Aucune source officielle ; signalements de micro ou caméra coupés. Prévoir une coupure du flux (déduit) | [S19] |
 | Codecs | VP8 et H.264 obligatoires dans tous les navigateurs WebRTC. H.264 accéléré en matériel sur iOS, VP8 non | [S20], [S21] |
+| Navigateur intégré de Messenger (iPhone) | Un lien ouvert depuis Messenger s'exécute dans le navigateur de l'application, pas dans Safari. Caméra et MediaPipe y fonctionnent (MediaPipe prêt en 0,4 à 0,7 s en Wi-Fi). Messenger injecte un script `connect.facebook.net/en_US/pcm.js`, bloqué par la politique de sécurité de la page | Relevé L0.1 de Valentin, 2026-09-25 ([D3](D3-plan-de-tests.md) §1.7.1, n° 228) |
 
 ### 7.2 Navigateurs cibles
 
@@ -268,7 +269,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | Tous | PWA installée sur l'écran d'accueil | Non proposée en v1 sur iOS (n° 202) | Bogues caméra en mode installé [S16] à [S18] |
 
 - Les navigateurs « à tester » deviennent cibles seulement s'ils passent le critère G3 en P0 et les essais de P1 (n° 203). D'ici là, le message de navigateur incompatible recommande seulement Chrome ou Safari ([D5](D5-parcours-maquettes.md) ER8, n° 174).
-- Hors cible : navigateurs intégrés des messageries (lien ouvert dans Instagram, Messenger…). Ils sont détectés à l'accueil et le joueur est invité à ouvrir le lien dans son navigateur ([D5](D5-parcours-maquettes.md) ER8). **Hypothèse à valider, à confirmer (P1)**
+- Navigateurs intégrés des messageries (lien ouvert dans Messenger, WhatsApp, Instagram…) : c'est ainsi que les invitations seront ouvertes en pratique. L'hypothèse de départ les classait hors cible, avec l'écran ER8 et une invitation à ouvrir le lien ailleurs. Elle est **partiellement validée** pour Messenger sur iPhone : la page y fonctionne, caméra et MediaPipe compris (n° 228). Les renvoyer vers ER8 bloquerait donc des joueurs sans raison. WhatsApp et Instagram, ainsi que l'appel vidéo dans ces navigateurs, sont testés en P1 ([D3](D3-plan-de-tests.md) §2.3.7, n° 229). Le traitement à l'accueil (bloquer, proposer « Ouvrir dans Safari », ou laisser jouer) reste ouvert ([D5](D5-parcours-maquettes.md) Q8). **À confirmer (P1)**
 
 ### 7.3 Choix qui en découlent
 
@@ -279,7 +280,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | Un seul flux caméra et micro, partagé entre détection et envoi | [S15] |
 | Vidéo envoyée en H.264 quand un appareil iOS est dans le duel (n° 205) **À confirmer (P1)** | Économie de processeur, partagé avec MediaPipe [S21] |
 | Fichiers MediaPipe servis par l'hébergement de la PWA, version figée (1.0.1, n° 220) | Pas de CDN tiers (principe 5) ; RT12 |
-| Politique de sécurité de la page : tout chargement externe bloqué, y compris les statistiques d'usage que MediaPipe envoie à Google (n° 221, n° 225) | Principe 5 vérifiable sur iPhone ; l'envoi des statistiques ne peut pas être désactivé dans la bibliothèque |
+| Politique de sécurité de la page : tout chargement externe bloqué, y compris les statistiques d'usage que MediaPipe envoie à Google (n° 221, n° 225) | Principe 5 vérifiable sur iPhone ; l'envoi des statistiques ne peut pas être désactivé dans la bibliothèque ; bloque aussi les scripts injectés par les navigateurs intégrés des messageries, comme celui de Messenger (n° 228). Fonctionne sur Chrome, Edge, Safari iOS 18 et 26, et dans Messenger (n° 227) |
 | Modèle et WebAssembly chargés dès l'accueil, en arrière-plan | 15 Mo au premier chargement ; prêts avant le calibrage |
 
 ### 7.4 Performances cibles

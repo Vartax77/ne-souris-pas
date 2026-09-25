@@ -84,6 +84,7 @@ flowchart LR
 | Terminé quand | Sur les trois appareils de test ([D3](D3-plan-de-tests.md) §1.2.3) : la caméra s'affiche en miroir, « MediaPipe prêt » s'affiche, et aucun chargement externe n'a abouti (seule tentative bloquée attendue : les statistiques de MediaPipe, n° 225) |
 | Test | [D3](D3-plan-de-tests.md) §1.2.3 |
 | Dépend de | — |
+| Statut | **Terminé** le 2026-09-25 sur les trois appareils ; relevés en [D3](D3-plan-de-tests.md) §1.7.1 (n° 227) |
 
 #### L0.2 — Détection
 
