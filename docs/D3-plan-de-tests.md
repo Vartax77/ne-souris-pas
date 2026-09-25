@@ -5,7 +5,7 @@
 | Objet | Dire, pour chaque prototype, quel résultat valide ou invalide chaque risque, et quelle décision en découle |
 | Statut | Brouillon — complet : prototype 0 (lot 3), prototypes 1 et 2 (lot 7) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [D4](D4-architecture-technique.md) ; [D6](D6-lots-developpement.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 42, 50 à 54, 64 à 96, 97 à 125, 134 à 147 |
+| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [D4](D4-architecture-technique.md) ; [D6](D6-lots-developpement.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 42, 50 à 54, 64 à 96, 97 à 125, 134 à 147, 160, 161, 163, 165 à 168, 192 à 197, 216 |
 | Utilisé par | [D2](D2-regles-jeu-arbitrage.md) et [D4](D4-architecture-technique.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (test associé à chaque lot) |
 
 ## 1. Prototype 0 — détection seule, sans réseau
@@ -20,7 +20,7 @@ Objectif : prouver que l'arbitrage de [D2](D2-regles-jeu-arbitrage.md) est juste
 | Sourire franc non détecté (faux négatif) | H1 | Tous les sourires francs détectés en conditions normales (G5) | n° 79 |
 | Performance insuffisante sur un appareil ancien | H6 | Au moins 10 images/s, sans chauffe excessive en 5 min | [D1](D1-note-de-cadrage.md) §6.2 ; n° 37 |
 | Parole et voyelles tenues qui étirent la bouche | H1 | Comparer formule de base et variante `cheekSquint` | [D2](D2-regles-jeu-arbitrage.md) §5.5 ; n° 72 |
-| Seuil gonflé en exagérant le sourire volontaire | H1 | Tester le plafond `d_max` | [D2](D2-regles-jeu-arbitrage.md) §5.2, Q1 |
+| Seuil gonflé en exagérant le sourire volontaire | H1 | Tester le plafond `d_max` | [D2](D2-regles-jeu-arbitrage.md) §5.2 ; n° 183 |
 | Calibrage trop strict ou trop laxiste | H1 | Fixer les critères de rejet de R1 | [D2](D2-regles-jeu-arbitrage.md) R1 |
 | Pertes de visage injustifiées | H1 | Aucune perte comptée en jeu normal | [D2](D2-regles-jeu-arbitrage.md) R4 |
 | Sourire caché derrière la main | H1 | Constater s'il est détecté (pas sa fréquence : voir 3) | [D2](D2-regles-jeu-arbitrage.md) §5.4 ; n° 70 |
@@ -57,11 +57,17 @@ Règle : **toute condition acceptée par le calibrage compte comme jouable**. Si
 
 #### 1.2.3 Appareils
 
-| Rôle | Appareil | Utilisé pour |
-|---|---|---|
-| Le plus ancien disponible | À préciser (Q1) | Performance ; une partie des sessions |
-| iPhone récent, Safari | À préciser (Q1) | Sessions ; performance sur Safari iOS |
-| Ordinateur avec webcam | À préciser (Q1) | Sessions |
+Appareils disponibles (n° 192) :
+
+| Rôle | Appareil | Navigateur | Utilisé pour |
+|---|---|---|---|
+| Le plus ancien, référence basse | iPhone XR (2018) | Safari | Performance (critère G3) ; une partie des sessions |
+| iPhone récent | iPhone 15 (2023) | Safari | Sessions ; performance sur Safari iOS |
+| Ordinateur, référence haute | PC portable Windows 11, webcam intégrée ; Intel Core i7-13650HX, 32 Go de mémoire, carte graphique dédiée 8 Go | Chrome ou Edge ([D4](D4-architecture-technique.md) §7.2) | Sessions ; performance haute |
+
+- L'appareil le plus ancien est un iPhone : G3 est donc jugé sur Safari iOS.
+- Aucun appareil Android n'est disponible. Android reste une cible de [D4](D4-architecture-technique.md) §7.2, non mesurée en P0 (Q10).
+- L'iPhone XR ne reçoit plus les versions d'iOS postérieures à iOS 18, d'après la liste de compatibilité d'Apple, à vérifier sur l'appareil. Or des défauts du calcul graphique de MediaPipe sont signalés sur iOS 18 ([D4](D4-architecture-technique.md) §7.1). Noter la version d'iOS et le mode de calcul dans le journal.
 
 #### 1.2.4 Volume et durée
 
@@ -145,7 +151,7 @@ Revenir en N à la fin.
 1. Recalibrer en forçant le sourire volontaire au maximum.
 2. Noter `d` et si le plafond `d_max` s'applique.
 3. Rejouer A5 pendant 60 s : le testeur est autorisé à sourire franchement.
-4. Noter si ses sourires sont détectés. S'ils ne le sont pas, le plafond ne protège pas assez ([D2](D2-regles-jeu-arbitrage.md) Q1).
+4. Noter si ses sourires sont détectés. S'ils ne le sont pas, le plafond ne protège pas assez ([D2](D2-regles-jeu-arbitrage.md) §5.2).
 
 #### 1.3.7 Fin de session (3 min)
 
@@ -186,7 +192,7 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `faute` | Vide, sourire ou perte |
 | `op` | 1 si la touche « sourire vu » est pressée |
 
-Les journaux restent sur l'ordinateur de Valentin. Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
+Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; la protection BitLocker du disque est activée avant le premier test ([D6](D6-lots-developpement.md) L0.6, n° 216). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
 #### 1.4.2 Fiche testeur
 
@@ -297,7 +303,7 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 |---|---|---|---|
 | 1 | Formule du score (base ou `cheekSquint`) | A2, A3, A6 | Celle dont l'intervalle de `k` est le plus large. À égalité : la formule de base, plus simple |
 | 2 | Coefficient `k` | A1 à A4, A6 | Milieu de l'intervalle (1.5.2) |
-| 3 | Seuil maximal `d_max` | A0, C | Au-dessus de tous les `d` honnêtes ; sous les `d` exagérés. Si impossible : le signaler (Q1 de D2 reste ouverte) |
+| 3 | Seuil maximal `d_max` | A0, C | Au-dessus de tous les `d` honnêtes ; sous les `d` exagérés. Si impossible : le signaler à Valentin (n° 183) |
 | 4 | Marge `m` | A1 | 95e centile de `S − n` en A1, tous testeurs confondus, arrondi au centième supérieur |
 | 5 | Écart-type maximal, plafond du neutre, amplitude minimale | A0 | Accepter tous les calibrages honnêtes en N, avec une marge d'au moins 20 % sur la valeur observée la plus proche |
 | 6 | Luminance minimale | B1 à B3 | La plus basse luminance où les conditions restent sans faux positif et où les francs sont détectés |
@@ -325,7 +331,7 @@ Les pourcentages et marges de ce tableau sont des règles de méthode, pas des r
 
 | Décision | Condition | Actions | Effet sur [D2](D2-regles-jeu-arbitrage.md) |
 |---|---|---|---|
-| **Go** | G1 à G6 respectés | Coder le prototype 1 | §3 : valeurs mesurées, colonne « Validé par » passée à « Validé (P0) » ; §2 : formule du score retenue, variante retirée ou adoptée ; §5.2 et Q1 : `d_max` fixé ; R2 point 7 supprimé (la variante ne sert plus qu'en P0) ; une ligne D8 par valeur changée |
+| **Go** | G1 à G6 respectés | Coder le prototype 1 | §3 : valeurs mesurées, colonne « Validé par » passée à « Validé (P0) » ; §2 : formule du score retenue, variante retirée ou adoptée ; §5.2 : `d_max` fixé ; R2 point 7 supprimé (la variante ne sert plus qu'en P0) ; une ligne D8 par valeur changée |
 | **Ajustement** — faux positifs en N | Intervalle de `k` non vide après étape 1 ou 9 | Nouvelles valeurs ; nouvelle validation sur 2 testeurs neufs (séquences A0 à A6) | §3 et, si la formule change, §2 et §5.5 |
 | **Ajustement** — faux positifs en dégradé | G2 échoue, G1 tient | Relever la luminance minimale ou resserrer les angles pour que le calibrage rejette cette condition | §3 ; R1 (messages de rejet) |
 | **Ajustement** — calibrage trop strict | G4 échoue | Assouplir le critère qui rejette (étape 5), puis revérifier G1 | §3 ; R1 |
@@ -352,7 +358,7 @@ Objectif : prouver que deux appareils sur des réseaux différents se connectent
 |---|---|---|
 | Connexion impossible sur certains réseaux | C1 : 100 % des connexions aboutissent avec le relais | n° 38, n° 51 ; [D4](D4-architecture-technique.md) RT3 |
 | Connexion trop lente | C2 : établissement en 20 s au plus | [D2](D2-regles-jeu-arbitrage.md) §6.7 |
-| Horloges mal synchronisées | C3 : erreur réelle couverte par l'erreur estimée `e` | n° 89, n° 95, n° 114 ; [D2](D2-regles-jeu-arbitrage.md) Q6 ; [D4](D4-architecture-technique.md) Q1 |
+| Horloges mal synchronisées | C3 : erreur réelle couverte par la borne `e = a_min / 2` | n° 89, n° 114, n° 160, n° 161 ; [D2](D2-regles-jeu-arbitrage.md) §5.6 ; [D4](D4-architecture-technique.md) §5.1 |
 | Coupure mal gérée | C4 : reconnexion, présence et forfait conformes à [D2](D2-regles-jeu-arbitrage.md) §6.4 | n° 99 à 102 |
 | Performance avec un vrai appel | C5 : critère G3 (§1.6.1) tenu avec un appel réel | n° 81 ; [D4](D4-architecture-technique.md) RT2 |
 | Vidéo ou son muets sur iOS | C6 : image et son des deux côtés dans tous les essais | [D4](D4-architecture-technique.md) RT8 |
@@ -365,15 +371,15 @@ Valeurs **À confirmer (P1)** relevées par ce prototype : multiplicateur de l'e
 
 | Code | Appareil A | Appareil B | Lieu | Personnes |
 |---|---|---|---|---|
-| R1 | Wi-Fi, box de l'opérateur X | Wi-Fi, box d'un autre opérateur | Deux domiciles | Valentin + un proche |
-| R2 | Wi-Fi | 4G ou 5G | Même lieu | Valentin seul |
+| R1 | Wi-Fi, box de l'opérateur X | Wi-Fi, box d'un autre opérateur | Deux domiciles | Valentin + un proche (disponible, n° 197) |
+| R2 | Wi-Fi | 4G ou 5G | Même lieu, ou deux lieux avec le proche | Valentin seul, ou avec le proche (n° 197) |
 | R3 | 4G | 4G, même opérateur | Même lieu | Valentin seul |
-| R4 | 4G | 4G, autre opérateur | Même lieu | Valentin + un proche (deuxième carte SIM) |
+| R4 | 4G | 4G, autre opérateur | Même lieu | Valentin + un proche (deuxième carte SIM ; disponible, n° 197) |
 | R5 | Wi-Fi restrictif (public, entreprise ou invité) | 4G | Selon disponibilité | Valentin seul |
 | R6 | Wi-Fi | Même Wi-Fi | Même lieu | Valentin seul (témoin) |
 | RF | Relais forcé : tout passe par le relais, quelle que soit la combinaison | — | Même lieu | Valentin seul |
 
-- R5 n'est testé que si un tel réseau est disponible (Q2). Sinon, RF en tient lieu : RF prouve que le relais fonctionne, y compris en TLS sur le port 443.
+- R5 n'est testé que si un tel réseau est disponible. Sinon, RF en tient lieu : RF prouve que le relais fonctionne, y compris en TLS sur le port 443 (n° 193).
 - Dans chaque combinaison, au moins 3 essais sur 10 avec un iPhone sous Safari, et au moins 3 avec un ordinateur.
 
 #### 2.2.2 Volume
@@ -382,8 +388,8 @@ Valeurs **À confirmer (P1)** relevées par ce prototype : multiplicateur de l'e
 |---|---|
 | Essais de connexion | 10 par combinaison (n° 51) : 70 essais avec R5 |
 | Mesure des horloges | 20 flashs par combinaison, sur R2, R3 et R6 |
-| Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android |
-| Charge réelle | 10 min par appareil, sur l'appareil le plus ancien et sur l'iPhone |
+| Coupures | 5 répétitions par scénario, sur un iPhone et sur un Android (Android non disponible : Q10) |
+| Charge réelle | 10 min par appareil, sur l'iPhone XR (le plus ancien) et sur l'iPhone 15 |
 | Chargement | 5 premiers chargements en 4G, cache vidé |
 | Durée totale estimée | Deux séances de 3 heures |
 
@@ -413,7 +419,7 @@ Principe : les deux appareils filment le même événement ; l'écart entre leur
 5. À chaque flash, noter aussi `e` et `W` de la dernière synchronisation.
 6. 20 flashs par combinaison. Resynchroniser (5 allers-retours) tous les 5 flashs, comme avant chaque manche.
 
-L'écart mesuré contient l'erreur de synchronisation et au plus un intervalle d'image par appareil. On le compare donc à `e + i`.
+L'écart mesuré contient l'erreur de synchronisation et au plus un intervalle d'image par appareil. On le compare donc à `e + i`, avec `e = a_min / 2` ([D2](D2-regles-jeu-arbitrage.md) §5.6). Le test dit si la borne garantie couvre bien l'erreur réelle, et de combien elle la dépasse : une borne très au-dessus de l'erreur réelle produit des manches nulles inutiles.
 
 Même montage pour le **retard vidéo** : l'appareil B compare l'instant où il voit le flash par sa propre caméra et l'instant où il le voit dans la vidéo reçue de A. Les deux instants sont sur l'horloge de B.
 
@@ -486,7 +492,7 @@ Journal des flashs : combinaison, numéro, écart mesuré (ms), `e`, `i`, `W`, a
 |---|---|---|---|
 | K1 à K7 | | | |
 
-| Charge réelle | Appareil le plus ancien | iPhone |
+| Charge réelle | iPhone XR (le plus ancien) | iPhone 15 |
 |---|---|---|
 | Fenêtre de 10 s la plus basse (images/s) | | |
 | Chauffe excessive (§1.3.8) | | |
@@ -507,15 +513,17 @@ Journal des flashs : combinaison, numéro, écart mesuré (ms), `e`, `i`, `W`, a
 | C5 | Critère G3 (§1.6.1) tenu pendant l'appel réel, sur les deux appareils | 2.5 |
 | C6 | Image et son des deux côtés dans tous les essais iOS | Journal, `son_img` |
 
-Seuils de C3 (19 sur 20) : **Hypothèse à valider** (Q3).
+Seuil de C3 (19 sur 20) : validé par Valentin (n° 194).
+
+Valeurs relevées **à titre d'information**, sans critère ni effet sur la décision « Go » (n° 168) : retard vidéo (cible 300 ms), premier chargement (3 s), modèle prêt (15 s) ([D4](D4-architecture-technique.md) §7.4), durée de l'écran noir (2 s, [D2](D2-regles-jeu-arbitrage.md) §6.7). Elles ajustent ces cibles dans [D4](D4-architecture-technique.md) et [D2](D2-regles-jeu-arbitrage.md).
 
 | Décision | Condition | Actions | Effet sur les documents |
 |---|---|---|---|
-| **Go** | C1 à C6 respectés | Coder le prototype 2 ([D6](D6-lots-developpement.md) L2.1) | [D2](D2-regles-jeu-arbitrage.md) §3 et §6.7 : valeurs P1 passées à « Validé (P1) » ; [D4](D4-architecture-technique.md) §7.4 : cibles mesurées |
+| **Go** | C1 à C6 respectés | Coder le prototype 2 ([D6](D6-lots-developpement.md) L2.1a) | [D2](D2-regles-jeu-arbitrage.md) §3 et §6.7 : valeurs P1 passées à « Validé (P1) » ; [D4](D4-architecture-technique.md) §7.4 : cibles mesurées |
 | **Changer de relais** | C1 échoue | Changer de service (n° 53), puis refaire 10 essais dans la combinaison en échec et en RF | [D4](D4-architecture-technique.md) §8.4 |
-| **Changer de mise en relation** | Échecs dus au serveur public PeerJS (lenteur, indisponibilité) | Passer au serveur auto-hébergé plus tôt que prévu : question de budget (Q4) | [D4](D4-architecture-technique.md) §8.4 |
+| **Changer de mise en relation** | Échecs dus au serveur public PeerJS (lenteur, indisponibilité) | Passer au serveur auto-hébergé plus tôt que prévu, à ≈ 4,57 € par mois, accepté par Valentin (n° 163) | [D4](D4-architecture-technique.md) §8.4 |
 | **Revoir les délais** | C2 ou C4 échoue | Allonger le délai concerné, puis refaire le scénario | [D2](D2-regles-jeu-arbitrage.md) §6.7 |
-| **Revoir `e`** | C3 échoue | Augmenter le multiplicateur de `e` ou passer à une borne plus large ; refaire 2.3.3 | [D2](D2-regles-jeu-arbitrage.md) R5, Q6 ; [D4](D4-architecture-technique.md) §5.1 |
+| **Revoir `e`** | C3 échoue | Revenir au multiplicateur 2 (`W = max(100 ms, 2 × e + i)`) ou élargir la borne ; refaire 2.3.3 | [D2](D2-regles-jeu-arbitrage.md) R5, §5.6 ; [D4](D4-architecture-technique.md) §5.1 |
 | **Alléger la charge** | C5 échoue | Baisser la résolution envoyée, puis la cadence commune vers 10 (n° 52) | [D4](D4-architecture-technique.md) §7.4 |
 | **Corriger iOS** | C6 échoue | Corriger la lecture (geste, `playsinline`) ; refaire les essais iOS | [D4](D4-architecture-technique.md) RT8 |
 
@@ -525,7 +533,7 @@ Enseignement pour P2 : si `W` dépasse souvent 200 ms (réseaux lents), s'attend
 
 ### 3.1 Objectif et risques testés
 
-Objectif : savoir si le jeu donne envie de rejouer (critère de réussite de la v1, n° 50), et si l'arbitrage tient en situation réelle. Lots testés : L2.1 à L2.6 de [D6](D6-lots-developpement.md).
+Objectif : savoir si le jeu donne envie de rejouer (critère de réussite de la v1, n° 50), et si l'arbitrage tient en situation réelle. Lots testés : L2.1a à L2.6 de [D6](D6-lots-developpement.md).
 
 | Risque | Hypothèse | Critère | Référence |
 |---|---|---|---|
@@ -536,7 +544,9 @@ Objectif : savoir si le jeu donne envie de rejouer (critère de réussite de la 
 | Triche par la main devant la bouche | H1 | A3 | n° 70 |
 | Défaillance technique en match | — | T1 | [D4](D4-architecture-technique.md) RT7, RT10, RT11 |
 | Demande pour le mode inconnus | — | Aucun seuil : la réponse oriente ce chantier | n° 41 |
-| Gêne d'être filmé et analysé | H4 | Aucun seuil : information pour [D7](D7-juridique-confidentialite.md) | Source §2.1 |
+| Gêne d'être filmé et analysé | H4 | Aucun seuil : information seulement, pour [D7](D7-juridique-confidentialite.md) (question 12) | Source §2.1 ; n° 165 |
+| L'application n'apporte rien de plus qu'un appel vidéo | H5 | Aucun seuil : information seulement (question 16) | Source §2.1 ; n° 167 |
+| Différenciation face aux filtres ; acquisition | H5 | Hors v1 ([D1](D1-note-de-cadrage.md) §5.2). Aucun seuil : information seulement (questions 13 et 14) | Source §2.3 ; n° 166 |
 
 Valeurs **À confirmer (P2)** relevées par ce prototype : durée de la manche, 2 manches gagnantes, fenêtre de simultanéité minimale, écart de pics ([D2](D2-regles-jeu-arbitrage.md) §3) ; durée de vie du salon, manches interrompues tolérées, arrêt sur image, délai de revanche ([D2](D2-regles-jeu-arbitrage.md) §6.7) ; image de preuve ([D4](D4-architecture-technique.md) §4.3).
 
@@ -544,13 +554,13 @@ Valeurs **À confirmer (P2)** relevées par ce prototype : durée de la manche, 
 
 | Élément | Règle |
 |---|---|
-| Matchs comptés | **10 matchs** (n° 39) : le **premier match** de 10 sessions distinctes. Les revanches sont jouées et journalisées, mais ne comptent pas parmi les 10. **Hypothèse à valider** (Q5) |
+| Matchs comptés | **10 matchs** (n° 39) : le **premier match** de 10 sessions distinctes. Les revanches sont jouées et journalisées, mais ne comptent pas parmi les 10 (n° 195) |
 | Joueurs | Des proches, 18 ans ou plus. Chaque joueur participe à 2 matchs comptés au plus |
-| Valentin | Ne joue dans aucun match compté : il voudrait la revanche et fausserait V1. **Hypothèse à valider** (Q6) |
+| Valentin | Ne joue dans aucun match compté : il voudrait la revanche et fausserait V1 (n° 195) |
 | Appareils | Au moins 3 matchs avec un iPhone, au moins 3 avec un ordinateur, au moins 3 entre deux téléphones |
 | Distance | Chaque joueur chez lui (n° 1) ; au moins 3 matchs sur des réseaux différents |
-| Observation | Valentin assiste en silence à 5 matchs sur 10, à côté d'un des joueurs. Les 5 autres se jouent sans lui. **Hypothèse à valider** (Q7) |
-| Préalable | Accord oral des deux joueurs, noté (n° 78) ; pages de [D7](D7-juridique-confidentialite.md) en ligne ([D6](D6-lots-developpement.md) L2.6, Q3) |
+| Observation | Valentin assiste en silence à 5 matchs sur 10, à côté d'un des joueurs. Les 5 autres se jouent sans lui (n° 195) |
+| Préalable | Accord oral des deux joueurs, noté (n° 78, n° 211) ; pages de [D7](D7-juridique-confidentialite.md) en ligne ([D6](D6-lots-developpement.md) L2.6, n° 212) |
 
 ### 3.3 Déroulé des 10 matchs
 
@@ -628,8 +638,9 @@ Rempli par chaque joueur, séparément, le jour même. Environ 5 minutes. Sans n
 | 13 | Rejoueriez-vous avec un autre ami ? | Oui / non / peut-être |
 | 14 | Joueriez-vous avec un inconnu ? | Oui / non / peut-être ; pourquoi |
 | 15 | Qu'avez-vous trouvé difficile ou confus dans l'application ? | Texte libre |
+| 16 | Auriez-vous joué pareil en simple appel vidéo, sans l'application ? Qu'apporte l'arbitre ? | Oui / non / je ne sais pas ; texte |
 
-Correspondances : question 7 → détection sonore du rire (n° 34) ; 10 → provocations (n° 3) ; 11 → clip partageable (n° 32) ; 12 → H4 ; 14 → mode inconnus (n° 41).
+Correspondances : question 7 → détection sonore du rire (n° 34) ; 10 → provocations (n° 3) ; 11 → clip partageable (n° 32) ; 12 → H4 ; 13 et 14 → acquisition et différenciation, hors v1 (n° 166) ; 14 → mode inconnus (n° 41) ; 16 → H5 (n° 167). Les questions 12, 13, 14 et 16 sont des informations : elles n'ont ni seuil ni effet sur la décision.
 
 ### 3.6 Grille de résultats
 
@@ -658,7 +669,9 @@ Synthèse :
 | Matchs avec triche par la main | | ≤ 2 / 10 |
 | Images de preuve reçues en 2 s au plus | | 100 % |
 | Question 14 : « oui » | | Information |
+| Question 13 : « oui » | | Information |
 | Question 12 : moyenne | | Information |
+| Question 16 : part des « non » (l'application apporte plus qu'un appel vidéo) | | Information |
 | Questions 8 et 9 : majorité | | Ajuste 60 s et 2 manches |
 
 ### 3.7 Critères de décision
@@ -668,11 +681,11 @@ Synthèse :
 | V1 | Revanche spontanée dans au moins 5 matchs comptés sur 10 (n° 40) | Réintroduire des provocations (n° 54) : nouveau lot, [D6](D6-lots-developpement.md) §4 |
 | E1 | Au plus 50 % des manches vont au bout des 60 s (n° 42) | Réintroduire des provocations (n° 42) |
 | A1 | Aucune contestation fondée | Retour au réglage du prototype 0 : rejeu des journaux P0 avec les cas contestés en tête (L0.7) |
-| A2 | Au plus 10 % de manches nulles, et aucune divergence | Nulles : revoir `W` ([D2](D2-regles-jeu-arbitrage.md) Q6, [D4](D4-architecture-technique.md) Q1). Divergence : corriger L2.2 |
+| A2 | Au plus 10 % de manches nulles, et aucune divergence | Nulles : revoir `W` ([D2](D2-regles-jeu-arbitrage.md) §5.6, [D4](D4-architecture-technique.md) §5.1). Divergence : corriger L2.2 |
 | A3 | Triche par la main dans 2 matchs comptés sur 10 au plus | Mesurer Hand Landmarker (n° 70) : nouveau lot |
 | T1 | 100 % des images de preuve reçues en 2 s au plus ; aucun plantage | Corriger L2.3 ([D4](D4-architecture-technique.md) RT10, RT11) |
 
-Seuils de A2 (10 %) et A3 (2 matchs) : **Hypothèse à valider** (Q8).
+Seuils de A2 (10 %) et A3 (2 matchs) : validés par Valentin (n° 196).
 
 | Décision | Condition | Suite |
 |---|---|---|
@@ -685,16 +698,8 @@ Rappel : seule V1 est un critère de réussite de la v1 (n° 50). Les autres son
 
 ## 4. Questions ouvertes
 
-Q2 à Q6 du lot 3 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82). Q2 à Q9 ci-dessous sont nouvelles (lot 7).
+Q2 à Q6 du lot 3 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82). Q1 à Q9 du lot 7 l'ont été le même jour : appareils (n° 192), réseau restrictif ou relais forcé (n° 193), C3 (n° 194), budget de 4,57 € par mois (n° 163), organisation des 10 matchs (n° 195), seuils A2 et A3 (n° 196), proche disponible (n° 197).
 
 | N° | Question | Proposition |
 |---|---|---|
-| Q1 | Quels appareils sont disponibles : le plus ancien (modèle, année), un iPhone (modèle), un ordinateur avec webcam (modèle ou type) ? La réponse du 2026-09-25 contenait encore les champs à remplir, sans les modèles. | — |
-| Q2 | Un réseau Wi-Fi restrictif (public, entreprise, invité) est-il disponible pour la combinaison R5 ? | Sinon, le relais forcé en TLS sur le port 443 (RF) en tient lieu |
-| Q3 | Critère C3 : au moins 19 flashs sur 20 avec un écart couvert par `e + i` ? | Oui, hypothèse appliquée |
-| Q4 | Si le serveur public PeerJS fait échouer P1, accepter environ 4,57 € par mois avant la fin des prototypes pour passer au serveur auto-hébergé (budget prototype : 0 €, n° 7) ? | — |
-| Q5 | Les « 10 matchs » (n° 39) sont-ils les premiers matchs de 10 sessions distinctes, revanches exclues du compte ? Compter les revanches gonflerait le taux de revanche | Oui, hypothèse appliquée |
-| Q6 | Valentin ne joue dans aucun match compté ? | Oui, hypothèse appliquée |
-| Q7 | Valentin observe en silence 5 matchs sur 10 ? | Oui, hypothèse appliquée |
-| Q8 | Seuils des garde-fous P2 : au plus 10 % de manches nulles ; triche par la main dans 2 matchs sur 10 au plus ? | Oui, hypothèse appliquée |
-| Q9 | Un proche est-il disponible pour R1 (deux domiciles) et R4 (deuxième opérateur) en P1 ? | — |
+| Q10 | Aucun appareil Android n'est disponible. Or les coupures K1 à K7 sont prévues « sur un iPhone et sur un Android » (§2.2.2, C4), et Android Chrome est une cible de [D4](D4-architecture-technique.md) §7.2. Un proche peut-il prêter un téléphone Android pour P0 (performance) et P1 (coupures) ? | Oui si possible, au moins pour K1 à K7. Sinon : K1 à K7 sur iPhone et sur l'ordinateur, C4 jugé sans Android, et Android Chrome reste « à tester » dans [D4](D4-architecture-technique.md) §7.2 jusqu'au premier joueur Android de P2 |

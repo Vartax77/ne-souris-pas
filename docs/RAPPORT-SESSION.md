@@ -7,6 +7,8 @@
 | Date | 2026-09-25 |
 | Dépend de | [D2](D2-regles-jeu-arbitrage.md), [D3](D3-plan-de-tests.md), [D4](D4-architecture-technique.md), [D5](D5-parcours-maquettes.md), [D6](D6-lots-developpement.md), [D7](D7-juridique-confidentialite.md), [D8](D8-journal-decisions.md) |
 
+**Arbitré par Valentin le 2026-09-25** : incohérences et questions tranchées, voir [D8](D8-journal-decisions.md) §16 (n° 159 à 216). Le contenu ci-dessous décrit l'état avant arbitrage.
+
 Règles de l'enchaînement : aucune question posée en cours de route ; option la plus prudente retenue et marquée « Hypothèse à valider » ; valeurs simulées de D2 utilisées telles quelles ; commit et `graphify update .` après chaque lot.
 
 ## 1. Lot 4 — D2 complet

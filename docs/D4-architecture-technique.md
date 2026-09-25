@@ -5,7 +5,7 @@
 | Objet | Dire quelles données circulent et par où, où se trouve la source de vérité de l'arbitrage, ce qui coûte, et comment ne pas fermer la porte au mode inconnus |
 | Statut | Brouillon |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) ; [D2](D2-regles-jeu-arbitrage.md) (règles R1 à R7, machine à états §6) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.2, §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 7, 11 à 14, 26 à 28, 31, 66, 86, 89, 94, 95, 97 à 110, 111 à 125 |
+| Dépend de | [D1](D1-note-de-cadrage.md) ; [D2](D2-regles-jeu-arbitrage.md) (règles R1 à R7, machine à états §6) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.2, §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 7, 11 à 14, 26 à 28, 31, 66, 86, 89, 94, 95, 97 à 110, 111 à 125, 159 à 163, 168, 174, 198 à 206 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (prototype 1) ; [D5](D5-parcours-maquettes.md) (mise en page, erreurs) ; [D6](D6-lots-developpement.md) (modules) ; [D7](D7-juridique-confidentialite.md) (données, services, pays) |
 
 Aucun code applicatif dans ce document. Les exemples JSON décrivent le format des messages.
@@ -16,7 +16,7 @@ Aucun code applicatif dans ce document. Les exemples JSON décrivent le format d
 2. **La vidéo va de pair à pair.** Vidéo, audio et messages de jeu passent par une seule connexion WebRTC chiffrée (n° 12, n° 27). Le relais TURN, quand il sert, transmet sans pouvoir lire.
 3. **Le serveur ne voit que la mise en relation.** Il connaît le code du salon, les adresses IP et les descriptions de connexion. Il ne voit ni vidéo, ni son, ni message de jeu.
 4. **Rien n'est stocké** (n° 26, n° 69) : ni disque, ni stockage du navigateur, ni serveur, en dehors des journaux techniques des hébergeurs (section 9).
-5. **Aucun tiers dans la page** : ni mesure d'audience, ni police, ni script chargé depuis un autre domaine. Le modèle MediaPipe et ses fichiers WebAssembly sont servis par l'hébergement de la PWA ; sans cela, un CDN tiers verrait l'adresse IP de chaque joueur. Les seuls tiers sont la mise en relation et le relais (section 8).
+5. **Aucun tiers dans la page** : ni mesure d'audience, ni police, ni script chargé depuis un autre domaine. Le modèle MediaPipe, ses fichiers WebAssembly et la bibliothèque cliente PeerJS sont servis par l'hébergement de la PWA ; sans cela, un CDN tiers verrait l'adresse IP de chaque joueur. Les seuls tiers sont la mise en relation et le relais (section 8).
 
 ## 2. Schéma des composants
 
@@ -67,7 +67,7 @@ Un seul flux caméra : iOS n'autorise pas deux captures de la même caméra ; le
 | Donnée | De | Vers | Par | Chiffrement | Durée de vie |
 |---|---|---|---|---|---|
 | Fichiers de la PWA, modèle (quelques Mo), WebAssembly | Hébergement | Appareil | HTTPS | TLS | Cache du navigateur (fichiers publics, aucune donnée personnelle) |
-| Code du salon | Appareil | Serveur de mise en relation | WebSocket | TLS | Jusqu'à la fin de la session ([D2](D2-regles-jeu-arbitrage.md) §6.5.3) |
+| Code du salon | Appareil | Serveur de mise en relation | WebSocket | TLS | Jusqu'à la fin de la session, revanches comprises ([D2](D2-regles-jeu-arbitrage.md) §6.5.3, n° 159) |
 | Descriptions de connexion (SDP) et candidats (adresses IP) | Appareil | Autre appareil, via le serveur | WebSocket | TLS | Le temps de la connexion |
 | Adresse IP | Appareil | Hébergement, serveur, relais | — | — | Journaux des prestataires (section 9) |
 | Vidéo et audio | Appareil | Autre appareil, direct ou via relais | SRTP | DTLS-SRTP, de bout en bout | Instantané, jamais stocké |
@@ -101,7 +101,7 @@ Tous les messages de jeu passent par un canal de données WebRTC fiable et ordon
 
 | Champ | Sens |
 |---|---|
-| `v` | Version du protocole. Deux versions différentes : erreur ER9 de [D5](D5-parcours-maquettes.md) |
+| `v` | Version du protocole. Deux versions différentes : état Erreur version ([D2](D2-regles-jeu-arbitrage.md) T33), écran ER9 de [D5](D5-parcours-maquettes.md) |
 | `type` | Type du message (tableau ci-dessous) |
 | `seq` | Numéro d'ordre, par émetteur |
 | `t` | Horloge locale de l'émetteur, en ms (`performance.now()`, monotone) |
@@ -141,7 +141,7 @@ Exemples :
 ```json
 { "v": 1, "type": "sync_resultat", "seq": 24, "t": 20745.0,
   "data": { "manche": 2, "decalage": -11693.6, "e": 21.0,
-            "cadence": 12, "w": 125, "t0_hote": 25800.0 } }
+            "cadence": 12, "w": 104, "t0_hote": 25800.0 } }
 ```
 
 ```json
@@ -156,16 +156,16 @@ Exemples :
 
 ```json
 { "v": 1, "type": "statut", "seq": 548, "t": 62270.0,
-  "data": { "manche": 2, "jusqua_tm": 35665, "faute_tm": null } }
+  "data": { "manche": 2, "jusqua_tm": 35644, "faute_tm": null } }
 ```
 
 ```json
 { "v": 1, "type": "decision", "seq": 549, "t": 62280.0,
   "data": { "manche": 2, "resultat": "perd_hote", "cause": "sourire",
-            "empreinte": "35540|null|125" } }
+            "empreinte": "35540|null|104" } }
 ```
 
-`tm` : temps de manche, en ms depuis t0, sur l'horloge de l'hôte (5.1).
+`tm` : temps de manche, en ms depuis t0, sur l'horloge de l'hôte (5.1). Dans l'exemple, `e` = 21 ms (plus petit aller-retour de 42 ms) et la cadence de 12 images/s donne `i` = 83 ms : `W = max(100, 21 + 83)` = 104 ms.
 
 ### 4.3 Image de preuve
 
@@ -184,12 +184,12 @@ Pendant l'écran noir de chaque manche ([D2](D2-regles-jeu-arbitrage.md) R5, n°
 2. L'invité note l'heure de réception `t2` et l'heure de réponse `t3`, et renvoie `sync_pong`.
 3. L'hôte note l'heure de réception `t4`.
 4. Aller-retour `a = (t4 − t1) − (t3 − t2)` ; décalage `θ = ((t2 − t1) + (t3 − t4)) / 2`.
-5. Cinq échanges, espacés de 100 ms. On retient le décalage de l'échange au plus petit aller-retour.
-6. Erreur `e = a_min / 2` : borne garantie de l'erreur sur le décalage, quelle que soit l'asymétrie du réseau. **Hypothèse à valider, à confirmer (P1)**
-7. L'hôte calcule `W = max(100 ms, 2 × e + i)` ([D2](D2-regles-jeu-arbitrage.md) R5) et l'envoie dans `sync_resultat` avec t0. Les deux appareils utilisent donc les mêmes `W` et t0.
+5. Cinq échanges, espacés de 100 ms. Un seul échantillon est retenu : celui du plus petit aller-retour `a_min`. Son décalage θ sert pour la manche (n° 160).
+6. Erreur `e = a_min / 2` : borne garantie de l'erreur sur le décalage, quelle que soit l'asymétrie du réseau (n° 160). **À confirmer (P1)**
+7. L'hôte calcule `W = max(100 ms, e + i)` ([D2](D2-regles-jeu-arbitrage.md) R5, n° 161) et l'envoie dans `sync_resultat` avec t0. Les deux appareils utilisent donc les mêmes `W` et t0.
 8. L'invité convertit t0 dans son horloge : `t0_invité = t0_hôte + θ`.
 
-Conséquence du point 6 : avec un aller-retour de 60 ms, `e` = 30 ms et `W` = 127 ms à 15 images/s. Avec 200 ms en 4G, `W` = 267 ms : plus de manches nulles, jamais de mauvais perdant. La simulation donnait une erreur réelle de 24 ms au 95e centile (n° 89) ; `e = a_min / 2` est plus prudent. Voir Q1.
+Conséquences : avec un aller-retour de 60 ms, `e` = 30 ms et `W` = 100 ms (plancher) à 15 images/s, 130 ms à 10 images/s. Avec 200 ms en 4G, `W` = 167 ms à 15 images/s, 200 ms à 10 images/s. `W` attendu : de 100 à environ 270 ms selon le réseau et la cadence (tableau en [D2](D2-regles-jeu-arbitrage.md) §5.6). La simulation donnait une erreur réelle de 24 ms au 95e centile (n° 89) ; la borne `a_min / 2` est plus large. En P1, le test du flash commun la compare à l'erreur réellement mesurée ([D3](D3-plan-de-tests.md) §2.3.3, critère C3).
 
 Le temps écoulé depuis t0 est mesuré sur l'horloge monotone de chaque appareil, jamais sur l'heure système, qui peut sauter.
 
@@ -200,7 +200,7 @@ Le temps écoulé depuis t0 est mesuré sur l'horloge monotone de chaque apparei
 | Canal ouvert (`bonjour`) | Chaque appareil annonce sa cadence maximale, mesurée pendant l'attente ou la connexion. L'hôte fixe une cadence commune provisoire : `min(15, cadence_A, cadence_B)` |
 | Écran noir de chaque manche | Chaque appareil mesure sa cadence sur la dernière seconde (`pret`). L'hôte fixe la cadence commune de la manche et l'envoie dans `sync_resultat` (n° 94) |
 | Cadence commune sous 10 images/s | La manche ne démarre pas ([D2](D2-regles-jeu-arbitrage.md) T14, n° 107) |
-| Pendant la manche | Cadence inchangée. Si un appareil ne tient plus la cadence, il analyse moins d'images ; la cadence est revue à la manche suivante ([D2](D2-regles-jeu-arbitrage.md) Q5) |
+| Pendant la manche | Cadence inchangée. Si un appareil ne tient plus la cadence, il analyse moins d'images ; la cadence est revue à la manche suivante ([D2](D2-regles-jeu-arbitrage.md) §5.8, n° 184) |
 
 Plafonnement : une image n'est analysée que si au moins `1000 / cadence` ms se sont écoulées depuis la précédente. Les images de la caméra en surplus sont ignorées par la détection, pas par la vidéo envoyée.
 
@@ -260,14 +260,15 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | Appareil | Navigateur | Statut | À vérifier |
 |---|---|---|---|
 | iPhone, iPad | Safari, version 15 ou plus | Cible | P0 : cadence, délégué GPU ou CPU, chauffe. P1 : lecture, arrière-plan |
-| iPhone | Chrome ou Firefox pour iOS (moteur WebKit) | À tester | P1 : accès caméra non confirmé par les sources |
-| Android | Chrome récent | Cible | P0 : appareil le plus ancien |
-| Ordinateur | Chrome, Edge récents | Cible | P0 |
-| Ordinateur | Safari macOS 15 ou plus | Cible | P0 |
+| iPhone | Chrome ou Firefox pour iOS (moteur WebKit) | À tester | P1 : accès caméra non confirmé par les sources ; aucun iPhone de test ne l'utilise par défaut |
+| Android | Chrome récent | Cible | Aucun appareil Android de test ([D3](D3-plan-de-tests.md) Q10) |
+| Ordinateur | Chrome, Edge récents | Cible | P0 : PC portable Windows 11 de référence haute ([D3](D3-plan-de-tests.md) §1.2.3) |
+| Ordinateur | Safari macOS 15 ou plus | Cible | Aucun Mac de test |
 | Ordinateur | Firefox récent | À tester | P0 : non cité par MediaPipe |
-| Tous | PWA installée sur l'écran d'accueil | Non proposée en v1 sur iOS **Hypothèse à valider** | Bogues caméra en mode installé [S16] à [S18] |
+| Tous | PWA installée sur l'écran d'accueil | Non proposée en v1 sur iOS (n° 202) | Bogues caméra en mode installé [S16] à [S18] |
 
-Hors cible : navigateurs intégrés des messageries (lien ouvert dans Instagram, Messenger…). Ils sont détectés à l'accueil et le joueur est invité à ouvrir le lien dans son navigateur ([D5](D5-parcours-maquettes.md) ER8). **Hypothèse à valider, à confirmer (P1)**
+- Les navigateurs « à tester » deviennent cibles seulement s'ils passent le critère G3 en P0 et les essais de P1 (n° 203). D'ici là, le message de navigateur incompatible recommande seulement Chrome ou Safari ([D5](D5-parcours-maquettes.md) ER8, n° 174).
+- Hors cible : navigateurs intégrés des messageries (lien ouvert dans Instagram, Messenger…). Ils sont détectés à l'accueil et le joueur est invité à ouvrir le lien dans son navigateur ([D5](D5-parcours-maquettes.md) ER8). **Hypothèse à valider, à confirmer (P1)**
 
 ### 7.3 Choix qui en découlent
 
@@ -276,7 +277,7 @@ Hors cible : navigateurs intégrés des messageries (lien ouvert dans Instagram,
 | Détecteur créé une seule fois par session, jamais recréé | Fuite de mémoire WebKit [S8] |
 | Délégué GPU essayé d'abord, CPU en secours ; le mode retenu est journalisé | Défaillances GPU possibles sur iOS [S7] ; RT1 |
 | Un seul flux caméra et micro, partagé entre détection et envoi | [S15] |
-| Vidéo envoyée en H.264 quand un appareil iOS est dans le duel **Hypothèse à valider** | Économie de processeur, partagé avec MediaPipe [S21] |
+| Vidéo envoyée en H.264 quand un appareil iOS est dans le duel (n° 205) **À confirmer (P1)** | Économie de processeur, partagé avec MediaPipe [S21] |
 | Fichiers MediaPipe servis par l'hébergement de la PWA, version figée | Pas de CDN tiers (principe 5) ; RT12 |
 | Modèle et WebAssembly chargés dès l'accueil, en arrière-plan | 15 Mo au premier chargement ; prêts avant le calibrage |
 
@@ -286,11 +287,13 @@ Hors cible : navigateurs intégrés des messageries (lien ouvert dans Instagram,
 |---|---|---|
 | Cadence d'analyse | Entre 10 et 15 images/s, commune aux deux appareils ([D2](D2-regles-jeu-arbitrage.md) §3) | **À confirmer (P0)** |
 | Chauffe | Critère G3 de [D3](D3-plan-de-tests.md) | **À confirmer (P0)** |
-| Premier chargement (lien → accueil affiché) | 3 s au plus en 4G | **Hypothèse à valider, à confirmer (P1)** |
-| Modèle prêt (lien → calibrage possible) | 15 s au plus en 4G au premier chargement | **Hypothèse à valider, à confirmer (P1)** |
-| Établissement de la connexion | 20 s au plus ([D2](D2-regles-jeu-arbitrage.md) §6.7) | **À confirmer (P1)** |
-| Retard vidéo d'un écran à l'autre | 300 ms au plus | **Hypothèse à valider, à confirmer (P1)** |
-| Vidéo envoyée | 640 × 480, 1,7 Mbit/s au plus (plafond par défaut de libwebrtc à cette résolution [S22]) | **Hypothèse à valider, à confirmer (P1)** |
+| Premier chargement (lien → accueil affiché) | 3 s au plus en 4G | **À confirmer (P1)**, information seulement (n° 168) |
+| Modèle prêt (lien → calibrage possible) | 15 s au plus en 4G au premier chargement | **À confirmer (P1)**, information seulement (n° 168) |
+| Établissement de la connexion | 20 s au plus ([D2](D2-regles-jeu-arbitrage.md) §6.7) | **À confirmer (P1)** (critère C2) |
+| Retard vidéo d'un écran à l'autre | 300 ms au plus | **À confirmer (P1)**, information seulement (n° 168) |
+| Vidéo envoyée | 640 × 480, 1,7 Mbit/s au plus (plafond par défaut de libwebrtc à cette résolution [S22]) ; n° 205 | **À confirmer (P1)** (critère C5) |
+
+« Information seulement » : la valeur est mesurée en P1 et corrige la cible, sans critère ni effet sur la décision « Go » ([D3](D3-plan-de-tests.md) §2.6).
 | Image de preuve reçue | 2 s au plus après la décision | **Hypothèse à valider, à confirmer (P2)** |
 
 ## 8. Mise en relation et relais : choix des services
@@ -329,12 +332,12 @@ Taux retenu : 1 $ ≈ 0,88 € (BCE, 24/09/2026) [S32].
 
 | Phase | Mise en relation | Relais | Hébergement de la PWA | Coût mensuel |
 |---|---|---|---|---|
-| Prototypes P1 et P2 | PeerJS, serveur public | Metered Open Relay, avec clé d'API | Hébergement statique gratuit (GitHub Pages ou équivalent) | 0 € |
-| Après les prototypes | PeerJS, serveur auto-hébergé | coturn sur le même serveur | Le même serveur | ≈ 4,57 € (OVHcloud VPS-1) + nom de domaine **[À COMPLÉTER : prix du domaine]** |
+| Prototypes P1 et P2 | PeerJS, serveur public | Metered Open Relay, avec clé d'API | GitHub Pages, à l'adresse fournie par GitHub (n° 204, n° 206) | 0 € ; ≈ 4,57 € si le serveur public PeerJS échoue en P1 (n° 163) |
+| Après les prototypes | PeerJS, serveur auto-hébergé | coturn sur le même serveur | Le même serveur | ≈ 4,57 € (OVHcloud VPS-1) + nom de domaine (choix reporté, n° 206) ; 10 € par mois au plus, tout compris (n° 162) |
 
-**Hypothèse à valider** (Q2, Q3). Raisons :
+Validé par Valentin (n° 198, n° 199). Raisons :
 
-1. **Prototype à 0 €, sans serveur à écrire.** PeerJS est connu de Valentin. 20 Go suffisent aux tests : environ 180 Mo par match relayé (section 9), et seule une partie des connexions passe par le relais.
+1. **Prototype à 0 €, sans serveur à écrire.** PeerJS est connu de Valentin. 20 Go suffisent aux tests : environ 180 Mo par match relayé (section 9), et seule une partie des connexions passe par le relais. Si le serveur public PeerJS fait échouer P1, le serveur auto-hébergé est avancé, à ≈ 4,57 € par mois (n° 163).
 2. **Ensuite, tout en France pour moins de 10 €.** Un seul petit serveur héberge la mise en relation, le relais et la PWA. Pas de transfert hors de l'Union européenne, donc une politique de confidentialité plus simple ([D7](D7-juridique-confidentialite.md)). Pas de quota : le coût ne dépend pas du nombre de parties. 500 Mbit/s permettent environ 70 matchs relayés en même temps (déduit : 2 × 1,7 Mbit/s par sens et par match).
 3. **Même bibliothèque cliente dans les deux phases.** Passer du serveur public au serveur auto-hébergé ne change que l'adresse du serveur.
 
@@ -373,10 +376,10 @@ Conditions à vérifier en P1 :
 
 | Prestataire | Ce qu'il journalise | Durée |
 |---|---|---|
-| Hébergement de la PWA | Adresse IP, page demandée, date | Selon le prestataire : **[À COMPLÉTER après choix]** |
+| Hébergement de la PWA (GitHub Pages pendant les prototypes) | Adresse IP, page demandée, date | Selon GitHub : **[À COMPLÉTER]** |
 | Serveur public PeerJS | Non publié | Non publié |
 | Metered | Adresse IP, volume | Selon le prestataire : **[À COMPLÉTER]** |
-| Serveur auto-hébergé (après prototype) | Adresse IP, code de salon, date, volume relayé | 7 jours, puis effacement **Hypothèse à valider** (Q4) |
+| Serveur auto-hébergé (après prototype) | Adresse IP, code de salon, date, volume relayé | 7 jours, puis effacement (n° 200) |
 
 Ces journaux sont la seule donnée personnelle conservée par le service. Ils alimentent [D7](D7-juridique-confidentialite.md).
 
@@ -384,7 +387,7 @@ Ces journaux sont la seule donnée personnelle conservée par le service. Ils al
 
 ### 10.1 Principes
 
-- La source dit « côte à côte » (n° 17). Sur un téléphone en portrait, deux vidéos côte à côte feraient chacune un tiers de la hauteur utile. Interprétation retenue : **les deux visages visibles ensemble**, côte à côte en paysage, l'un au-dessus de l'autre en portrait. **Hypothèse à valider** (Q5)
+- La source dit « côte à côte » (n° 17). Sur un téléphone en portrait, deux vidéos côte à côte feraient chacune un tiers de la hauteur utile. Interprétation retenue : **les deux visages visibles ensemble**, côte à côte en paysage, l'un au-dessus de l'autre en portrait (n° 201).
 - Les deux vidéos ont la même taille : aucun joueur n'est mis en avant.
 - Sa propre image est affichée en miroir, comme dans un miroir ; l'image envoyée à l'adversaire ne l'est pas.
 - La vidéo est recadrée pour remplir son cadre ; l'analyse porte toujours sur l'image entière de la caméra.
@@ -455,9 +458,9 @@ Le mode inconnus est exclu de la v1 (n° 6, n° 31). Rien n'est construit pour l
 | RT3 | Connexion directe impossible (NAT symétrique, 4G, réseau d'entreprise) | Connexion impossible (T9) | P1 : chaque combinaison de réseaux ; type de candidat retenu (direct ou relais) | Relais TURN, y compris sur le port 443 en TLS |
 | RT4 | Quota gratuit du relais épuisé | Connexions relayées qui échouent sans message clair | Tableau de bord du service ; alerte à 80 % du quota si le service l'offre | Changer de service (n° 53) ; relais auto-hébergé (section 8) |
 | RT5 | Service de mise en relation indisponible ou limité | Salon impossible à créer ou à rejoindre | Erreur de connexion au serveur, affichée (T9) ; essai avant chaque séance de test | Serveur de mise en relation auto-hébergé |
-| RT6 | Réseau asymétrique : aller-retour élevé, donc `e` et `W` grands | Beaucoup de manches nulles | Journal P1 et P2 : `e`, `W` et taux de manches nulles | Revoir le calcul de `e` ([D2](D2-regles-jeu-arbitrage.md) Q6, Q1 ci-dessous) |
+| RT6 | Réseau asymétrique : aller-retour élevé, donc `e` et `W` grands | Beaucoup de manches nulles | Journal P1 et P2 : `e`, `W` et taux de manches nulles | Revoir le calcul de `e` ou de `W` selon le critère C3 de [D3](D3-plan-de-tests.md) ([D2](D2-regles-jeu-arbitrage.md) §5.6) |
 | RT7 | Décisions différentes sur les deux appareils (défaut de programmation) | Manche rejouée sans raison apparente | Compteur d'incidents T21 en P1 et P2 | Corriger ; tests de rejeu à partir des messages |
-| RT8 | Lecture automatique bloquée sur iOS : vidéo ou son de l'adversaire muets | Écran noir ou silence après la connexion | P1 sur Safari iOS | Démarrer la lecture après un geste (« Continuer », « Prêt ») ; attributs de lecture en ligne |
+| RT8 | Lecture automatique bloquée sur iOS : vidéo ou son de l'adversaire muets | Écran noir ou silence après la connexion | P1 sur Safari iOS | Démarrer la lecture après un geste (« Créer un duel », « Rejoindre le duel », « Commencer ») ; attributs de lecture en ligne |
 | RT9 | Page masquée : minuteries ralenties, caméra coupée | Faux « adversaire injoignable » ; perte de visage | P1 : changer d'application 5 s, puis 40 s | Règles de [D2](D2-regles-jeu-arbitrage.md) §6.4.4 ; battement tolérant (3 s) |
 | RT10 | Image de preuve trop grosse ou perdue | « Image indisponible » | P2 : taux d'images reçues | Morceaux de 16 Ko ; réduire la taille |
 | RT11 | Fuite de mémoire au fil des revanches | Ralentissement, plantage de l'onglet | P2 : session de 5 matchs d'affilée | Libérer images et pistes à chaque fin de match |
@@ -467,22 +470,24 @@ Le mode inconnus est exclu de la v1 (n° 6, n° 31). Rien n'est construit pour l
 
 ## 13. Questions ouvertes
 
-| N° | Question | Proposition |
+Aucune. Q1 à Q10 ont été tranchées par Valentin le 2026-09-25 :
+
+| N° | Réponse | Décision |
 |---|---|---|
-| Q1 | Erreur d'horloge `e` : borne garantie `a_min / 2` (prudente, plus de manches nulles en 4G) ou estimation statistique (plus proche des 24 ms de la simulation, n° 89, mais sans garantie) ? | Borne garantie, hypothèse appliquée ; comparer les deux en P1 avec la mesure par flash ([D3](D3-plan-de-tests.md) §2.3.3) |
-| Q2 | Prototypes sur le serveur public PeerJS (aucune localisation ni limite publiée) et Metered Open Relay : acceptable pour des tests entre proches ? | Oui, hypothèse appliquée ; basculer vers le serveur auto-hébergé avant d'ouvrir le lien hors du cercle proche |
-| Q3 | Après les prototypes : administrer soi-même un petit serveur en France (PeerJS + coturn + PWA, ≈ 4,57 €/mois), ou Cloudflare sans administration mais avec une société américaine ? | Serveur en France, hypothèse appliquée |
-| Q4 | Durée de conservation des journaux du serveur auto-hébergé ? | 7 jours, hypothèse appliquée ([D7](D7-juridique-confidentialite.md)) |
-| Q5 | « Côte à côte » (n° 17) : empilés en portrait sur téléphone (10.1) ? | Oui, hypothèse appliquée |
-| Q6 | Ne pas proposer l'installation de la PWA sur iOS, à cause des défauts de caméra en mode installé (7.1) ? La décision n° 11 (PWA) reste valable : le jeu se lance depuis le lien, sans installation | Oui, hypothèse appliquée |
-| Q7 | Firefox (non cité par MediaPipe) et Chrome ou Firefox pour iOS : cibles de la v1 ou non ? | Testés en P0 et P1 ; cibles seulement s'ils passent G3 |
-| Q8 | Hébergement statique du prototype : GitHub Pages (société américaine) ou celui de votre autre projet PeerJS ? | GitHub Pages ou équivalent, hypothèse appliquée **[À COMPLÉTER : hébergeur choisi]** |
-| Q9 | Vidéo envoyée en H.264 quand un iPhone joue, pour ménager le processeur ? | Oui, hypothèse appliquée ; à mesurer en P1 (L1.5) |
-| Q10 | Prix du nom de domaine et choix du bureau d'enregistrement | **[À COMPLÉTER]** |
+| Q1 | `e = a_min / 2`, borne garantie, un seul échantillon ; `W = max(100 ms, e + i)` ; comparée en P1 au test du flash | n° 160, 161 |
+| Q2 | Prototypes sur le serveur public PeerJS et Metered, entre proches | n° 198 |
+| Q3 | Après les prototypes : serveur en France ; 10 € par mois tout compris | n° 199, 162 |
+| Q4 | Journaux du serveur conservés 7 jours | n° 200 |
+| Q5 | Vidéos empilées en portrait | n° 201 |
+| Q6 | Pas d'installation de la PWA proposée sur iOS | n° 202 |
+| Q7 | Firefox et navigateurs iOS autres que Safari : cibles selon P0 et P1 | n° 203 |
+| Q8 | Hébergement du prototype : GitHub Pages | n° 204 |
+| Q9 | H.264 quand un iPhone joue ; 640 × 480 ; à mesurer en P1 | n° 205 |
+| Q10 | Nom de domaine et prix : reportés (n° 46) ; le prototype tourne sur l'adresse GitHub Pages | n° 206 |
 
-Décision de la source jugée fragile (règle 3 du projet) :
+Décision de la source jugée fragile (règle 3 du projet), tranchée :
 
-- **n° 11 (PWA)** : sur iOS, le mode installé a des défauts de caméra connus [S16] à [S18]. La PWA reste le bon choix, mais utilisée dans le navigateur. Alternative : aucune installation, simple page web. Pas de changement sans accord (Q6).
+- **n° 11 (PWA)** : sur iOS, le mode installé a des défauts de caméra connus [S16] à [S18]. La PWA reste le bon choix, utilisée dans le navigateur, sans installation proposée sur iOS (n° 202).
 
 ## 14. Sources
 

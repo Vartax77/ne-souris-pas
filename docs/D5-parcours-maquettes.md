@@ -5,7 +5,7 @@
 | Objet | Dire ce que voit et fait chaque joueur, du lien reçu à la revanche, et ce qu'il voit quand quelque chose échoue |
 | Statut | Brouillon |
 | Date | 2026-09-25 |
-| Dépend de | [D2](D2-regles-jeu-arbitrage.md) (machine à états §6, règles affichées §6.8, messages de calibrage R1) ; [D4](D4-architecture-technique.md) (mise en page §10, risques §12) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 9, 17, 28, 29, 97 à 110, 111 à 125, 126 à 133 |
+| Dépend de | [D2](D2-regles-jeu-arbitrage.md) (machine à états §6, règles affichées §6.8, messages de calibrage R1) ; [D4](D4-architecture-technique.md) (mise en page §10, risques §12) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 9, 17, 28, 29, 97 à 110, 111 à 125, 126 à 133, 169 à 174, 206 à 209 |
 | Utilisé par | [D6](D6-lots-developpement.md) (lots d'interface) ; [D7](D7-juridique-confidentialite.md) (texte d'explication, case d'âge) |
 
 ## 1. Conventions
@@ -14,7 +14,7 @@
 - Chaque écran porte un code (E1, E2…) et renvoie à l'état de [D2](D2-regles-jeu-arbitrage.md) §6.2 qu'il affiche.
 - Les textes entre guillemets sont les **textes exacts** affichés. Les nombres qu'ils contiennent suivent les réglages de [D2](D2-regles-jeu-arbitrage.md) §3 et §6.7.
 - Maquettes : téléphone en portrait (22 colonnes), ordinateur en paysage (47 colonnes). `[Texte]` = bouton ; `( )` = case à cocher ; `J` = jauge.
-- Tutoiement ou vouvoiement : vouvoiement partout. **Hypothèse à valider** (Q1)
+- Tutoiement ou vouvoiement : vouvoiement partout (n° 207).
 
 ## 2. Parcours
 
@@ -59,7 +59,7 @@ flowchart TD
     I8 -- "« Quitter »" --> I9([Fin de session])
 ```
 
-L'accueil de l'invité ne peut pas afficher le nom de l'hôte : aucun compte, aucune saisie. Texte retenu : « Vous êtes défié au jeu Ne souris pas ». **Hypothèse à valider** (Q2)
+L'accueil de l'invité ne peut pas afficher le nom de l'hôte : aucun compte, aucune saisie. Texte retenu : « Vous êtes défié au jeu Ne souris pas ». Aucun champ prénom (n° 208).
 
 ### 2.3 Nombre de gestes
 
@@ -69,7 +69,7 @@ L'accueil de l'invité ne peut pas afficher le nom de l'hôte : aucun compte, au
 | Invité (du lien reçu) | 5 : ouvrir le lien, case, « Rejoindre le duel », Autoriser, « Commencer » | 2 : « Revanche », « Commencer » |
 
 - Sur certains navigateurs, caméra et micro font l'objet de deux demandes séparées : un geste de plus.
-- « Commencer » au calibrage coûte un geste, mais garantit que le joueur est en place avant la mesure du neutre. Sans lui, le calibrage démarrerait pendant que le joueur pose encore son téléphone, et serait rejeté. **Hypothèse à valider** (Q3)
+- « Commencer » au calibrage coûte un geste, mais garantit que le joueur est en place avant la mesure du neutre. Sans lui, le calibrage démarrerait pendant que le joueur pose encore son téléphone, et serait rejeté (n° 209).
 - Rien n'est mémorisé d'une visite à l'autre (principe « rien n'est stocké », [D4](D4-architecture-technique.md) §1) : la case d'âge est à recocher à chaque salon.
 
 ## 3. Écrans
@@ -88,14 +88,14 @@ Correspondance avec [D2](D2-regles-jeu-arbitrage.md) §6.2 :
 | E8 Arrêt sur image | Arrêt sur image | T19 à T23 |
 | E9 Fin de match | Fin de match | T23, T24, T27 à T31 |
 | E10 Interruption | Interrompu | T25 à T27 |
-| E11 Règles | Superposé à tout état | — |
-| ER1 à ER12 | États d'erreur et fin de session | Section 4 |
+| E11 Règles | Superposé à tout état, sans l'interrompre | Aucune ([D2](D2-regles-jeu-arbitrage.md) §6.3 et §6.8) |
+| ER1 à ER15 | États d'erreur, navigateur incompatible et fin de session | Section 4 |
 
 ### 3.1 E1 — Accueil : explication et âge
 
 - **Objectif** : dire ce qui va se passer avec la caméra **avant** la demande du navigateur (n° 29) ; recueillir la déclaration d'âge ; présenter les règles.
-- **Éléments** : nom du jeu ; phrase d'accroche ; les 5 règles ([D2](D2-regles-jeu-arbitrage.md) §6.8) ; bloc « Votre caméra » ; case d'âge ; bouton principal ; lien « Confidentialité ».
-- **Actions** : cocher la case ; bouton principal (désactivé tant que la case n'est pas cochée) ; ouvrir la page de confidentialité ([D7](D7-juridique-confidentialite.md)).
+- **Éléments** : nom du jeu ; phrase d'accroche ; les 5 règles ([D2](D2-regles-jeu-arbitrage.md) §6.8) ; bloc « Votre caméra » ; case d'âge ; lien « Conditions d'utilisation » sous la case ; bouton principal ; liens « Confidentialité » et « Mentions légales » en bas de page (n° 173).
+- **Actions** : cocher la case ; bouton principal (désactivé tant que la case n'est pas cochée) ; ouvrir les pages de [D7](D7-juridique-confidentialite.md) : conditions d'utilisation, confidentialité, mentions légales.
 
 Textes exacts :
 
@@ -108,9 +108,10 @@ Textes exacts :
 | Bloc caméra, titre | « Votre caméra et votre micro » |
 | Bloc caméra, texte | « Votre adversaire vous voit et vous entend pendant la partie. Votre sourire est détecté sur votre appareil. Rien n'est enregistré, ni image, ni son. » |
 | Case | « J'ai 18 ans ou plus » |
+| Lien sous la case | « Conditions d'utilisation » |
 | Bouton (hôte) | « Créer un duel » |
 | Bouton (invité) | « Rejoindre le duel » |
-| Lien | « Confidentialité » |
+| Liens en bas de page | « Confidentialité » · « Mentions légales » |
 
 Téléphone, portrait :
 
@@ -133,8 +134,10 @@ Téléphone, portrait :
 | voit et vous entend… |
 |----------------------|
 | ( ) J'ai 18 ans ou + |
+| Conditions d'utilis. |
 | [  Créer un duel   ] |
 |   Confidentialité    |
+|   Mentions légales   |
 +----------------------+
 ```
 
@@ -151,9 +154,10 @@ Ordinateur, paysage :
 | 3. Gardez votre…     | voit et vous entend… |
 | 4. Votre jauge…      |                      |
 | 5. Si personne…      | ( ) J'ai 18 ans ou + |
+|                      | Conditions d'utilis. |
 |                      | [  Créer un duel   ] |
 +----------------------+----------------------+
-|               Confidentialité               |
+|     Confidentialité · Mentions légales      |
 +---------------------------------------------+
 ```
 
@@ -246,7 +250,7 @@ Ordinateur, paysage :
 +---------------------------------------------+
 ```
 
-L'adresse affichée est un exemple : le nom de domaine n'est pas choisi (n° 46, nom et identité visuelle écartés jusqu'aux tests).
+L'adresse affichée est un exemple : le nom de domaine et le nom du jeu sont reportés (n° 46, n° 206). Pendant les prototypes, le lien est l'adresse fournie par GitHub Pages.
 
 ### 3.4 E4 — Connexion
 
@@ -493,7 +497,8 @@ L'image fixe n'est ni téléchargeable ni partageable : aucun bouton, aucun menu
 | Victoire par abandon | « Votre adversaire a abandonné. Victoire. » |
 | Abandon | « Vous avez abandonné. » |
 | Victoire par forfait | « Votre adversaire n'est pas revenu. Victoire par forfait. » ; pas de bouton « Revanche » |
-| Match annulé | « Le match n'a pas pu commencer. » ; pas de bouton « Revanche » |
+| Match annulé par abandon (aucune manche terminée) | Joueur qui abandonne : « Vous avez abandonné. Match annulé. » ; adversaire : « Votre adversaire a abandonné. Match annulé. » ; boutons « Revanche » et « Quitter » (revanche possible, [D2](D2-regles-jeu-arbitrage.md) §6.5.1) |
+| Match annulé par coupure | Pas d'écran E9 : fin de session, écran ER15 ([D2](D2-regles-jeu-arbitrage.md) §6.4.3) |
 | Boutons | « Revanche » ; « Quitter » |
 | Après son appui sur Revanche | « En attente de votre adversaire… » |
 | L'adversaire a demandé | « Votre adversaire veut une revanche ! » ; « Revanche » mis en avant |
@@ -578,7 +583,8 @@ Ordinateur, paysage :
 
 - **Objectif** : relire les règles sans quitter la partie.
 - **Éléments** : panneau par-dessus l'écran ; les 5 règles de [D2](D2-regles-jeu-arbitrage.md) §6.8.
-- **Actions** : « Fermer ». La manche continue derrière le panneau : l'ouvrir ne met rien en pause. Sur téléphone, le panneau couvre au plus la moitié basse, pour que le joueur reste face à la caméra. **Hypothèse à valider**
+- **Actions** : « Fermer ». La manche continue derrière le panneau : l'ouvrir ne met rien en pause ([D2](D2-regles-jeu-arbitrage.md) §6.8, n° 172).
+- Sur téléphone, le panneau couvre au plus la moitié basse, pour que le joueur reste face à la caméra. **Hypothèse à valider**
 
 ## 4. Écrans d'erreur
 
@@ -593,13 +599,16 @@ Toute erreur affiche : ce qui s'est passé, ce que le joueur peut faire, un seul
 | ER5 | Adversaire parti | Fin de session (T30) | « Votre adversaire est parti. » | Bouton « Créer un nouveau duel » |
 | ER6 | Lien plus valable (salon introuvable, expiré ou complet) | Erreur salon (T6) | « Ce lien n'est plus valable. Demandez un nouveau lien à votre adversaire. » | Bouton « Créer mon propre duel » |
 | ER7 | Appareil trop lent | Écran noir (T14) | « Appareil trop lent : fermez les autres applications. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
-| ER8 | Navigateur incompatible | Accueil (avant T2) | « Ce navigateur ne permet pas de jouer. Utilisez une version récente de Safari, Chrome, Edge ou Firefox. » | Bouton « Copier le lien » pour l'ouvrir ailleurs |
-| ER9 | Versions différentes des deux applications | Connexion ([D4](D4-architecture-technique.md) §4.2) | « Votre adversaire utilise une autre version du jeu. Rechargez tous les deux la page. » | Bouton « Recharger » |
+| ER8 | Navigateur incompatible | Navigateur incompatible (T32) | « Ce navigateur ne permet pas de jouer. Utilisez Chrome ou Safari. » (n° 174 ; Firefox ajouté seulement s'il passe P0 et P1) | Bouton « Copier le lien » pour l'ouvrir ailleurs |
+| ER9 | Versions différentes des deux applications | Erreur version (T33, [D4](D4-architecture-technique.md) §4.2) | « Votre adversaire utilise une autre version du jeu. Rechargez tous les deux la page. » | Bouton « Recharger » |
 | ER10 | Connexion perdue, aucun vainqueur | Fin de session (T27) | « Connexion perdue. Match interrompu. » | Bouton « Créer un nouveau duel » |
-| ER11 | Salon expiré sans invité | Salon expiré (T7) | « Personne n'a rejoint. Le lien a expiré. » | Bouton « Créer un nouveau salon » |
+| ER11 | Salon expiré sans invité | Salon expiré (T7) | « Personne n'a rejoint. Le lien a expiré. » | Bouton « Créer un nouveau duel » |
 | ER12 | Caméra déjà utilisée par une autre application | Erreur caméra (T3) | « Votre caméra est utilisée par une autre application. Fermez-la, puis réessayez. » | Bouton « Réessayer » |
-| ER13 | Forfait du joueur revenu trop tard | Fin de session (T27) | « Match perdu par forfait. » | Bouton « Créer un nouveau salon » |
-| ER14 | Fin de session après 60 s sans revanche | Fin de session (T31) | « Le salon a expiré. » | Bouton « Créer un nouveau salon » |
+| ER13 | Forfait du joueur revenu trop tard | Fin de session (T27) | « Match perdu par forfait. » | Bouton « Créer un nouveau duel » |
+| ER14 | Fin de session après 60 s sans revanche | Fin de session (T31) | « Le salon a expiré. » | Bouton « Créer un nouveau duel » |
+| ER15 | Match annulé par coupure, avant la fin de la première manche (les deux joueurs) | Fin de session (T27, [D2](D2-regles-jeu-arbitrage.md) §6.4.3) | « Le match n'a pas pu commencer : la connexion a été perdue. » | Bouton « Créer un nouveau duel » |
+
+Un seul libellé pour recommencer : « Créer un nouveau duel » (n° 170). Le mot « salon » n'apparaît que dans « Le salon a expiré. » (ER14).
 
 Maquette commune (téléphone, portrait) :
 
@@ -630,12 +639,12 @@ Maquette commune (ordinateur, paysage) :
 
 ## 5. Vérification de cohérence
 
-Vérification faite en lisant [D2](D2-regles-jeu-arbitrage.md) §6 et [D4](D4-architecture-technique.md). Le graphe graphify n'a servi qu'à retrouver les exigences de la source : après `graphify update .`, il ne contient que les titres des sections ajoutées aux lots 4 et 5, pas leur contenu (voir Q6).
+Vérification faite en lisant [D2](D2-regles-jeu-arbitrage.md) §6 et [D4](D4-architecture-technique.md), puis reprise après les arbitrages du 2026-09-25 (n° 169 à 174).
 
 | Contrôle | Résultat |
 |---|---|
 | Chaque état de D2 a un écran | Oui. Décision est affichée par E7 (rien ne change à l'écran, moins d'une seconde) |
-| Chaque écran correspond à un état de D2 | Oui, sauf E11 (panneau superposé, sans état) et ER8 (vérification avant la machine à états) : deux ajouts proposés à D2 (Q4) |
+| Chaque écran correspond à un état de D2 | Oui. E11 est un panneau superposé, sans état, décrit en [D2](D2-regles-jeu-arbitrage.md) §6.8. ER8 : état Navigateur incompatible (T32). ER9 : état Erreur version (T33). ER12 : T3 (caméra occupée). ER15 : T27 |
 | Messages de rejet du calibrage identiques à D2 R1 | Oui pour « Restez silencieux et immobile », « Souriez franchement », « Un seul visage dans le champ ». Les autres causes n'avaient pas de texte dans D2 : textes créés ici |
 | Mise en page conforme à D4 §10 | Oui : portrait empilé, paysage côte à côte, jauges verticales en portrait |
 | Contraintes D4 | Geste avant la lecture du son (RT8) : « Créer un duel », « Rejoindre le duel » et « Commencer » en tiennent lieu. Version du protocole : ER9. Wake Lock : aucun écran dédié (RT13) |
@@ -643,12 +652,14 @@ Vérification faite en lisant [D2](D2-regles-jeu-arbitrage.md) §6 et [D4](D4-ar
 
 ## 6. Questions ouvertes
 
-| N° | Question | Proposition |
+Aucune. Q1 à Q7 ont été tranchées par Valentin le 2026-09-25 :
+
+| N° | Réponse | Décision |
 |---|---|---|
-| Q1 | Tutoiement ou vouvoiement ? Le jeu se joue entre amis ; le tutoiement serait plus naturel. | Vouvoiement, hypothèse appliquée (plus neutre tant que le public n'est pas testé) |
-| Q2 | L'invité ne voit pas qui le défie (aucun nom). Ajouter un champ facultatif « Votre prénom » chez l'hôte ? Cela ajoute une saisie et une donnée transmise. | Non en v1, hypothèse appliquée : le lien arrive par une messagerie qui dit déjà qui l'envoie |
-| Q3 | Garder le bouton « Commencer » avant le calibrage (un geste de plus) ? | Oui, hypothèse appliquée |
-| Q4 | Ajouter à [D2](D2-regles-jeu-arbitrage.md) un état « Navigateur incompatible » (ER8) et préciser que le panneau Règles (E11) ne suspend rien ? | Oui, au prochain passage sur D2 |
-| Q5 | « Côte à côte » (n° 17) interprété comme « ensemble à l'écran » : empilés en portrait. Question posée dans [D4](D4-architecture-technique.md) Q5 | Voir D4 |
-| Q6 | Le graphe graphify ne contient que les titres des lots 4 et suivants. Relancer `/graphify . --update` ? | Oui, avant de valider ces documents |
-| Q7 | Nom de domaine et nom définitif du jeu : écartés jusqu'aux tests (n° 46). L'adresse des maquettes est un exemple. | Garder l'exemple |
+| Q1 | Vouvoiement | n° 207 |
+| Q2 | Aucun champ prénom pour l'hôte | n° 208 |
+| Q3 | Bouton « Commencer » avant le calibrage | n° 209 |
+| Q4 | Ajouts faits dans [D2](D2-regles-jeu-arbitrage.md) : état Navigateur incompatible, erreur de version, caméra occupée, panneau des règles | n° 172 |
+| Q5 | Vidéos empilées en portrait ([D4](D4-architecture-technique.md) Q5) | n° 201 |
+| Q6 | Graphe à relancer par Valentin (`/graphify . --update`) | — |
+| Q7 | Nom de domaine et nom du jeu reportés ; adresse GitHub Pages pendant les prototypes | n° 206 |

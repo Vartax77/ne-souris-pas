@@ -5,7 +5,7 @@
 | Objet | Fournir, prêts à relire, les mentions légales, la politique de confidentialité, les conditions d'utilisation et le registre de traitement, et lister ce qu'un professionnel doit vérifier |
 | Statut | Brouillon — à faire relire (section 8) |
 | Date | 2026-09-25 |
-| Dépend de | [D4](D4-architecture-technique.md) (données §3, services §8, journaux §9.3) ; [D2](D2-regles-jeu-arbitrage.md) R7 (image de preuve) ; [D3](D3-plan-de-tests.md) (journaux de test) ; [D5](D5-parcours-maquettes.md) E1 (texte d'accueil) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 5, 26 à 31, 47, 69, 73, 78, 111 à 125, 132, 138, 148 à 158 |
+| Dépend de | [D4](D4-architecture-technique.md) (données §3, services §8, journaux §9.3) ; [D2](D2-regles-jeu-arbitrage.md) R7 (image de preuve) ; [D3](D3-plan-de-tests.md) (journaux de test) ; [D5](D5-parcours-maquettes.md) E1 (texte d'accueil) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 5, 26 à 31, 47, 69, 73, 78, 111 à 125, 132, 138, 148 à 158, 159, 173, 179, 180, 182, 204, 213 à 216 |
 | Utilisé par | [D6](D6-lots-developpement.md) L2.6 (pages en ligne) |
 
 **Avertissement.** Ce document n'est pas un avis juridique. Il rassemble les textes et positions officielles trouvés le 2026-09-25 et en tire des propositions. Les points incertains sont marqués et repris en section 8. Les informations personnelles restent en **[À COMPLÉTER]**.
@@ -18,20 +18,22 @@ Reprise de [D4](D4-architecture-technique.md) §3 et §9.3.
 |---|---|---|---|---|
 | Image et son de la caméra | Appareil du joueur ; transmis à l'adversaire, directement ou par le relais, chiffrés de bout en bout | Le joueur et son adversaire. Le relais ne peut pas les lire | Non | Non, vraisemblablement (2.1) |
 | Mesures du visage (repères, scores de sourire, neutre, seuil) | Appareil du joueur seulement | Personne d'autre | Non (mémoire vive, fin du match) | Non (2.1) |
-| Jauge et événements de jeu (fautes, horodatages) | Appareils des deux joueurs | Les deux joueurs | Non (fin du match) | Non (2.1) |
+| Jauge et son pic ; événements de jeu (état du calibrage, pertes, fautes, horodatages, décisions) ; informations techniques (cadence d'analyse, type d'appareil) ([D4](D4-architecture-technique.md) §4.2) | Appareils des deux joueurs | Les deux joueurs | Non (fin du match) | Non (2.1) |
 | Image de preuve (image fixe au moment du sourire) | Appareil du joueur qui a souri, puis celui de l'adversaire | Les deux joueurs | Non (mémoire vive, fin du match, n° 69) | Non (2.1) |
 | Adresse IP | Hébergement de la PWA ; serveur de mise en relation ; relais | Les prestataires ; l'éditeur (serveur auto-hébergé) | Journaux des prestataires ; 7 jours sur le serveur auto-hébergé (n° 125) | **Oui** |
-| Code du salon, descriptions de connexion (dont adresses IP locales) | Serveur de mise en relation | Le prestataire ou l'éditeur | Fin de session ; journaux 7 jours | **Oui** |
+| Code du salon, descriptions de connexion (dont adresses IP locales) | Serveur de mise en relation | Le prestataire ou l'éditeur | Fin de la session de jeu, revanches comprises (n° 159) ; journaux 7 jours | **Oui** |
 | Volume relayé | Relais | Le prestataire ou l'éditeur | Journaux | **Oui** |
-| Journaux de test P0 et P2 (nombres, codes, sans nom ni image) | Ordinateur de l'éditeur | L'éditeur | Jusqu'à la clôture du prototype (n° 73, n° 78) | **Oui** (tests seulement) |
+| Journaux de test P0 et P2 (nombres, codes, sans nom ni image) | Ordinateur de l'éditeur, dans un dossier chiffré séparé (n° 216) | L'éditeur | Jusqu'à la clôture du prototype (n° 73, n° 78) | **Oui** (tests seulement) |
 
-Aucun compte, aucun cookie, aucun stockage dans le navigateur, aucune mesure d'audience, aucune publicité ([D4](D4-architecture-technique.md) §1).
+Aucun compte, aucun cookie, aucune mesure d'audience, aucune publicité ([D4](D4-architecture-technique.md) §1). Aucune donnée personnelle n'est stockée dans le navigateur. Seul le cache des fichiers de l'application (pages, modèle, WebAssembly, gardés par le service worker, [D4](D4-architecture-technique.md) §3) y est écrit : il est strictement nécessaire au fonctionnement et ne contient aucune donnée personnelle (n° 180).
+
+Ordinateur de l'éditeur : son disque est chiffré par BitLocker, mais la protection est désactivée (aucun protecteur de clés) ; il n'est donc pas protégé en l'état. Les journaux de test sont conservés dans un dossier chiffré séparé, et la protection BitLocker est activée avant le premier test P0 ([D6](D6-lots-developpement.md) L0.6, n° 216).
 
 Services utilisés ([D4](D4-architecture-technique.md) §8.4) :
 
 | Phase | Hébergement de la PWA | Mise en relation | Relais |
 |---|---|---|---|
-| Prototypes | **[À COMPLÉTER : hébergeur]** (GitHub Pages ou équivalent, n° 119) | Serveur public PeerJS (localisation non publiée) | Metered Open Relay |
+| Prototypes | GitHub Pages (GitHub, États-Unis ; n° 204) | Serveur public PeerJS (localisation non publiée) | Metered Open Relay |
 | Ouverture | Serveur de l'éditeur, OVHcloud, France **[À COMPLÉTER : site exact]** | Même serveur (PeerJS Server) | Même serveur (coturn) |
 
 ## 2. Analyse
@@ -54,13 +56,13 @@ Les sources sont numérotées en section 10.
 ### 2.3 Base légale, conservation, information
 
 - **Base légale** des traitements d'adresses IP : exécution du service demandé (article 6.1.b du RGPD), car la mise en relation est impossible sans elles. Le consentement ne conviendrait pas : le service ne fonctionne pas sans. Les journaux de sécurité relèvent de l'intérêt légitime (article 6.1.f) [J6].
-- **Conservation** : la CNIL recommande en général 6 mois à 1 an pour les journaux de sécurité [J7], sans durée propre à la mise en relation WebRTC. Proposition : 7 jours (n° 125), par minimisation. **Hypothèse à valider** (V9).
+- **Conservation** : la CNIL recommande en général 6 mois à 1 an pour les journaux de sécurité [J7], sans durée propre à la mise en relation WebRTC. Retenu : 7 jours (n° 125, validé par Valentin, n° 200), par minimisation. À faire vérifier par un professionnel (V9).
 - **Information** : l'article 13 impose l'identité du responsable, les finalités, les bases légales, les destinataires, les transferts, la durée, les droits, la réclamation à la CNIL et le caractère obligatoire des données [J8]. La politique de la section 4 les reprend.
 
 ### 2.4 Caméra, micro et stockage dans le navigateur
 
 - L'accès à la caméra et au micro relève de l'article 82 de la loi Informatique et Libertés, mais il est exempté de consentement quand il est nécessaire au service expressément demandé [J3, J9]. Un duel vidéo l'exige : la demande du navigateur, précédée de l'écran d'explication ([D5](D5-parcours-maquettes.md) E1), suffit.
-- Aucun cookie ni stockage dans le navigateur n'est prévu. Il n'y a donc **aucun bandeau de consentement** à afficher. Si un stockage apparaît plus tard, il devra rester strictement nécessaire (préférence d'affichage, par exemple) [J9].
+- Aucun cookie ni stockage de donnée personnelle dans le navigateur n'est prévu. Seul le cache des fichiers de l'application est écrit par le service worker ([D4](D4-architecture-technique.md) §3) : il est strictement nécessaire au service demandé et ne contient aucune donnée personnelle (n° 180). Il n'y a donc **aucun bandeau de consentement** à afficher. Si un autre stockage apparaît plus tard, il devra rester strictement nécessaire (préférence d'affichage, par exemple) [J9].
 
 ### 2.5 Registre et analyse d'impact
 
@@ -70,7 +72,7 @@ Les sources sont numérotées en section 10.
 ### 2.6 Mentions légales
 
 - Depuis la loi SREN du 21 mai 2024, les obligations de l'ancien article 6 III de la LCEN sont à l'article 1-1 de la loi 2004-575 [J13]. Un éditeur non professionnel peut rester anonyme vis-à-vis du public s'il a donné son identité à son hébergeur ; il publie alors le nom, l'adresse et le téléphone de l'hébergeur [J13, J14]. Sanction : 1 an d'emprisonnement et 75 000 € d'amende (article 1-2).
-- **Tension** : le RGPD impose de donner l'identité et les coordonnées du responsable de traitement [J8]. Option retenue, la plus prudente : **publier l'identité de l'éditeur** dans les mentions légales et la politique. **Hypothèse à valider** (V1).
+- **Tension** : le RGPD impose de donner l'identité et les coordonnées du responsable de traitement [J8]. Option retenue, la plus prudente : **publier l'identité de l'éditeur** dans les mentions légales et la politique (validé par Valentin, n° 215). À faire vérifier par un professionnel (V1).
 - Un hébergeur gratuit (GitHub Pages et équivalents) ne recueille pas forcément l'identité de l'éditeur au sens de la LCEN : raison de plus pour publier son identité.
 
 ### 2.7 Âge minimum
@@ -143,7 +145,7 @@ Texte prêt à relire. Il sert aussi de « courte page de confidentialité » pr
 >
 > **3. La détection du sourire**
 > - Votre appareil analyse l'image de votre caméra pour repérer un sourire. Cette analyse se fait sur votre appareil. Elle ne vous identifie pas et ne cherche pas à connaître vos émotions : elle mesure seulement la forme de votre bouche.
-> - Les mesures ne quittent jamais votre appareil. Seule une jauge (un pourcentage) est envoyée à votre adversaire pour l'affichage.
+> - Les mesures de votre visage ne quittent jamais votre appareil. Votre appareil envoie seulement à celui de votre adversaire : la jauge (un pourcentage) et son maximum, les événements de jeu (calibrage réussi ou non, visage perdu, sourire, résultat de la manche) et des informations techniques (vitesse d'analyse, type d'appareil).
 > - Quand vous souriez, une image fixe de ce moment est montrée à vous et à votre adversaire, comme preuve. Elle reste dans la mémoire des deux appareils et disparaît à la fin du match. Elle n'est ni enregistrée ni envoyée ailleurs.
 >
 > **4. Ce que votre adversaire peut faire**
@@ -153,7 +155,7 @@ Texte prêt à relire. Il sert aussi de « courte page de confidentialité » pr
 >
 > | Donnée | Pourquoi | Base légale | Durée |
 > |---|---|---|---|
-> | Adresse IP, code du salon, informations de connexion | Vous mettre en relation avec votre adversaire | Exécution du service que vous demandez | Le temps de la partie ; puis 7 jours dans les journaux techniques [À COMPLÉTER si un prestataire garde plus longtemps] |
+> | Adresse IP, code du salon, informations de connexion | Vous mettre en relation avec votre adversaire | Exécution du service que vous demandez | Jusqu'à la fin de votre session de jeu (revanches comprises) ; puis 7 jours dans les journaux techniques [À COMPLÉTER si un prestataire garde plus longtemps] |
 > | Adresse IP, volume relayé | Faire fonctionner le relais quand la connexion directe échoue | Exécution du service que vous demandez | Idem |
 > | Adresse IP, pages demandées | Afficher le jeu ; sécurité du site | Intérêt légitime : faire fonctionner et protéger le site | Selon l'hébergeur [À COMPLÉTER] |
 >
@@ -166,7 +168,7 @@ Texte prêt à relire. Il sert aussi de « courte page de confidentialité » pr
 > [À COMPLÉTER selon les prestataires. Si tous sont en France : « Vos données restent en France. » Sinon : pays et garanties, par exemple la décision d'adéquation de la Commission européenne pour les États-Unis (Data Privacy Framework).]
 >
 > **8. Cookies**
-> Le jeu n'utilise ni cookie, ni traceur, ni stockage dans votre navigateur.
+> Le jeu n'utilise ni cookie, ni traceur. Votre navigateur garde seulement une copie des fichiers du jeu, pour l'ouvrir plus vite. Cette copie ne contient aucune donnée vous concernant.
 >
 > **9. Vos droits**
 > Vous pouvez demander l'accès à vos données, leur rectification, leur effacement, la limitation de leur traitement, ou vous y opposer. Écrivez à [À COMPLÉTER : adresse électronique]. Comme nous ne gardons que des adresses IP pendant 7 jours, sans compte, nous vous demanderons la date et l'heure de votre partie pour retrouver les journaux.
@@ -223,7 +225,7 @@ Texte prêt à relire.
 >
 > Dernière mise à jour : [À COMPLÉTER : date].
 
-Où les afficher : lien depuis l'accueil ([D5](D5-parcours-maquettes.md) E1), à côté de « Confidentialité ». La case d'âge renvoie aux conditions : « J'ai 18 ans ou plus » reste le seul texte de la case (n° 29) ; le lien « Conditions d'utilisation » est ajouté sous la case. **Hypothèse à valider** (Q3)
+Où les afficher : lien depuis l'accueil ([D5](D5-parcours-maquettes.md) E1), à côté de « Confidentialité ». La case d'âge renvoie aux conditions : « J'ai 18 ans ou plus » reste le seul texte de la case (n° 29) ; le lien « Conditions d'utilisation » est ajouté sous la case ; « Confidentialité » et « Mentions légales » sont en bas de l'accueil (validé par Valentin, n° 173).
 
 ## 6. Registre de traitement simplifié
 
@@ -233,14 +235,14 @@ Sur le modèle de la CNIL [J11]. Une fiche par traitement.
 |---|---|---|---|
 | Responsable | [À COMPLÉTER : prénom, nom, adresse, contact] | Idem | Idem |
 | Finalité | Mettre deux joueurs en relation ; relayer leur connexion chiffrée quand le direct échoue | Afficher l'application ; sécurité | Régler et valider l'arbitrage (P0) ; mesurer l'intérêt du jeu (P2) |
-| Base légale | Exécution du service (6.1.b) | Intérêt légitime (6.1.f) | Accord oral des testeurs, noté (n° 78) **Hypothèse à valider** (V10) |
+| Base légale | Exécution du service (6.1.b) | Intérêt légitime (6.1.f) | Accord oral des testeurs, noté (n° 78, n° 211) ; à faire vérifier (V10) |
 | Personnes concernées | Joueurs | Visiteurs | Testeurs (proches) |
 | Données | Adresse IP, code de salon, descriptions de connexion, dates, volume relayé | Adresse IP, pages demandées, date, navigateur | Codes testeurs ; mesures numériques image par image ; tranche d'âge ; carnation en catégorie grossière ; réponses au questionnaire. Ni nom, ni image, ni son |
 | Données sensibles | Aucune | Aucune | Aucune au sens de l'article 9 ; carnation notée pour mesurer un biais, effacée à la clôture de P0 (n° 78) |
 | Destinataires | Prestataire de mise en relation, prestataire de relais (prototypes) ; aucun ensuite | Hébergeur | L'éditeur seul |
 | Transferts hors UE | Prototypes : possibles, à vérifier (V7). Ensuite : aucun | Prototypes : selon l'hébergeur. Ensuite : aucun | Aucun |
 | Durée | Fin de session ; journaux 7 jours | Selon l'hébergeur ; 7 jours sur le serveur de l'éditeur | Jusqu'à la clôture du prototype concerné |
-| Sécurité | Connexions chiffrées (TLS, DTLS-SRTP) ; codes de salon aléatoires de 16 caractères au moins ; aucune donnée de jeu sur le serveur | HTTPS ; aucun script tiers | Fichiers sur l'ordinateur de l'éditeur, chiffré **[À COMPLÉTER : chiffrement du disque]** |
+| Sécurité | Connexions chiffrées (TLS, DTLS-SRTP) ; codes de salon aléatoires de 16 caractères au moins ; aucune donnée de jeu sur le serveur | HTTPS ; aucun script tiers | Fichiers sur l'ordinateur de l'éditeur, dans un dossier chiffré séparé ; protection BitLocker du disque activée avant le premier test P0 ([D6](D6-lots-developpement.md) L0.6, n° 216) |
 
 Hors registre (traitements de l'éditeur non retenus, 2.1) : analyse du visage, flux vidéo et audio, image de preuve, jauges.
 
@@ -282,17 +284,19 @@ Hors registre (traitements de l'éditeur non retenus, 2.1) : analyse du visage, 
 | I7 | Comptes et historique (n° 33) : nouvelles données, nouvelles durées | Nouveau traitement |
 | I8 | Statut de l'éditeur si une monétisation est envisagée | L'édition non professionnelle ne couvrirait plus l'activité |
 
-Le n° 47 (D7 relu avant le mode inconnus) est étendu : une relecture est proposée **dès l'ouverture au public** (8.1). **Hypothèse à valider** (Q1)
+Le n° 47 (D7 relu avant le mode inconnus) est étendu : une relecture a lieu **dès l'ouverture au public** (8.1), par un avocat ou un juriste spécialisé en données personnelles (n° 213).
 
 ## 9. Questions ouvertes
 
-| N° | Question | Proposition |
+Aucune. Q1 à Q5 ont été tranchées par Valentin le 2026-09-25 :
+
+| N° | Réponse | Décision |
 |---|---|---|
-| Q1 | Faire relire D7 dès l'ouverture au-delà des proches, et pas seulement avant le mode inconnus (n° 47) ? Qui ? | Oui : avocat ou juriste spécialisé en données personnelles ; sinon, au minimum, relecture des points V1, V2, V7 |
-| Q2 | Identité, adresse et contact de l'éditeur ; hébergeur de chaque phase | **[À COMPLÉTER]** |
-| Q3 | Lien « Conditions d'utilisation » sous la case d'âge de l'accueil ? | Oui, hypothèse appliquée ; à ajouter à [D5](D5-parcours-maquettes.md) E1 |
-| Q4 | Publier l'identité de l'éditeur plutôt que l'anonymat LCEN ? | Oui, hypothèse appliquée (V1) |
-| Q5 | Le disque de l'ordinateur qui garde les journaux de test est-il chiffré ? | **[À COMPLÉTER]** |
+| Q1 | Relecture dès l'ouverture au-delà des proches, par un avocat ou un juriste spécialisé en données personnelles | n° 213 |
+| Q2 | Les champs [À COMPLÉTER] restent tels quels ; Valentin les remplit avant la mise en ligne (§7, étape 1) | n° 214 |
+| Q3 | Lien « Conditions d'utilisation » sous la case d'âge ; « Mentions légales » sur l'accueil | n° 173 |
+| Q4 | Identité de l'éditeur publiée | n° 215 |
+| Q5 | Disque non protégé (BitLocker sans protecteur de clés) : journaux dans un dossier chiffré séparé ; protection BitLocker activée avant le premier test P0 | n° 216 |
 
 ## 10. Sources
 

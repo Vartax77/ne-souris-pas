@@ -5,7 +5,7 @@
 | Objet | Dire en une page ce qu'on construit, pour qui, ce qu'on ne construit pas, et comment on saura que la v1 a réussi |
 | Statut | Brouillon |
 | Date | 2026-09-25 |
-| Dépend de | [Source de cadrage](../sources/cadrage-lots-1-2-3.md) ; détail et raison de chaque décision : [D8](D8-journal-decisions.md) |
+| Dépend de | [Source de cadrage](../sources/cadrage-lots-1-2-3.md) ; détail et raison de chaque décision : [D8](D8-journal-decisions.md) ; tests : [D3](D3-plan-de-tests.md) ; lots : [D6](D6-lots-developpement.md) |
 
 ## 1. Ce qu'on construit
 
@@ -29,8 +29,8 @@
 | Déroulé | Calibrage, écran noir, 3-2-1, révélation simultanée ; manche de 60 s ; 2 manches gagnantes **À confirmer (P2)** |
 | Arbitrage | Détection locale sur chaque appareil ; deux jauges visibles ; arrêt sur image comme preuve (règles : [D2](D2-regles-jeu-arbitrage.md)) |
 | Technique | PWA ; WebRTC pair à pair ; serveur de mise en relation et relais TURN (détail : [D4](D4-architecture-technique.md)) |
-| Vie privée | Aucun enregistrement ; aucun compte ; salon à code qui expire à la fin du match |
-| Budget | 0 € pour le prototype, puis 10 € par mois maximum pour le relais |
+| Vie privée | Aucun enregistrement ; aucun compte ; salon à code qui expire à la fin de la session, revanches comprises (n° 159) |
+| Budget | Prototypes : 0 €, ou ≈ 4,57 € par mois si le serveur public de mise en relation échoue en P1 (n° 163). Ensuite : 10 € par mois maximum, tout compris : relais, mise en relation, hébergement, nom de domaine (n° 162) |
 
 ## 4. Ce qu'on ne construit pas
 
@@ -40,20 +40,43 @@
 | Comptes, classements, historique | Avec le mode inconnus |
 | Clip partageable du fou rire | v2, si les testeurs le demandent, avec double consentement |
 | Détection sonore du rire | v2, si les testeurs rient sans sourire visible |
-| Provocations de l'application | Si le critère d'ennui est franchi (section 6) |
+| Provocations de l'application | Si le critère d'ennui ou de revanche est franchi (section 6) |
 | Monétisation | Après les tests |
 | Mode soirée sur grand écran | Abandonné |
+| Travail sur la différenciation face aux filtres des réseaux sociaux, et sur l'acquisition de joueurs | Après les tests. Mesurés en P2 à titre d'information seulement (5.2) |
 
-## 5. Hypothèses critiques
+## 5. Hypothèses et risques
 
-| # | Hypothèse | Solidité |
-|---|---|---|
-| H5 | L'application apporte plus qu'un appel vidéo | Critique |
-| H2 | Voir l'autre lutter suffit à faire rire | Faible |
-| H1 | La détection est assez fiable pour être acceptée | Moyenne |
-| H3 | Une partie courte donne envie de rejouer | Moyenne |
-| H4 | Les joueurs acceptent d'être filmés et analysés | Bonne entre proches, fragile avec des inconnus |
-| H6 | Chaque joueur a un appareil récent avec caméra correcte | Bonne |
+### 5.1 Hypothèses critiques
+
+| # | Hypothèse | Solidité | Test ([D3](D3-plan-de-tests.md)) |
+|---|---|---|---|
+| H5 | L'application apporte plus qu'un appel vidéo | Critique | P2 : V1, indirectement ; question 16, information seulement |
+| H2 | Voir l'autre lutter suffit à faire rire | Faible | P2 : E1 |
+| H1 | La détection est assez fiable pour être acceptée | Moyenne | P0 : G1 à G6 ; P2 : A1 à A3 |
+| H3 | Une partie courte donne envie de rejouer | Moyenne | P2 : V1 |
+| H4 | Les joueurs acceptent d'être filmés et analysés | Bonne entre proches, fragile avec des inconnus | P2 : question 12, **information seulement**, sans seuil ni décision (n° 165) |
+| H6 | Chaque joueur a un appareil récent avec caméra correcte | Bonne | P0 : G3 ; P1 : C5 |
+
+### 5.2 Risques
+
+Risques de la [source](../sources/cadrage-lots-1-2-3.md) §2.3 (n° 164).
+
+| Risque | Hypothèse | Test ([D3](D3-plan-de-tests.md)) | Lot ([D6](D6-lots-developpement.md)) |
+|---|---|---|---|
+| Ennui : sans provocation, il ne se passe rien | H2 | P2 : E1 | L2.1b, L2.5 ; lot « Provocations » si échec |
+| Arbitrage injuste (faux positifs) | H1 | P0 : G1, G2 ; P2 : A1 | L0.4, L0.7 |
+| Différenciation face aux filtres des réseaux sociaux | H5 | **Hors v1.** P2 : questions 13 et 14, information seulement (n° 166) | Aucun |
+| Faux positifs dus à la parole, à la barbe, à une bouche relevée | H1 | P0 : A2, A3, profils du panel, G1 | L0.4 |
+| Éclairage et angles | H1 | P0 : B1 à B3, A7, G2 | L0.3 |
+| Triche : main devant la bouche, tête tournée | H1 | P0 : A7 ; P2 : A3 | L0.5 ; lot « Main devant la bouche » si échec |
+| Latence vidéo | — | P1 : retard vidéo, information seulement ; C3 | L1.4 |
+| Échec de connexion sur certains réseaux | — | P1 : C1, C2 | L1.2 |
+| Chauffe et batterie sur iOS | H6 | P0 : G3 ; P1 : C5 | L0.2, L1.5 |
+| Mise en veille, blocage du son sur iOS | — | P1 : C4 (K3 à K5), C6 | L1.2, L1.3, L2.4 |
+| Vie privée des flux vidéo | H4 | [D7](D7-juridique-confidentialite.md) ; P2 : question 12, information seulement | L2.6 |
+| Acquisition : il faut convaincre deux personnes | — | **Hors v1.** P2 : questions 13 et 14, information seulement (n° 166) | Aucun |
+| Monétisation faible | — | **Hors v1** (n° 2) | Aucun |
 
 ## 6. À quoi saura-t-on que la v1 a réussi
 
