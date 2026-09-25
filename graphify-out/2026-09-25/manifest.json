@@ -18,21 +18,27 @@
     "semantic_hash": "76e292be300d4b3341cc9ddf00448dda"
   },
   "docs/D8-journal-decisions.md": {
-    "mtime": 1790345403.767283,
-    "seen": 1790345411.8332338,
-    "ast_hash": "86fe9336f2f97380f0334e7c20a42ade",
+    "mtime": 1790347003.418373,
+    "seen": 1790347015.2978735,
+    "ast_hash": "24d5979b7e113dc44aadd9f8e1d33fda",
     "semantic_hash": ""
   },
   "docs/README.md": {
-    "mtime": 1790345404.8078504,
-    "seen": 1790345411.8332362,
-    "ast_hash": "b0e3734577e9fe3cf2a88a40b5408b07",
+    "mtime": 1790347003.5144854,
+    "seen": 1790347015.297875,
+    "ast_hash": "7176829a50c66c48854c4521bab64caa",
     "semantic_hash": ""
   },
   "docs/D2-regles-jeu-arbitrage.md": {
-    "mtime": 1790345382.5840268,
-    "seen": 1790345411.8332303,
-    "ast_hash": "fdc8223a0fb7df49e5ad88c62a8016e7",
+    "mtime": 1790345796.9921644,
+    "seen": 1790346287.0367908,
+    "ast_hash": "17b81682fb2e2cea21e46cef13ddaee7",
+    "semantic_hash": "17b81682fb2e2cea21e46cef13ddaee7"
+  },
+  "docs/D3-plan-de-tests.md": {
+    "mtime": 1790346986.866277,
+    "seen": 1790347015.297871,
+    "ast_hash": "7f693bc699932f95dc0a7573772232d4",
     "semantic_hash": ""
   }
 }

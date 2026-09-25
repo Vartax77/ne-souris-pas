@@ -1,11 +1,17 @@
 {
-  "0": "Projet Ne souris pas — instructions de conception",
-  "1": "Prérequis et garde-fous (conditionnent le passage au prototype suivant)",
-  "2": "3. Lot 2 — Périmètre de la v1",
-  "3": "Aucune provocation ajoutée par l'application",
-  "4": "Règles d'arbitrage",
-  "5": "Vie privée : aucun enregistrement, aucun compte, salon à code éphémère",
-  "6": "D1 — Note de cadrage",
-  "7": "4. Règles d'arbitrage",
-  "8": "5. Limites de mesure et règles jugées injustes"
+  "0": "D8-journal-decisions.md",
+  "1": "4. Règles d'arbitrage",
+  "2": "Prototype 0 : détection seule, sans réseau",
+  "3": "Projet Ne souris pas — instructions de conception",
+  "4": "3. Lot 2 — Périmètre de la v1",
+  "5": "Règles d'arbitrage",
+  "6": "Structure de la note D1",
+  "7": "1.4 Mesures et grille de résultats",
+  "8": "R6 — Départage à 60 s par pic de jauge",
+  "9": "n° 35 — Prototypes P0 (détection), P1 (appel), P2 (duel)",
+  "10": "Aucun enregistrement (aucun stockage persistant)",
+  "11": "1.3 Protocole pas à pas",
+  "12": "Mode inconnus (vision à terme, exclu v1)",
+  "13": "n° 46 — Documents écartés",
+  "14": "Documents écartés (cahier des charges, AIPD, étude de marché...)"
 }
