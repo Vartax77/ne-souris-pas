@@ -5,7 +5,7 @@
 | Objet | Dire, pour chaque prototype, quel résultat valide ou invalide chaque risque, et quelle décision en découle |
 | Statut | Brouillon — partie prototype 0 seulement (Priorité 1) ; prototypes 1 et 2 au lot 7 (Priorité 2) |
 | Date | 2026-09-25 |
-| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 37, 51, 52, 64 à 77 |
+| Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 37, 51, 52, 64 à 82 |
 | Utilisé par | [D2](D2-regles-jeu-arbitrage.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (lot du prototype 0) |
 
 ## 1. Prototype 0 — détection seule, sans réseau
@@ -17,7 +17,7 @@ Objectif : prouver que l'arbitrage de [D2](D2-regles-jeu-arbitrage.md) est juste
 | Risque | Hypothèse | Critère de la source | Référence |
 |---|---|---|---|
 | Arbitrage injuste : faute sans sourire (faux positif) | H1 | Aucun faux positif en conditions normales | [D1](D1-note-de-cadrage.md) §6.2 ; n° 36 |
-| Sourire franc non détecté (faux négatif) | H1 | Aucun dans la source. Proposition : Q3 | — |
+| Sourire franc non détecté (faux négatif) | H1 | Tous les sourires francs détectés en conditions normales (G5) | n° 79 |
 | Performance insuffisante sur un appareil ancien | H6 | Au moins 10 images/s, sans chauffe excessive en 5 min | [D1](D1-note-de-cadrage.md) §6.2 ; n° 37 |
 | Parole et voyelles tenues qui étirent la bouche | H1 | Comparer formule de base et variante `cheekSquint` | [D2](D2-regles-jeu-arbitrage.md) §5.5 ; n° 72 |
 | Seuil gonflé en exagérant le sourire volontaire | H1 | Tester le plafond `d_max` | [D2](D2-regles-jeu-arbitrage.md) §5.2, Q1 |
@@ -39,7 +39,7 @@ Hors du prototype 0 : réseau, horloges, simultanéité (P1) ; départage à 60 
 | Barbe ou moustache fournie | Masque les coins de la bouche ; amplitude réduite |
 | Lunettes portées pendant le jeu | Reflets ; perte du visage |
 | Bouche naturellement relevée | Neutre haut ; risque de faux positif |
-| Carnations variées (claire, mate, foncée) | Biais connus des détecteurs de visage, surtout en pénombre (Q2) |
+| Carnations variées (claire, mate, foncée) | Biais connus des détecteurs de visage, surtout en pénombre. Notée en catégorie grossière, sans nom associé (n° 78) |
 | Tranches d'âge variées (18–30, 30–50, plus de 50) | Rides d'expression |
 | Parleur très expressif | Pire cas pour la parole |
 | Sourire discret, peu démonstratif | Pire cas pour les faux négatifs |
@@ -98,7 +98,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 #### 1.3.3 Accueil (3 min)
 
 1. Expliquer : on teste un détecteur de sourire ; aucune image ni aucun son n'est enregistré ; seuls des nombres sont gardés, puis supprimés à la fin du prototype 0.
-2. Recueillir l'accord du testeur (forme : Q2). Sans accord, pas de session.
+2. Recueillir l'accord oral du testeur et le noter dans la fiche (n° 78). Sans accord, pas de session.
 3. Consigne : se comporter naturellement, ne pas chercher à piéger le détecteur, sauf en séquence C.
 4. Remplir la fiche testeur.
 
@@ -127,7 +127,7 @@ Après chaque sourire confirmé par le prototype (séquences A1 à A5), faire un
 | Faux positif | Non | Non |
 | Litigieuse | Non | Oui |
 
-Une détection litigieuse compte comme faux positif (proposition, Q4). En jeu, c'est une contestation.
+Une détection litigieuse compte comme faux positif (n° 80). En jeu, ce serait une contestation.
 
 #### 1.3.5 Conditions dégradées (environ 8 min)
 
@@ -163,7 +163,7 @@ Revenir en N à la fin.
 
 Chauffe excessive (précise n° 51) : une fenêtre de 10 s sous 10 images/s pendant les 5 premières minutes, ou un ralentissement visible de l'affichage, ou un appareil brûlant au toucher. **À confirmer (P0)**
 
-La mesure sans charge est optimiste : elle ignore l'appel vidéo. Le critère s'applique à la mesure avec charge (proposition, Q5).
+La mesure sans charge est optimiste : elle ignore l'appel vidéo. Le critère s'applique aux deux mesures, sans charge et avec charge (n° 81).
 
 ### 1.4 Mesures et grille de résultats
 
@@ -186,20 +186,22 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `faute` | Vide, sourire ou perte |
 | `op` | 1 si la touche « sourire vu » est pressée |
 
-Les journaux restent sur l'ordinateur de Valentin. Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées (n° 73).
+Les journaux restent sur l'ordinateur de Valentin. Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
 #### 1.4.2 Fiche testeur
 
-| Code | Groupe (réglage / validation) | Tranche d'âge | Barbe | Lunettes | Bouche relevée | Carnation (Q2) | Appareil | Date |
-|---|---|---|---|---|---|---|---|---|
-| T01 | | | | | | | | |
-| T02 | | | | | | | | |
-| T03 | | | | | | | | |
-| T04 | | | | | | | | |
-| T05 | | | | | | | | |
-| T06 | | | | | | | | |
-| T07 | | | | | | | | |
-| T08 | | | | | | | | |
+| Code | Accord oral | Groupe (réglage / validation) | Tranche d'âge | Barbe | Lunettes | Bouche relevée | Carnation (claire / mate / foncée) | Appareil | Date |
+|---|---|---|---|---|---|---|---|---|---|
+| T01 | | | | | | | | | |
+| T02 | | | | | | | | | |
+| T03 | | | | | | | | | |
+| T04 | | | | | | | | | |
+| T05 | | | | | | | | | |
+| T06 | | | | | | | | | |
+| T07 | | | | | | | | | |
+| T08 | | | | | | | | | |
+
+La colonne « Carnation » est effacée à la clôture du prototype 0, en même temps que les journaux (n° 78). La fiche ne porte jamais de nom : seul le code relie un testeur à ses mesures.
 
 #### 1.4.3 Calibrage
 
@@ -261,7 +263,7 @@ Une série de cinq lignes par testeur.
 | Exposition N cumulée (min) | | | ≥ 60 |
 | Faux positifs + litigieuses en N | | | 0 |
 | Faux positifs + litigieuses en condition dégradée acceptée | | | 0 |
-| Sourires francs détectés en N | | | Q3 |
+| Sourires francs détectés en N | | | Tous |
 | Testeurs calibrés en N | | | Tous |
 | `r` maximal en non-sourire (N) | | | < 1 |
 | Calibrages honnêtes plafonnés par `d_max` | | | 0 |
@@ -314,9 +316,9 @@ Les pourcentages et marges de ce tableau sont des règles de méthode, pas des r
 |---|---|---|
 | G1 | Aucun faux positif ni litigieuse en conditions N, sur le groupe de validation | Rejeu de l'étape 10 |
 | G2 | Aucun faux positif ni litigieuse dans une condition dégradée acceptée par le calibrage | 1.4.7 |
-| G3 | Au moins 10 images/s sur chaque fenêtre de 10 s pendant 5 min, sans chauffe excessive, sur l'appareil le plus ancien, avec charge vidéo (Q5) | 1.4.8 |
+| G3 | Au moins 10 images/s sur chaque fenêtre de 10 s pendant 5 min, sans chauffe excessive, sur l'appareil le plus ancien, sans charge et avec charge vidéo (n° 81) | 1.4.8 |
 | G4 | Calibrage réussi en N pour tous les testeurs | 1.4.3 |
-| G5 | Tous les sourires francs détectés en N (proposition, Q3) | 1.4.5 |
+| G5 | Tous les sourires francs détectés en N (n° 79) | 1.4.5 |
 | G6 | Exposition N cumulée d'au moins 60 min | 1.4.9 |
 
 #### 1.6.2 Décisions et effet sur D2
@@ -329,7 +331,7 @@ Les pourcentages et marges de ce tableau sont des règles de méthode, pas des r
 | **Ajustement** — calibrage trop strict | G4 échoue | Assouplir le critère qui rejette (étape 5), puis revérifier G1 | §3 ; R1 |
 | **Ajustement** — performance | G3 échoue | Réduire la fréquence d'analyse ou la résolution (n° 52), puis refaire 1.3.8 | §3 : « Images minimales par sourire » à revoir si la cadence baisse |
 | **Ajustement** — faux négatifs | G5 échoue, G1 tient | Baisser `k` dans l'intervalle ; si impossible, rapporter le cas à Valentin | §3 |
-| **Abandon de l'arbitrage tel que défini** | Après 2 cycles d'ajustement (Q6) : intervalle de `k` toujours vide pour au moins un profil, ou G3 impossible même en réduisant | Arrêt ; décision de Valentin parmi les options ci-dessous | À réécrire selon l'option choisie |
+| **Abandon de l'arbitrage tel que défini** | Après 2 cycles d'ajustement (n° 82) : intervalle de `k` toujours vide pour au moins un profil, ou G3 impossible même en réduisant | Arrêt ; décision de Valentin parmi les options ci-dessous | À réécrire selon l'option choisie |
 
 Options en cas d'abandon, **non décidées** :
 
@@ -352,11 +354,8 @@ Note pour le lot 7 : la fréquence de la triche par la main (n° 70) ne peut s'o
 
 ## 4. Questions ouvertes
 
+Q2 à Q6 ont été tranchées par Valentin le 2026-09-25 (n° 78 à 82).
+
 | N° | Question | Proposition |
 |---|---|---|
-| Q1 | Quels appareils sont disponibles : le plus ancien (modèle, année), un iPhone, un ordinateur avec webcam ? | — |
-| Q2 | Quelle forme d'accord pour les testeurs : oral ou fiche signée ? Peut-on noter la carnation dans la fiche ? | Accord oral noté dans la fiche ; carnation notée, car les détecteurs de visage y sont sensibles |
-| Q3 | Ajouter un critère de faux négatif (G5) : tous les sourires francs détectés en conditions normales ? | Oui |
-| Q4 | Une détection litigieuse (testeur « non », opérateur « oui ») compte-t-elle comme faux positif ? | Oui : en jeu, ce serait une contestation |
-| Q5 | Le critère de performance s'applique-t-il à la mesure avec charge vidéo simulée ? | Oui : sans appel vidéo, la mesure est optimiste |
-| Q6 | Combien de cycles d'ajustement avant de décider l'abandon ? | 2 |
+| Q1 | Quels appareils sont disponibles : le plus ancien (modèle, année), un iPhone (modèle), un ordinateur avec webcam (modèle ou type) ? La réponse du 2026-09-25 contenait encore les champs à remplir, sans les modèles. | — |

@@ -170,6 +170,18 @@ Précisions de méthode pour le prototype 0. Elles complètent les n° 36, 37, 5
 | 76 | 2026-09-25 | Méthode de réglage : pic soutenu par séquence, intervalle de `k` commun à tous les testeurs, `k` au milieu de l'intervalle ; groupe de réglage (2/3 des testeurs) et groupe de validation (1/3) ; exposition cible de 60 min de non-sourire en conditions normales. | Réglage faisable au tableur ; éviter un seuil ajusté aux seuls testeurs qui ont servi à le régler | Essais et erreurs en direct ; réglage sur tous les testeurs sans validation | [D3](D3-plan-de-tests.md) §1.2.4, §1.5 |
 | 77 | 2026-09-25 | Critères de décision du prototype 0 : go, ajustement, abandon de l'arbitrage tel que défini, avec l'effet de chacun sur [D2](D2-regles-jeu-arbitrage.md). En cas d'abandon, les options (arbitrage contestable, sourire franc seulement, restriction des appareils, arrêt) sont soumises à Valentin. Précise n° 36, n° 37 et n° 52. | La source ne prévoyait que « revoir le seuil » | Aucun cas d'abandon | [D3](D3-plan-de-tests.md) §1.6 |
 
-## 9. Questions ouvertes
+## 9. Lot documentaire 3 — Arbitrages de Valentin sur D3
+
+Réponses de Valentin du 2026-09-25 aux questions Q2 à Q6 de [D3](D3-plan-de-tests.md). Q1 (appareils) reste ouverte.
+
+| N° | Date | Décision | Raison | Alternatives écartées | Source |
+|---|---|---|---|---|---|
+| 78 | 2026-09-25 | Accord oral des testeurs, noté dans la fiche. Carnation notée en catégorie grossière (claire, mate, foncée), sans nom associé ; effacée avec les journaux à la clôture du prototype 0. Précise n° 73. | Les détecteurs de visage sont sensibles à la carnation ; ne garder que le strict nécessaire | Fiche signée ; ne pas noter la carnation | Arbitrage de Valentin, lot 3 (D3 Q2) |
+| 79 | 2026-09-25 | Critère G5 : tous les sourires francs détectés en conditions normales. Complète n° 36. **À confirmer (P0)** | Un sourire franc raté détruit la confiance autant qu'un faux positif | Critère sur les seuls faux positifs | Arbitrage de Valentin, lot 3 (D3 Q3) |
+| 80 | 2026-09-25 | Une détection contestée par le testeur alors que l'opérateur a vu un sourire (litigieuse) compte comme faux positif. Précise n° 74. | En jeu, ce serait une contestation | Compter les litigieuses à part | Arbitrage de Valentin, lot 3 (D3 Q4) |
+| 81 | 2026-09-25 | Le critère de performance s'applique aux deux mesures : sans charge et avec appel vidéo simulé en boucle locale. Précise n° 37 et n° 75. | Sans appel vidéo, la mesure est optimiste | Mesure sans charge seulement | Arbitrage de Valentin, lot 3 (D3 Q5) |
+| 82 | 2026-09-25 | Au plus deux cycles d'ajustement avant de décider l'abandon de l'arbitrage tel que défini. Précise n° 77. | Borner le réglage | Nombre de cycles non limité | Arbitrage de Valentin, lot 3 (D3 Q6) |
+
+## 10. Questions ouvertes
 
 Aucune dans ce journal. Q1 (dates) et Q2 (raisons des n° 5, 7 et 9) ont été résolues par Valentin le 2026-09-25. Les questions du lot 2 sont dans [D2](D2-regles-jeu-arbitrage.md) §7 ; celles du lot 3 dans [D3](D3-plan-de-tests.md) §4.
