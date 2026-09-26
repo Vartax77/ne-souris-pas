@@ -128,6 +128,7 @@ flowchart LR
 | Terminé quand | La vérification automatique passe ; sur le PC et l'iPhone 15 Pro : sortie du champ 2 s → avertissement ; 6 s → faute « Visage perdu » ; pause de 6 s (fenêtre réduite sur le PC, retour à l'accueil sur l'iPhone) → faute datée depuis la dernière image, pause comptée ; grand sourire → image de preuve, effacée au « Démarrer » suivant ; stockage du navigateur vide sur le PC. Test court des blendshapes sur le PC (mesure pour la parade 3) |
 | Test | [D3](D3-plan-de-tests.md) A7 |
 | Dépend de | L0.4 |
+| Statut | **Terminé** le 2026-09-26 sur le PC et l'iPhone 15 Pro ; relevés en [D3](D3-plan-de-tests.md) §1.7.5 (n° 268) |
 
 #### L0.6 — Outils de test
 

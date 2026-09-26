@@ -515,6 +515,39 @@ Conclusions :
 - **Parole** : les mots qui étirent les lèvres montent à 0,50-0,81, au niveau d'un vrai sourire, et font une faute même avec `d` 0,33. La simulation supposait 0,25. `cheekSquint` ne remonte rien et ne peut pas servir de parade (n° 260, [D2](D2-regles-jeu-arbitrage.md) Q17).
 - **Dispersion de `v`** : 0,45 à 0,82 pour un même visage sur les deux appareils, malgré la nouvelle consigne. La consigne seule ne suffit pas (n° 261).
 
+#### 1.7.5 Lot L0.5 — pertes et preuve (2026-09-26)
+
+Relevés de Valentin ([D6](D6-lots-developpement.md) L0.5, n° 268).
+
+| Appareil | Calibrage | Manche d'essai |
+|---|---|---|
+| PC, Chrome, carte graphique | n 0,00 · v 0,71 · d 0,29 | 32,9 s. Faute 1 à 10,7 s, « Visage perdu » (sortie de 6 s). Avertissement à 18,4 s. Faute 2 à 21,9 s, « Visage perdu — pendant une pause d'analyse de 5,4 s » (Chrome réduit : début vers 16,9 s, avertissement à + 1,5 s, faute à + 5 s, conforme). Faute 3 à 26,9 s, sourire de 1,6 s, 23 images, S max 0,74, image de preuve affichée (« S le plus haut : 0,74 »). P 0,71 ; r 2,48. Panneau : 1 pause, 7,6 s |
+| iPhone 15 Pro, Safari, processeur par défaut | n 0,00 · v 0,64 · d 0,25 · largeur 38 % · caméra 30,2 im/s | 30,7 s. Faute 1 à 7,6 s, « Visage perdu » (sorties de 2 s puis de 6 s). Avertissement à 17,1 s. Faute 2 à 20,6 s, « Visage perdu » (passage à l'écran d'accueil ; début vers 15,6 s, faute à + 5 s). Fautes 3 et 4 : sourires à 24,4 s (1,4 s, S max 0,81) et 27,7 s (3,0 s, S max 0,72), image de preuve affichée (S 0,72). P 0,79 ; r 3,10. Panneau : 3 pauses, 23,6 s au total, la plus longue 9,4 s |
+
+Autres constats :
+
+- **Stockage du navigateur (PC)** : stockage local, de session, IndexedDB et cache vides.
+- **iPhone** : la vidéo a repris seule au retour dans Safari, et les sourires suivants ont été détectés. Observation pour P1 (K3 à K5). L'étiquette du mode de calcul (« par défaut sur iOS ») est juste.
+- **Deux défauts d'affichage des pauses**, expliqués par le code et corrigés (n° 270) :
+  - la faute 2 de l'iPhone n'avait pas la mention « pause », parce que des images invalides avaient ouvert la perte juste avant le passage à l'accueil ;
+  - la faute 2 du PC indiquait la pause vue jusqu'à la faute (5,4 s), et non sa durée totale (7,6 s).
+  - Le compteur du panneau couvre toute la session, pas la manche.
+
+Parade 3 : blendshapes candidats sur le PC (valeurs gauche / droite) :
+
+| Geste | `mouthSmile` | `jawOpen` | `mouthStretch` | `mouthUpperUp` | `mouthDimple` |
+|---|---|---|---|---|---|
+| Neutre | 0,00 / 0,00 | 0,01 | 0,00 / 0,00 | 0,00 / 0,00 | 0,01 / 0,02 |
+| Vrai sourire, bouche fermée | 0,45 / 0,59 | 0,00 | 0,01 / 0,01 | 0,00 / 0,00 | 0,00 / 0,04 |
+| « iii » tenu | 0,59 / 0,77 | 0,03 | 0,01 / 0,01 | 0,10 / 0,27 | 0,00 / 0,02 |
+| « cheese » tenu | 0,51 / 0,74 | 0,05 | 0,01 / 0,01 | 0,10 / 0,29 | 0,00 / 0,04 |
+| Rire bouche ouverte | 0,78 / 0,82 | 0,04 | 0,01 / 0,04 | 0,50 / 0,59 | 0,00 / 0,01 |
+
+Conclusions :
+
+- **L0.5 terminé** sur le PC et l'iPhone 15 Pro.
+- **Parade 3 écartée comme veto** (n° 269). `jawOpen` (0,04 bouche grande ouverte), `mouthStretch` et `mouthDimple` ne bougent pas avec ce modèle. `mouthUpperUp` bouge, mais le rire (0,50-0,59) monte plus haut que les mots (0,10-0,29) : un veto sur lui laisserait passer les rires. `mouthUpperUp` reste observé dans le journal P0 des 52 blendshapes.
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés

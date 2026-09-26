@@ -161,6 +161,7 @@ function demarrerManche() {
     active: true, t0: undefined, t: 0, etat: "—", J: 0, pic: 0, fautes: [], variante: 0, avertissement: null,
     lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, pertes: null,
     picSoutenu: creerPicSoutenu(), preuve: creerPreuve(capturerImage), preuveAffichee: null,
+    pauses: creerCompteurPauses(REGLAGES.delaiPerteMs), // pauses de la manche seule (n° 270)
   };
   const toilePreuve = $("preuve");
   toilePreuve.getContext("2d").clearRect(0, 0, toilePreuve.width, toilePreuve.height); // effacement (R7.5)
@@ -176,7 +177,7 @@ function demarrerManche() {
 // Événements de R4 : avertissement (texte exact de D5 E7, T16) ou faute « Visage perdu » (R7.6 : sans image).
 function noterPerte(e) {
   if (e.type === "avertissement") manche.avertissement = e;
-  else manche.fautes.push({ type: "perte", debut: e.t, pauseMs: e.pauseMs });
+  else manche.fautes.push({ type: "perte", debut: e.t, ref: e }); // e.pauseMs est mis à jour à la reprise (n° 270)
 }
 
 function traiterManche(m, t) {
@@ -187,6 +188,7 @@ function traiterManche(m, t) {
     manche.pertes = creerSuiviPertes(t);
   }
   manche.t = t;
+  manche.pauses.ajouter(t);
   const valide = imageValide(m);
   let souriant = false, souriantVariante = false, S = NaN, Sv = NaN;
   if (valide) {
@@ -224,7 +226,9 @@ const chrono = (ms) => {
 
 function ligneFaute(e, k) {
   if (e.type === "perte") {
-    const pause = e.pauseMs === undefined ? "" : ` — pendant une pause d'analyse de ${f(e.pauseMs / 1000, 1)} s`;
+    const { pauseMs, pauseAuDebut } = e.ref;
+    const duree = f(pauseMs / 1000, 1);
+    const pause = !pauseMs ? "" : pauseAuDebut ? ` — pendant une pause d'analyse de ${duree} s` : ` — dont ${duree} s de pause d'analyse`;
     return `  ${k + 1}. à ${chrono(e.debut - manche.t0)} — Visage perdu${pause}`;
   }
   const s = e.ref; // l'événement de sourire continue d'être mis à jour tant que la série dure
@@ -242,6 +246,7 @@ function afficherManche() {
     `État : ${manche.etat}   J ${f(manche.J * 100)} %   pic ${f(manche.pic * 100)} %`,
     `Fautes : ${manche.fautes.length} (sourires ${sourires}, visage perdu ${manche.fautes.length - sourires})   variante cheekSquint : ${manche.variante}`,
     ...manche.fautes.map(ligneFaute),
+    ((p) => `Pauses d'analyse pendant la manche : ${p.nombre}${p.nombre ? ` · ${f(p.totalMs / 1000, 1)} s au total` : ""}`)(manche.pauses.stats()),
     `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / calibre.d, 2)}`,
   ].join("\n");
   // Image de preuve (R7) : affichée dès qu'un sourire est confirmé, mise à jour si la série trouve mieux.
@@ -326,7 +331,7 @@ function suivre(video, moteur) {
         `Cadence analysée : ${analyse10.pleine() ? f(c10, 1) : "mesure en cours"} im/s (10 s) · ${f(analyse1.cadence())} (1 s)`,
         `Fenêtres de 10 s : min ${f(min10, 1)}${momentMin === undefined ? "" : ` (à ${f(momentMin)} s)`} · max ${f(max10, 1)} · plafond ${CADENCE_MAX}`,
         `Temps d'analyse : moyen ${f(tempsTotal / analysees)} ms · max ${f(tempsMax)} ms · 1re image ${f(premiere)} ms`,
-        `Pauses d'analyse : ${ps.nombre}${ps.nombre ? ` · ${f(ps.totalMs / 1000, 1)} s au total · la plus longue ${f(ps.plusLongueMs / 1000, 1)} s` : ""}`,
+        `Pauses d'analyse (session) : ${ps.nombre}${ps.nombre ? ` · ${f(ps.totalMs / 1000, 1)} s au total · la plus longue ${f(ps.plusLongueMs / 1000, 1)} s` : ""}`,
         `Visages : ${m.visages}`,
         `Largeur : ${visage ? f(m.largeur) : "—"} %   Lacet : ${visage ? f(m.lacet) : "—"}°   Tangage : ${visage ? f(m.tangage) : "—"}°`,
         `Luminance : ${visage ? f(m.luminance) : "—"}/255`,

@@ -142,3 +142,32 @@ test("preuve : série cassée sans confirmation, image jetée ; la preuve préc�
   preuve.effacer();
   assert.equal(preuve.valeur().image, null);
 });
+
+// --- Durée de pause affichée (relevés L0.5, D8 n° 270) ---
+
+test("PC : faute créée par la minuterie pendant la pause, puis reprise : pauseMs = durée totale", () => {
+  const suivi = creerSuiviPertes(0);
+  suivi.image(16900, true); // dernière image avant la réduction de Chrome
+  assert.equal(suivi.verifier(18500)[0].type, "avertissement");
+  const faute = suivi.verifier(22300)[0]; // minuterie ralentie à 1 s : faute vue à + 5,4 s
+  assert.equal(faute.type, "faute");
+  assert.equal(faute.t, 21900); // datée à + 5 s
+  proche(faute.pauseMs, 5400, "pause vue à la création", 1);
+  suivi.image(24500, true); // reprise après 7,6 s sans image
+  proche(faute.pauseMs, 7600, "pause totale à la reprise", 1);
+  assert.equal(faute.pauseAuDebut, true);
+});
+
+test("iPhone : perte ouverte par des images invalides, puis pause : faute à + 5 s, « dont X s de pause »", () => {
+  const suivi = creerSuiviPertes(0);
+  suivi.image(15000, true);
+  const evs = [];
+  const invalides = [0, 1, 2, 3, 4, 5].map((k) => 15600 + k * PAS); // regard vers l'écran d'accueil
+  for (const t of invalides) evs.push(...suivi.image(t, false));
+  const derniere = invalides.at(-1);
+  evs.push(...suivi.image(derniere + 5000, true)); // retour dans Safari après 5 s sans image
+  const faute = evs.find((e) => e.type === "faute");
+  assert.equal(faute.t, 15600 + 5000);
+  assert.equal(faute.pauseAuDebut, false);
+  proche(faute.pauseMs, 5000, "pause dans la perte", 1);
+});
