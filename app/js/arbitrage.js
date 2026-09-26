@@ -41,6 +41,10 @@ export function creerLissage(fenetre = REGLAGES.lissage) {
 export function creerSuiviSourire(t0 = -Infinity, R = REGLAGES) {
   let serie = null;
   return {
+    // Une série est en cours (sert à l'image de preuve, R7.3).
+    actif() {
+      return serie !== null;
+    },
     image(t, souriante, S) {
       if (!souriante) {
         if (!serie) return null;

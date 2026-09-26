@@ -47,10 +47,16 @@ export function luminance(pixels, l, h, rect) {
   return n ? somme / n : NaN;
 }
 
-// Scores de sourire bruts : formule de base s et variante cheekSquint (D2 §2, n° 72).
-export function scores(categories) {
+// Les 52 blendshapes de MediaPipe, par nom (journal de L0.6, D8 n° 263 ; affichage des candidats, n° 265).
+export function valeurs(categories) {
   const v = {};
   for (const c of categories) v[c.categoryName] = c.score;
+  return v;
+}
+
+// Scores de sourire bruts : formule de base s et variante cheekSquint (D2 §2, n° 72).
+export function scores(categories) {
+  const v = valeurs(categories);
   return {
     smileG: v.mouthSmileLeft,
     smileD: v.mouthSmileRight,

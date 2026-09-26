@@ -123,9 +123,9 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | R4 : perte, avertissement, deuxième perte, perte continue de plus de 5 s ; R7 : images de la série en mémoire vive, choix de l'image au score le plus haut, affichage, effacement |
+| Tâches | R4 : perte, avertissement, deuxième perte, perte continue de plus de 5 s ; perte datée à la dernière image reçue au retour d'une pause d'analyse, minuterie de 250 ms quand la page est visible ; pauses comptées à part, fenêtres de cadence remises à zéro après une pause (n° 266). R7 : meilleure image de la série en mémoire vive, choix de l'image au score le plus haut, affichage, effacement (n° 267). Affichage en direct de 9 blendshapes candidats (n° 265). Fichiers : `app/js/pertes.js`, `preuve.js` ; vérifications `tests/pertes.test.mjs`, `tests/sans-stockage.test.mjs` |
 | Modules | Arbitrage, Interface |
-| Terminé quand | Sortie du champ 2 s : avertissement ; 6 s : faute ; l'image de preuve s'affiche et aucune écriture n'apparaît dans le stockage du navigateur |
+| Terminé quand | La vérification automatique passe ; sur le PC et l'iPhone 15 Pro : sortie du champ 2 s → avertissement ; 6 s → faute « Visage perdu » ; pause de 6 s (fenêtre réduite sur le PC, retour à l'accueil sur l'iPhone) → faute datée depuis la dernière image, pause comptée ; grand sourire → image de preuve, effacée au « Démarrer » suivant ; stockage du navigateur vide sur le PC. Test court des blendshapes sur le PC (mesure pour la parade 3) |
 | Test | [D3](D3-plan-de-tests.md) A7 |
 | Dépend de | L0.4 |
 
@@ -133,7 +133,7 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence (calcul déjà fait en L0.4, n° 255). Protection BitLocker déjà activée (n° 223) |
+| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), avec les 52 blendshapes par nom (n° 263), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence (calcul déjà fait en L0.4, n° 255). Protection BitLocker déjà activée (n° 223) |
 | Modules | Interface |
 | Terminé quand | Une session à blanc de 30 min (Valentin seul) produit un journal complet et lisible au tableur, dans le dossier chiffré |
 | Test | [D3](D3-plan-de-tests.md) §1.3 entier |

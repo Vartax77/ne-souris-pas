@@ -153,7 +153,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 ### 4.4 R4 — Visage perdu
 
-1. Une **perte** commence à la première image invalide ou, si aucune image n'arrive, à la dernière image reçue. Une image est invalide si aucun visage n'est détecté, si deux visages sont détectés, si le visage est trop petit ou si ses angles dépassent les limites.
+1. Une **perte** commence à la première image invalide ou, si aucune image n'arrive, à la dernière image reçue. Au retour d'une pause d'analyse (page masquée, fenêtre réduite, caméra figée), la pause est évaluée d'un coup, avertissement et faute datés rétroactivement (n° 266). Une image est invalide si aucun visage n'est détecté, si deux visages sont détectés, si le visage est trop petit ou si ses angles dépassent les limites.
 2. La perte se termine à la première image valide.
 3. Une perte est **comptée** quand elle dure plus de 1,5 s. À ce moment :
    - première perte comptée de la manche : avertissement affiché aux deux joueurs ;
@@ -549,6 +549,9 @@ Texte exact, affiché à l'accueil (6.2) et accessible pendant le jeu. Les nombr
 > 3. Gardez votre visage visible et seul à l'écran, sinon vous perdez la manche.
 > 4. Votre jauge monte quand vous êtes près de sourire, et votre adversaire la voit.
 > 5. Si personne ne craque en 60 secondes, perd celui dont la jauge est montée le plus haut.
+> 6. Attention : un mot tenu comme « cheese » peut compter comme un sourire.
+
+La règle 6 est **provisoire** (n° 264) : c'est la parade par défaut au risque de la parole, tant que Q17 reste ouverte.
 
 La règle 3 simplifie R4 (avertissement, puis faute) : l'avertissement explique le détail au moment où il survient (T16).
 
@@ -585,4 +588,4 @@ Question ouverte, issue des relevés du lot L0.4 (2026-09-26) :
 
 | N° | Question | Proposition |
 |---|---|---|
-| Q17 | Les mots tenus qui étirent les lèvres (« iii », « cheese ») montent à S 0,50-0,81, au niveau d'un vrai sourire, et font une faute même avec `d` 0,33 ([D3](D3-plan-de-tests.md) §1.7.4, n° 260). La parole reste-t-elle autorisée telle quelle (n° 8), et quelle parade retenir ? | Aucune avant les mesures de P0 : A2 (parole libre), A3, A5, A6, avec toutes les blendshapes journalisées pour tester les parades au rejeu (L0.7). Parades candidates et coûts : réponse de Claude du 2026-09-26, à reprendre ici après décision |
+| Q17 | Les mots tenus qui étirent les lèvres (« iii », « cheese ») montent à S 0,50-0,81, au niveau d'un vrai sourire, et font une faute même avec `d` 0,33 ([D3](D3-plan-de-tests.md) §1.7.4, n° 260). La parole reste-t-elle autorisée telle quelle (n° 8), et quelle parade retenir ? | Arbitrage partiel du 2026-09-26 (n° 264) : **parade 6 (règle assumée) retenue comme choix provisoire par défaut**, règle affichée 6 (§6.8) ; parades 1 (maintien plus long), 2 (seuil plus haut) et 7 (interdire la parole) écartées ; parade 5 (voix au micro) hors v1. Restent à évaluer : 3 (autres blendshapes : test court en fin de L0.5, n° 265, puis rejeu des 52 blendshapes en P0) et 4 (rythme du signal). Décision finale sur les mesures de P0 : A2, A3, A5, A6 |

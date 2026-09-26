@@ -1,11 +1,13 @@
-// Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai avec sourire et jauge (L0.4).
+// Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai : sourire et jauge (L0.4), pertes et preuve (L0.5).
 
 import { demarrerCamera } from "./capture.js";
 import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
-import { CADENCE_MAX, creerFenetre } from "./cadence.js";
-import { angles, rectangle, largeur, luminance, scores } from "./mesures.js";
+import { CADENCE_MAX, creerFenetre, creerCompteurPauses } from "./cadence.js";
+import { angles, rectangle, largeur, luminance, scores, valeurs } from "./mesures.js";
 import { evaluerCalibrage } from "./calibrage.js";
 import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
+import { creerSuiviPertes } from "./pertes.js";
+import { creerPreuve } from "./preuve.js";
 import { REGLAGES } from "./reglages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -68,6 +70,7 @@ function mesurer(video, res) {
     ...angles(res.facialTransformationMatrixes[0].data),
     luminance: luminance(px, toile.width, toile.height, rect),
     ...scores(res.faceBlendshapes[0].categories),
+    bs: valeurs(res.faceBlendshapes[0].categories), // les 52 blendshapes (D8 n° 263, n° 265)
   };
 }
 
@@ -136,17 +139,44 @@ function terminerCalibrage() {
 // c'est la colonne « Fautes » de la grille D3 §1.4.4.
 let calibre = null, manche = null;
 
+// Copie de l'image caméra courante, en mémoire vive seulement (R7.5) : jamais écrite nulle part.
+function capturerImage() {
+  const video = $("video");
+  const c = document.createElement("canvas");
+  c.width = video.videoWidth;
+  c.height = video.videoHeight;
+  c.getContext("2d").drawImage(video, 0, 0);
+  return c;
+}
+
+function arreterManche() {
+  manche.active = false;
+  clearInterval(manche.minuterie);
+  $("manche-bouton").textContent = "Démarrer";
+}
+
 function demarrerManche() {
-  if (manche?.active) {
-    manche.active = false;
-    $("manche-bouton").textContent = "Démarrer";
-    return;
-  }
+  if (manche?.active) return arreterManche();
   manche = {
-    active: true, t0: undefined, t: 0, etat: "—", J: 0, pic: 0, sourires: [], variante: 0,
-    lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, picSoutenu: creerPicSoutenu(),
+    active: true, t0: undefined, t: 0, etat: "—", J: 0, pic: 0, fautes: [], variante: 0, avertissement: null,
+    lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, pertes: null,
+    picSoutenu: creerPicSoutenu(), preuve: creerPreuve(capturerImage), preuveAffichee: null,
   };
+  const toilePreuve = $("preuve");
+  toilePreuve.getContext("2d").clearRect(0, 0, toilePreuve.width, toilePreuve.height); // effacement (R7.5)
+  $("preuve-legende").textContent = "";
+  // Page visible mais plus aucune image (caméra figée) : la perte est constatée en direct (D8 n° 266).
+  // Page masquée : la minuterie est suspendue, et le retour de l'analyse rattrape la pause (pertes.js).
+  manche.minuterie = setInterval(() => {
+    if (manche.pertes) for (const e of manche.pertes.verifier(performance.now())) noterPerte(e);
+  }, 250);
   $("manche-bouton").textContent = "Arrêter";
+}
+
+// Événements de R4 : avertissement (texte exact de D5 E7, T16) ou faute « Visage perdu » (R7.6 : sans image).
+function noterPerte(e) {
+  if (e.type === "avertissement") manche.avertissement = e;
+  else manche.fautes.push({ type: "perte", debut: e.t, pauseMs: e.pauseMs });
 }
 
 function traiterManche(m, t) {
@@ -154,10 +184,12 @@ function traiterManche(m, t) {
     manche.t0 = t;
     manche.suivi = creerSuiviSourire(t);
     manche.suiviVariante = creerSuiviSourire(t);
+    manche.pertes = creerSuiviPertes(t);
   }
   manche.t = t;
+  const valide = imageValide(m);
   let souriant = false, souriantVariante = false, S = NaN, Sv = NaN;
-  if (imageValide(m)) {
+  if (valide) {
     S = manche.lisser(m.s);
     manche.etat = etatImage(S, calibre);
     souriant = manche.etat === "souriant";
@@ -171,8 +203,15 @@ function traiterManche(m, t) {
     manche.etat = "invalide"; // J et pic figés (R3.4)
     manche.picSoutenu.rompre();
   }
+  for (const e of manche.pertes.image(t, valide)) noterPerte(e);
+  // Sourire (R2) et image de preuve (R7) : meilleure image de la série, confirmée avec le sourire.
   const ev = manche.suivi.image(t, souriant, S);
-  if (ev) manche.sourires.push(ev);
+  if (souriant) manche.preuve.souriante(S);
+  if (ev) {
+    manche.fautes.push({ type: "sourire", ...ev, ref: ev });
+    manche.preuve.confirmer();
+  }
+  if (!manche.suivi.actif()) manche.preuve.finSerie();
   if (manche.suiviVariante.image(t, souriantVariante, Sv)) manche.variante += 1;
   $("jauge-niveau").style.width = `${manche.J * 100}%`;
   $("jauge-pic").style.left = `calc(${manche.pic * 100}% - ${manche.pic * 3}px)`; // reste dans le cadre à 100 %
@@ -183,28 +222,69 @@ const chrono = (ms) => {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${f(s % 60, 1).padStart(4, "0")}`;
 };
 
+function ligneFaute(e, k) {
+  if (e.type === "perte") {
+    const pause = e.pauseMs === undefined ? "" : ` — pendant une pause d'analyse de ${f(e.pauseMs / 1000, 1)} s`;
+    return `  ${k + 1}. à ${chrono(e.debut - manche.t0)} — Visage perdu${pause}`;
+  }
+  const s = e.ref; // l'événement de sourire continue d'être mis à jour tant que la série dure
+  return `  ${k + 1}. à ${chrono(s.debut - manche.t0)} — sourire — durée ${f((s.fin - s.debut) / 1000, 1)} s — ${s.images} images — S max ${f(s.sMax, 2)}`;
+}
+
 function afficherManche() {
   const P = manche.picSoutenu.valeur();
+  const sourires = manche.fautes.filter((e) => e.type === "sourire").length;
+  $("manche-avertissement").textContent = manche.avertissement
+    ? `Visage perdu : encore une fois et vous perdez la manche (à ${chrono(manche.avertissement.t - manche.t0)})`
+    : "";
   $("manche-etat").textContent = [
     `Manche d'essai — ${chrono(manche.t - manche.t0)}${manche.active ? "" : " (arrêtée)"}`,
     `État : ${manche.etat}   J ${f(manche.J * 100)} %   pic ${f(manche.pic * 100)} %`,
-    `Sourires confirmés : ${manche.sourires.length}   variante cheekSquint : ${manche.variante}`,
-    ...manche.sourires.map((e, k) =>
-      `  ${k + 1}. à ${chrono(e.debut - manche.t0)} — durée ${f((e.fin - e.debut) / 1000, 1)} s — ${e.images} images — S max ${f(e.sMax, 2)}`),
+    `Fautes : ${manche.fautes.length} (sourires ${sourires}, visage perdu ${manche.fautes.length - sourires})   variante cheekSquint : ${manche.variante}`,
+    ...manche.fautes.map(ligneFaute),
     `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / calibre.d, 2)}`,
   ].join("\n");
+  // Image de preuve (R7) : affichée dès qu'un sourire est confirmé, mise à jour si la série trouve mieux.
+  const { image, s } = manche.preuve.valeur();
+  if (image && image !== manche.preuveAffichee) {
+    const toilePreuve = $("preuve");
+    toilePreuve.width = image.width;
+    toilePreuve.height = image.height;
+    toilePreuve.getContext("2d").drawImage(image, 0, 0);
+    manche.preuveAffichee = image;
+    $("preuve-legende").textContent = `Image au S le plus haut de la série : ${f(s, 2)}`;
+  }
 }
 
+// Blendshapes candidats pour distinguer la parole d'un sourire (parade 3), affichés gauche/droite.
+const BS_CANDIDATS = [
+  ["mouthSmile", "mouthSmileLeft", "mouthSmileRight"],
+  ["jawOpen", "jawOpen"],
+  ["mouthStretch", "mouthStretchLeft", "mouthStretchRight"],
+  ["mouthUpperUp", "mouthUpperUpLeft", "mouthUpperUpRight"],
+  ["mouthDimple", "mouthDimpleLeft", "mouthDimpleRight"],
+];
+
 function suivre(video, moteur) {
-  const camera = creerFenetre(10000);
-  const analyse10 = creerFenetre(10000);
-  const analyse1 = creerFenetre(1000);
+  let camera = creerFenetre(10000);
+  let analyse10 = creerFenetre(10000);
+  let analyse1 = creerFenetre(1000);
+  // Pauses d'analyse (page masquée, fenêtre réduite, caméra figée, appareil bloqué) : les fenêtres repartent
+  // de zéro, mais les pauses sont comptées à part pour que G3 ne perde pas un blocage réel (D8 n° 266).
+  const pauses = creerCompteurPauses(REGLAGES.delaiPerteMs);
   let min10 = Infinity, max10 = 0, tempsTotal = 0, tempsMax = 0, analysees = 0, dernierAffichage = 0, premiere;
   let debut, momentMin; // moment du minimum des fenêtres de 10 s, pour savoir s'il vient du démarrage
 
   lancerAnalyse(video, moteur, {
     image(t) {
       debut ??= t;
+      // Pas avant la fin de la première analyse : son initialisation (jusqu'à 2,4 s sur carte graphique)
+      // bloque la page sans être un blocage de l'appareil.
+      if (analysees > 0 && pauses.ajouter(t)) {
+        camera = creerFenetre(10000);
+        analyse10 = creerFenetre(10000);
+        analyse1 = creerFenetre(1000);
+      }
       camera.ajouter(t);
       if (cal?.debut !== undefined) cal.imagesCamera += 1;
     },
@@ -239,17 +319,21 @@ function suivre(video, moteur) {
       if (manche?.t0 !== undefined) afficherManche();
       m ??= mesurer(video, res);
       const visage = m.visages === 1;
+      const ps = pauses.stats();
       $("mesures").textContent = [
         `Mode de calcul : ${moteur.mode === "GPU" ? "carte graphique (GPU)" : "processeur (CPU)"} — ${moteur.raison ? `repli : ${moteur.raison}` : moteur.choix}`,
         `Cadence caméra : ${camera.pleine() ? f(camera.cadence(), 1) : "mesure en cours"} im/s`,
         `Cadence analysée : ${analyse10.pleine() ? f(c10, 1) : "mesure en cours"} im/s (10 s) · ${f(analyse1.cadence())} (1 s)`,
         `Fenêtres de 10 s : min ${f(min10, 1)}${momentMin === undefined ? "" : ` (à ${f(momentMin)} s)`} · max ${f(max10, 1)} · plafond ${CADENCE_MAX}`,
         `Temps d'analyse : moyen ${f(tempsTotal / analysees)} ms · max ${f(tempsMax)} ms · 1re image ${f(premiere)} ms`,
+        `Pauses d'analyse : ${ps.nombre}${ps.nombre ? ` · ${f(ps.totalMs / 1000, 1)} s au total · la plus longue ${f(ps.plusLongueMs / 1000, 1)} s` : ""}`,
         `Visages : ${m.visages}`,
         `Largeur : ${visage ? f(m.largeur) : "—"} %   Lacet : ${visage ? f(m.lacet) : "—"}°   Tangage : ${visage ? f(m.tangage) : "—"}°`,
         `Luminance : ${visage ? f(m.luminance) : "—"}/255`,
         `Sourire s : ${visage ? `${f(m.s, 2)} (G ${f(m.smileG, 2)} · D ${f(m.smileD, 2)})` : "—"}`,
         `cheekSquint : ${visage ? f(m.cheek, 2) : "—"}`,
+        // Candidats de la parade 3 (D2 Q17, D8 n° 265) : restent-ils à 0 comme cheekSquint ?
+        `Parade 3 : ${visage ? BS_CANDIDATS.map(([nom, g, d]) => `${nom} ${f(m.bs[g], 2)}${d ? `/${f(m.bs[d], 2)}` : ""}`).join(" · ") : "—"}`,
       ].join("\n");
     },
     erreur(e) {

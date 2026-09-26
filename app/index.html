@@ -14,7 +14,7 @@
 <body>
   <main>
     <h1>Ne souris pas — prototype 0</h1>
-    <p class="lot">Lot L0.4 — sourire et jauge</p>
+    <p class="lot">Lot L0.5 — pertes et preuve</p>
 
     <div class="cadre">
       <video id="video" autoplay muted playsinline></video>
@@ -47,7 +47,10 @@
         <div id="jauge-niveau"></div>
         <div id="jauge-pic"></div>
       </div>
+      <p id="manche-avertissement" class="erreur"></p>
       <pre id="manche-etat"></pre>
+      <canvas id="preuve" width="0" height="0" aria-label="Image de preuve"></canvas>
+      <p id="preuve-legende" class="version"></p>
     </section>
 
     <pre id="mesures">Démarrez la caméra pour lancer l’analyse.</pre>

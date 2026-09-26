@@ -23,4 +23,8 @@ export const REGLAGES = Object.freeze({
   imagesMinSourire: 3, // images souriantes minimales par sourire confirmé
   imagesTolerees: 1, // images non souriantes tolérées par série, si la suivante est souriante
   plancherCheek: 0.2, // variante : s compté seulement si cheekSquint atteint ce plancher (P0 seulement)
+  // Visage perdu (R4, lot L0.5)
+  delaiPerteMs: 1500, // au-delà, la perte est comptée ; c'est aussi le seuil d'une pause d'analyse
+  perteContinueMs: 5000, // perte continue au-delà : faute, même si c'est la première
+  pertesAvantFaute: 2, // la deuxième perte comptée de la manche est une faute
 });

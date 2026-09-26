@@ -187,6 +187,7 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `lacet`, `tangage` | Degrés |
 | `smileG`, `smileD` | `mouthSmileLeft`, `mouthSmileRight` |
 | `cheekG`, `cheekD` | `cheekSquintLeft`, `cheekSquintRight` |
+| `bs_<nom>` | Les 52 blendshapes de MediaPipe, une colonne par nom (`bs_jawOpen`, `bs_mouthStretchLeft`…). Permettent de tester au rejeu (L0.7) une parade à la parole fondée sur d'autres blendshapes ([D2](D2-regles-jeu-arbitrage.md) Q17, n° 263) |
 | `lum` | Luminance moyenne du visage, sur 255 |
 | `S`, `J` | Score lissé, jauge |
 | `etat` | neutre, doute, souriant, invalide |

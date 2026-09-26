@@ -94,7 +94,7 @@ Correspondance avec [D2](D2-regles-jeu-arbitrage.md) §6.2 :
 ### 3.1 E1 — Accueil : explication et âge
 
 - **Objectif** : dire ce qui va se passer avec la caméra **avant** la demande du navigateur (n° 29) ; recueillir la déclaration d'âge ; présenter les règles.
-- **Éléments** : nom du jeu ; phrase d'accroche ; les 5 règles ([D2](D2-regles-jeu-arbitrage.md) §6.8) ; bloc « Votre caméra » ; case d'âge ; lien « Conditions d'utilisation » sous la case ; bouton principal ; liens « Confidentialité » et « Mentions légales » en bas de page (n° 173).
+- **Éléments** : nom du jeu ; phrase d'accroche ; les 6 règles ([D2](D2-regles-jeu-arbitrage.md) §6.8, dont la règle 6 provisoire sur les mots tenus, n° 264) ; bloc « Votre caméra » ; case d'âge ; lien « Conditions d'utilisation » sous la case ; bouton principal ; liens « Confidentialité » et « Mentions légales » en bas de page (n° 173).
 - **Actions** : cocher la case ; bouton principal (désactivé tant que la case n'est pas cochée) ; ouvrir les pages de [D7](D7-juridique-confidentialite.md) : conditions d'utilisation, confidentialité, mentions légales.
 
 Textes exacts :
@@ -104,7 +104,7 @@ Textes exacts :
 | Titre | « Ne souris pas » |
 | Accroche (hôte) | « Défiez un ami : le premier qui sourit perd. » |
 | Accroche (invité) | « Vous êtes défié au jeu Ne souris pas. » |
-| Règles | Les 5 phrases de [D2](D2-regles-jeu-arbitrage.md) §6.8 |
+| Règles | Les 6 phrases de [D2](D2-regles-jeu-arbitrage.md) §6.8 (la 6e est provisoire, n° 264 ; les maquettes ci-dessous n'en montrent que 5) |
 | Bloc caméra, titre | « Votre caméra et votre micro » |
 | Bloc caméra, texte | « Votre adversaire vous voit et vous entend pendant la partie. Votre sourire est détecté sur votre appareil. Rien n'est enregistré, ni image, ni son. » |
 | Case | « J'ai 18 ans ou plus » |
@@ -583,7 +583,7 @@ Ordinateur, paysage :
 ### 3.11 E11 — Règles
 
 - **Objectif** : relire les règles sans quitter la partie.
-- **Éléments** : panneau par-dessus l'écran ; les 5 règles de [D2](D2-regles-jeu-arbitrage.md) §6.8.
+- **Éléments** : panneau par-dessus l'écran ; les 6 règles de [D2](D2-regles-jeu-arbitrage.md) §6.8.
 - **Actions** : « Fermer ». La manche continue derrière le panneau : l'ouvrir ne met rien en pause ([D2](D2-regles-jeu-arbitrage.md) §6.8, n° 172).
 - Sur téléphone, le panneau couvre au plus la moitié basse, pour que le joueur reste face à la caméra. **Hypothèse à valider**
 

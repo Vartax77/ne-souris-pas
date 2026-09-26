@@ -47,3 +47,27 @@ export function creerFenetre(dureeMs) {
     },
   };
 }
+
+// Pauses d'analyse (D8 n° 266) : intervalles sans image plus longs que seuilMs (page masquée, fenêtre réduite,
+// caméra figée, appareil bloqué). Comptées à part pour que le critère G3 ne perde pas un blocage réel,
+// alors que les fenêtres de cadence repartent de zéro après chaque pause.
+export function creerCompteurPauses(seuilMs) {
+  let derniere, nombre = 0, totalMs = 0, plusLongueMs = 0;
+  return {
+    // Renvoie la durée de la pause qui vient de se terminer à t, ou 0.
+    ajouter(t) {
+      let pause = 0;
+      if (derniere !== undefined && t - derniere > seuilMs) {
+        pause = t - derniere;
+        nombre += 1;
+        totalMs += pause;
+        plusLongueMs = Math.max(plusLongueMs, pause);
+      }
+      derniere = t;
+      return pause;
+    },
+    stats() {
+      return { nombre, totalMs, plusLongueMs };
+    },
+  };
+}
