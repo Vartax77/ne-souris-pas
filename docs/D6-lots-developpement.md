@@ -106,6 +106,7 @@ flowchart LR
 | Terminé quand | Chaque cause de rejet est vérifiée par la vérification automatique (`tests/calibrage.test.mjs`, séquences construites à partir des relevés) ; un calibrage réel réussit sur le PC ; trois gestes réels sur le PC donnent le bon message : parler, deux visages proches, lampe éteinte. Les essais de calibrage sur iPhone passent au protocole P0 (séquence A0, [D3](D3-plan-de-tests.md) §1.3.4) (n° 249) |
 | Test | [D3](D3-plan-de-tests.md) A0, §1.3.5, §1.3.6, critère G4 |
 | Dépend de | L0.2 |
+| Statut | **Terminé** le 2026-09-26 sur le PC (critère n° 249) : vérification automatique, calibrage réel et trois gestes réels ; relevés en [D3](D3-plan-de-tests.md) §1.7.3 (n° 250). Essais iPhone reportés au protocole P0 |
 
 #### L0.4 — Sourire et jauge
 

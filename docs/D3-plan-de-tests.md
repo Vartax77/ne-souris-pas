@@ -452,6 +452,26 @@ Vérification automatique (`tests/calibrage.test.mjs`) : une séquence par cause
 
 Suite (n° 249) : L0.3 se termine par trois gestes réels sur le PC (parler, deux visages proches, lampe éteinte). Les essais de calibrage sur iPhone passent au protocole P0 (séquence A0).
 
+Gestes réels sur la version corrigée (PC, Chrome, carte graphique, 2026-09-26, n° 250) :
+
+| Essai | Message | Détail |
+|---|---|---|
+| Calibrage normal | Réussi : n 0,00 · v 0,45 · v − n 0,45 · d 0,18, non plafonné | Présence 100 % / 100 % · deux visages 0 % · largeur 27 % · lacet 5° · tangage 5° · luminance 128 · écart-type 0,003 · 40 + 24 images · analysée 12,8 im/s · caméra 14,8 im/s |
+| Parler (« ouistiti, merci, cheese, pipi, iii ») | « Restez silencieux et immobile. » | Écart-type 0,227 · n 0,25 · v 0,81 · v − n 0,56 · présence 100 % · 43 + 27 images · caméra 15,2 im/s. Score en direct pendant la lecture : jusqu'à 0,11 (G 0,07 · D 0,14) |
+| Deux visages, joue contre joue | « Un seul visage dans le champ. » | Présence 0 % / 0 % · deux visages 100 % · 42 + 27 images · caméra 15,0 im/s |
+| Lampe éteinte | « Pas assez de lumière… » (ER3) | Luminance 86 · caméra 10,2 im/s · analysée 10,2 · écart-type 0,000 · n 0,00 · v 0,70 · 31 + 20 images. La cadence caméra déclenche seule le rejet : n° 247 confirmé sur le PC |
+
+Autres constats :
+
+| Constat | Relevé | Portée |
+|---|---|---|
+| `v` varie pour le même visage | 0,45, 0,63, 0,81 selon l'essai, soit `d` de 0,18 à 0,32 | Le seuil dépend de l'intensité du sourire volontaire. Avec `v` bas, le seuil baisse (0,18) : un sourire léger (0,23 en L0.2) deviendrait une faute. À mesurer en P0 (n° 251) |
+| Coût du plafond strict avec une caméra à 15 im/s | Caméra 14,8, analysée 12,8 (−2 im/s) ; dans le noir, caméra 10,2, analysée 10,2, exactement au plancher | Perte plus forte que dans la simulation (1 im/s au plus, n° 231). À revoir si la cadence commune en souffre en P0 (n° 252) |
+| Première fenêtre de 10 s | 13,5 dans une session, 11,6 dans une autre (à 10 s) ; dans le noir, 11,4 puis 10,0 | Le minimum de 8,4 relevé plus tôt n'est pas retrouvé ; le démarrage pèse peu |
+| « Fenêtres de 10 s : min 0,1 (à 41 s) », session lampe éteinte | Une seule image dans la fenêtre de 10 s | Analyse suspendue au moins 10 s : page masquée ou fenêtre recouverte (n° 253) |
+
+**L0.3 terminé** sur le PC : critère n° 249 rempli.
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés
