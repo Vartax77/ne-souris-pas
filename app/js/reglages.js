@@ -17,4 +17,10 @@ export const REGLAGES = Object.freeze({
   k: 0.4, // coefficient du seuil : d = k × (v − n)
   dMax: 0.35, // seuil maximal
   lissage: 3, // images valides par moyenne mobile pour le score lissé S
+  // Manche (R2, R3, lot L0.4)
+  m: 0.05, // marge : au-dessus de n + m, l'image est « en doute »
+  maintienMs: 500, // durée minimale d'un sourire confirmé (première à dernière image souriante)
+  imagesMinSourire: 3, // images souriantes minimales par sourire confirmé
+  imagesTolerees: 1, // images non souriantes tolérées par série, si la suivante est souriante
+  plancherCheek: 0.2, // variante : s compté seulement si cheekSquint atteint ce plancher (P0 seulement)
 });

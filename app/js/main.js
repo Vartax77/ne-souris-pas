@@ -1,10 +1,11 @@
-// Prototype 0, lot L0.2 (D6) : détection à cadence plafonnée, valeurs brutes en direct.
+// Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai avec sourire et jauge (L0.4).
 
 import { demarrerCamera } from "./capture.js";
 import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
 import { CADENCE_MAX, creerFenetre } from "./cadence.js";
 import { angles, rectangle, largeur, luminance, scores } from "./mesures.js";
 import { evaluerCalibrage } from "./calibrage.js";
+import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
 import { REGLAGES } from "./reglages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -76,6 +77,7 @@ const CONSIGNE = "Placez votre visage dans l'ovale, bien éclairé, puis appuyez
 let cal = null, essais = 0;
 
 function lancerCalibrage() {
+  if (manche?.active) demarrerManche(); // arrête la manche : n et d vont changer
   essais += 1;
   cal = { debut: undefined, neutre: [], sourire: [], imagesCamera: 0 };
   $("cal-essai").textContent = String(essais);
@@ -93,7 +95,7 @@ function enregistrer(m, t) {
     $("cal-barre").value = e / pn;
   } else if (e < pn + ps) {
     cal.sourire.push(m);
-    $("cal-consigne").textContent = "Maintenant, souriez franchement !";
+    $("cal-consigne").textContent = "Maintenant, votre plus grand sourire, sans vous retenir !";
     $("cal-barre").value = (e - pn) / ps;
   } else {
     terminerCalibrage();
@@ -111,6 +113,9 @@ function terminerCalibrage() {
   const st = r.stats;
   if (r.ok) {
     afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
+    calibre = { n: r.n, d: r.d };
+    $("manche-bouton").disabled = false;
+    $("manche-calibre").textContent = `n ${f(r.n, 2)} · d ${f(r.d, 2)} (dernier calibrage réussi)`;
   } else {
     afficher("cal-resultat", r.message, "erreur");
   }
@@ -124,6 +129,70 @@ function terminerCalibrage() {
   $("cal-barre").value = 0;
   $("cal-commencer").textContent = "Recommencer";
   $("cal-commencer").disabled = false;
+}
+
+// Manche d'essai (R2, R3, lot L0.4), page de test P0 seulement. t0 = appui sur « Démarrer ».
+// Tous les sourires confirmés sont comptés, sans arrêt à la première faute ni à 60 s (D8 n° 254) :
+// c'est la colonne « Fautes » de la grille D3 §1.4.4.
+let calibre = null, manche = null;
+
+function demarrerManche() {
+  if (manche?.active) {
+    manche.active = false;
+    $("manche-bouton").textContent = "Démarrer";
+    return;
+  }
+  manche = {
+    active: true, t0: undefined, t: 0, etat: "—", J: 0, pic: 0, sourires: [], variante: 0,
+    lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, picSoutenu: creerPicSoutenu(),
+  };
+  $("manche-bouton").textContent = "Arrêter";
+}
+
+function traiterManche(m, t) {
+  if (manche.t0 === undefined) {
+    manche.t0 = t;
+    manche.suivi = creerSuiviSourire(t);
+    manche.suiviVariante = creerSuiviSourire(t);
+  }
+  manche.t = t;
+  let souriant = false, souriantVariante = false, S = NaN, Sv = NaN;
+  if (imageValide(m)) {
+    S = manche.lisser(m.s);
+    manche.etat = etatImage(S, calibre);
+    souriant = manche.etat === "souriant";
+    manche.J = jauge(S, calibre);
+    manche.pic = Math.max(manche.pic, manche.J);
+    manche.picSoutenu.ajouter(t, S - calibre.n);
+    // Variante cheekSquint (R2.7) : s compté seulement si cheekSquint atteint le plancher.
+    Sv = manche.lisserVariante(m.cheek >= REGLAGES.plancherCheek ? m.s : 0);
+    souriantVariante = etatImage(Sv, calibre) === "souriant";
+  } else {
+    manche.etat = "invalide"; // J et pic figés (R3.4)
+    manche.picSoutenu.rompre();
+  }
+  const ev = manche.suivi.image(t, souriant, S);
+  if (ev) manche.sourires.push(ev);
+  if (manche.suiviVariante.image(t, souriantVariante, Sv)) manche.variante += 1;
+  $("jauge-niveau").style.width = `${manche.J * 100}%`;
+  $("jauge-pic").style.left = `calc(${manche.pic * 100}% - ${manche.pic * 3}px)`; // reste dans le cadre à 100 %
+}
+
+const chrono = (ms) => {
+  const s = Math.max(0, ms) / 1000;
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${f(s % 60, 1).padStart(4, "0")}`;
+};
+
+function afficherManche() {
+  const P = manche.picSoutenu.valeur();
+  $("manche-etat").textContent = [
+    `Manche d'essai — ${chrono(manche.t - manche.t0)}${manche.active ? "" : " (arrêtée)"}`,
+    `État : ${manche.etat}   J ${f(manche.J * 100)} %   pic ${f(manche.pic * 100)} %`,
+    `Sourires confirmés : ${manche.sourires.length}   variante cheekSquint : ${manche.variante}`,
+    ...manche.sourires.map((e, k) =>
+      `  ${k + 1}. à ${chrono(e.debut - manche.t0)} — durée ${f((e.fin - e.debut) / 1000, 1)} s — ${e.images} images — S max ${f(e.sMax, 2)}`),
+    `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / calibre.d, 2)}`,
+  ].join("\n");
 }
 
 function suivre(video, moteur) {
@@ -161,9 +230,13 @@ function suivre(video, moteur) {
       if (cal) {
         m = mesurer(video, res);
         enregistrer(m, t);
+      } else if (manche?.active) {
+        m = mesurer(video, res);
+        traiterManche(m, t);
       }
       if (t - dernierAffichage < 250) return; // panneau rafraîchi 4 fois par seconde : ménage l'appareil
       dernierAffichage = t;
+      if (manche?.t0 !== undefined) afficherManche();
       m ??= mesurer(video, res);
       const visage = m.visages === 1;
       $("mesures").textContent = [
@@ -208,3 +281,4 @@ $("demarrer").addEventListener("click", async () => {
 });
 
 $("cal-commencer").addEventListener("click", lancerCalibrage);
+$("manche-bouton").addEventListener("click", demarrerManche);

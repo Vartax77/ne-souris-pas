@@ -299,7 +299,7 @@ Ordinateur, paysage :
 |---|---|
 | Avant | « Placez votre visage dans l'ovale, bien éclairé, puis appuyez sur Commencer. » ; bouton « Commencer » |
 | Phase neutre (3 s) | « Visage neutre, sans parler… » |
-| Phase sourire (2 s) | « Maintenant, souriez franchement ! » |
+| Phase sourire (2 s) | « Maintenant, votre plus grand sourire, sans vous retenir ! » (n° 257 : un sourire volontaire timide abaisse le seuil du joueur et multiplie ses faux positifs) |
 | Réussite, adversaire pas prêt | « C'est bon. En attente de votre adversaire… » |
 | Statut adverse | « Votre adversaire se calibre… » / « Votre adversaire est prêt » / « Votre adversaire recommence son calibrage » |
 | Rejet : présence | « Gardez votre visage dans l'ovale. » |

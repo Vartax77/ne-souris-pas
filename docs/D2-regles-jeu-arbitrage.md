@@ -88,7 +88,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 1. Le calibrage a lieu une fois par match, avant la première manche (n° 18, confirmé par n° 71).
 2. **Phase neutre** : le joueur regarde la caméra, visage neutre, pendant 3 s.
-3. **Phase sourire** : le joueur sourit franchement pendant 2 s. `v` est le maximum de `S` sur la phase. On vise haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer (n° 91).
+3. **Phase sourire** : le joueur sourit franchement pendant 2 s. Consigne affichée : « Maintenant, votre plus grand sourire, sans vous retenir ! » (n° 257). `v` est le maximum de `S` sur la phase. On vise haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer (n° 91).
 4. Le calibrage est rejeté si une seule de ces conditions est vraie. Ordre révisé après les relevés L0.3 (n° 245 à 247) :
    1. plus de 10 % d'images avec deux visages ou plus dans l'une des phases → « Un seul visage dans le champ » ;
    2. moins de 90 % d'images avec exactement un visage dans l'une des phases (au calibrage, la largeur et les angles sont jugés sur leurs médianes, pas dans la présence : n° 239). Le message suit la cause dominante des images invalides : si les images à deux visages sont au moins aussi nombreuses que les images sans visage, « Un seul visage dans le champ » ; sinon « Gardez votre visage dans l'ovale » ;
@@ -125,7 +125,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 
 | Cas | Comportement attendu |
 |---|---|
-| Parole | Autorisée (n° 8). Les syllabes brèves ne tiennent pas 500 ms : pas de faute. Selon la simulation, 0,5 faux positif par 20 min à 400 ms, quasi zéro à 500 ms (n° 84). Une voyelle tenue qui étire la bouche (« iii ») peut produire une faute : risque mesuré en P0 avec la variante `cheekSquint`. |
+| Parole | Autorisée (n° 8). Les syllabes brèves ne tiennent pas 500 ms, **à condition que les pauses entre syllabes durent au moins 2 images** (133 ms à 15 im/s) : avec des pauses d'une seule image, le lissage sur 3 images garde S au-dessus du seuil, et des syllabes de 200 ms s'enchaînent en une faute (n° 256). Selon la simulation, 0,5 faux positif par 20 min à 400 ms, quasi zéro à 500 ms (n° 84). Une voyelle tenue qui étire la bouche (« iii », « cheese ») peut produire une faute, d'autant plus que `d` est bas (n° 251). Risque mesuré en P0 par les séquences A2 et A3 : fautes, pic soutenu P et rapport r = P / d ([D3](D3-plan-de-tests.md) §1.4.4, n° 256). Aucune parade n'est choisie avant ces mesures. |
 | Bâillement | Aucune exception. Si `S` dépasse le seuil 500 ms, c'est une faute. À mesurer en P0. |
 | Rire sans sourire | Un rire sonore sans sourire visible n'est pas une faute (la détection sonore est reportée en v2, n° 34). Un rire bouche ouverte fait monter `mouthSmile` : faute normale. |
 | Lunettes | Rien de particulier : le score ne dépend que de la bouche. |
@@ -260,10 +260,12 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 - Limite acceptée en v1. Entre amis, l'adversaire voit la main.
 - Dette technique : Hand Landmarker, à mesurer seulement si les tests P0 montrent que la triche par la main est fréquente.
 
-### 5.5 Parole et départage — variante testée en P0 (n° 72)
+### 5.5 Parole : faux positifs et départage (n° 72, n° 256)
 
 - Certaines voyelles étirent les coins de la bouche : parler fait monter la jauge, donc le pic. Le joueur qui provoque le plus risque de perdre au départage.
-- En P0, la variante `cheekSquint` est mesurée à côté de la formule de base, sans la remplacer. Le choix de la formule se fera sur les faux positifs en parlant.
+- Parler peut aussi créer une faute : mot tenu (« iii », « cheese »), ou syllabes enchaînées avec des pauses d'une seule image (R2, cas « Parole »).
+- Mesure en P0, par A2 (parole libre) et A3 (voyelles tenues et syllabes enchaînées) : nombre de fautes, pic soutenu P, rapport r = P / d. La variante `cheekSquint` ne remonte rien avec ce modèle (n° 237) : elle reste calculée, mais ne sert plus à mesurer ce risque.
+- Parades possibles, choisies seulement après ces mesures : maintien plus long, `k` plus haut, autre formule du score.
 
 ### 5.6 Synchronisation des horloges — décidé (n° 66)
 

@@ -113,10 +113,10 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 
 | Code | Séquence | Durée | Consigne au testeur | Ce qu'on cherche |
 |---|---|---|---|---|
-| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc | Essais, causes de rejet, `n`, `v`, `d` |
+| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc. **Trois calibrages réussis consécutifs**, dont un volontairement timide ; après le timide, refaire A2 abrégée (60 s) et A3, et noter fautes, P et r (n° 258) | Essais, causes de rejet, `n`, `v`, `d` ; dispersion de `v` par testeur ; effet d'un `v` bas sur les faux positifs |
 | A1 | Neutre silencieux | 60 s | Regarder l'écran, visage détendu, sans parler | Bruit de fond ; réglage de `m` |
 | A2 | Parole libre | 4 min 30 | Raconter sa journée, sans chercher à rire | Faux positifs dus à la parole |
-| A3 | Voyelles tenues | 60 s | Lire une liste : « iii », « ouistiti », « cheese », « pipi », « merci », chacun tenu 1 s | Pire cas de la parole |
+| A3 | Voyelles tenues | 60 s | Lire une liste : « iii », « ouistiti », « cheese », « pipi », « merci », chacun tenu 1 s ; puis répéter « pi-pi-pi-pi » sans pause pendant 5 s (syllabes enchaînées, pauses d'une image : n° 256) | Pire cas de la parole : fautes, P, r |
 | A4 | Gestes parasites | 60 s | Bâiller deux fois, tousser, pincer les lèvres, mordre sa lèvre, déglutir, humecter ses lèvres | Faux positifs hors parole |
 | A5 | Provocation | 2 × 60 s | Tenir sans sourire pendant que Valentin fait des grimaces et des blagues | Situation réelle : faux positifs et faux négatifs |
 | A6 | Sourires commandés | 90 s | Sur signal, 5 s chacun, 5 s de neutre entre : 3 sourires légers, 3 sourires francs, 2 rires | Faux négatifs |

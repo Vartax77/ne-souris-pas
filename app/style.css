@@ -99,3 +99,37 @@ button {
   color: #aaa;
   white-space: pre-wrap;
 }
+
+#manche h2 {
+  font-size: 1.1rem;
+  margin: 0 0 .5rem;
+}
+
+/* Jauge J (D2 R3) : niveau en direct et repère du pic de la manche (n° 190). */
+.jauge {
+  position: relative;
+  height: 1.2rem;
+  background: #2a2a2a;
+  border-radius: .3rem;
+  overflow: hidden;
+}
+
+#jauge-niveau {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #7c7, #fb7 70%, #f77);
+}
+
+#jauge-pic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: #fff;
+}
+
+#manche-etat {
+  font-size: .8rem;
+  white-space: pre-wrap;
+}

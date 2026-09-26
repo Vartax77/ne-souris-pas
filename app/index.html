@@ -14,7 +14,7 @@
 <body>
   <main>
     <h1>Ne souris pas — prototype 0</h1>
-    <p class="lot">Lot L0.3 — calibrage</p>
+    <p class="lot">Lot L0.4 — sourire et jauge</p>
 
     <div class="cadre">
       <video id="video" autoplay muted playsinline></video>
@@ -37,6 +37,17 @@
       <button id="cal-commencer" type="button" disabled>Commencer</button>
       <p id="cal-resultat"></p>
       <pre id="cal-detail"></pre>
+    </section>
+
+    <section id="manche">
+      <h2>Manche d’essai</h2>
+      <p id="manche-calibre">Réussissez d’abord un calibrage.</p>
+      <button id="manche-bouton" type="button" disabled>Démarrer</button>
+      <div class="jauge" aria-label="Jauge">
+        <div id="jauge-niveau"></div>
+        <div id="jauge-pic"></div>
+      </div>
+      <pre id="manche-etat"></pre>
     </section>
 
     <pre id="mesures">Démarrez la caméra pour lancer l’analyse.</pre>

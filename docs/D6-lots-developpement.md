@@ -112,9 +112,9 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Score brut, variante `cheekSquint` en parallèle, lissage sur 3 images (déjà fait en L0.3, n° 242) ; états neutre, doute, souriant, invalide ; série et confirmation (500 ms, 3 images, 1 image tolérée), horodatage rétroactif ; jauge `J` et pic |
+| Tâches | Score brut, variante `cheekSquint` en parallèle, lissage sur 3 images (déjà fait en L0.3, n° 242) ; états neutre, doute, souriant, invalide ; série et confirmation (500 ms, 3 images, 1 image tolérée), horodatage rétroactif ; jauge `J` et pic ; pic soutenu `P` et r = P / d (avancés de L0.6, n° 255) ; manche d'essai sur la page P0, qui compte tous les sourires confirmés (n° 254). Fichiers : `app/js/arbitrage.js` ; vérification `tests/arbitrage.test.mjs` |
 | Modules | Arbitrage, Interface |
-| Terminé quand | Un sourire franc tenu 1 s est confirmé ; un sourire de 300 ms ne l'est pas ; la jauge suit le visage |
+| Terminé quand | La vérification automatique passe ; sur le PC et l'iPhone 15 Pro, un sourire franc tenu 1 s est confirmé et un sourire éclair ne l'est pas ; la jauge suit le visage. A3 est relevée sur le PC, sans seuil de réussite. A2 abrégée et la comparaison calibrage timide / franc passent au protocole P0 (n° 258) |
 | Test | [D3](D3-plan-de-tests.md) A1 à A6, critères G1 et G5 |
 | Dépend de | L0.3 |
 
@@ -132,7 +132,7 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence. Protection BitLocker déjà activée (n° 223) |
+| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence (calcul déjà fait en L0.4, n° 255). Protection BitLocker déjà activée (n° 223) |
 | Modules | Interface |
 | Terminé quand | Une session à blanc de 30 min (Valentin seul) produit un journal complet et lisible au tableur, dans le dossier chiffré |
 | Test | [D3](D3-plan-de-tests.md) §1.3 entier |
