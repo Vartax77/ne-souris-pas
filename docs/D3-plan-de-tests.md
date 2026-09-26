@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Dire, pour chaque prototype, quel résultat valide ou invalide chaque risque, et quelle décision en découle |
 | Statut | Brouillon — complet : prototype 0 (lot 3), prototypes 1 et 2 (lot 7) |
-| Date | 2026-09-25 |
+| Date | 2026-09-26 |
 | Dépend de | [D1](D1-note-de-cadrage.md) §5 et §6 ; [D2](D2-regles-jeu-arbitrage.md) ; [D4](D4-architecture-technique.md) ; [D6](D6-lots-developpement.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7 ; [D8](D8-journal-decisions.md) n° 35 à 42, 50 à 54, 64 à 96, 97 à 125, 134 à 147, 160, 161, 163, 165 à 168, 192 à 197, 216 |
 | Utilisé par | [D2](D2-regles-jeu-arbitrage.md) et [D4](D4-architecture-technique.md) (valeurs validées) ; [D6](D6-lots-developpement.md) (test associé à chaque lot) |
 
@@ -302,7 +302,7 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 
 | Étape | Réglage ([D2](D2-regles-jeu-arbitrage.md) §3) | Données | Règle de choix |
 |---|---|---|---|
-| 1 | Formule du score (base ou `cheekSquint`) | A2, A3, A6 | Celle dont l'intervalle de `k` est le plus large. À égalité : la formule de base, plus simple |
+| 1 | Formule du score (base ou `cheekSquint`) | A2, A3, A6 | Celle dont l'intervalle de `k` est le plus large. À égalité : la formule de base, plus simple. Si `cheekSquint` reste à 0 chez tous les testeurs, la variante est abandonnée (n° 237) |
 | 2 | Coefficient `k` | A1 à A4, A6 | Milieu de l'intervalle (1.5.2) |
 | 3 | Seuil maximal `d_max` | A0, C | Au-dessus de tous les `d` honnêtes ; sous les `d` exagérés. Si impossible : le signaler à Valentin (n° 183) |
 | 4 | Marge `m` | A1 | 95e centile de `S − n` en A1, tous testeurs confondus, arrondi au centième supérieur |
@@ -369,6 +369,51 @@ Conclusions :
 - La politique de sécurité fonctionne sur Chrome, Edge, Safari iOS 18 et iOS 26, et dans le navigateur intégré de Messenger (n° 221). Elle y bloque aussi le script injecté par Messenger (n° 228).
 - Le chargement complet reste sous la cible de 15 s en 4G ([D4](D4-architecture-technique.md) §7.4, information seulement).
 - La détection ne tourne pas encore : que MediaPipe fonctionne normalement avec ses statistiques bloquées (n° 225) reste **à confirmer** en L0.2.
+
+#### 1.7.2 Lot L0.2 — détection (2026-09-26)
+
+Relevés de Valentin ([D6](D6-lots-developpement.md) L0.2, n° 236). Carte graphique par défaut ; « Processeur » : même appareil avec `?calcul=cpu`. Temps d'analyse : moyen / max / première image.
+
+| Appareil | Mode | Caméra (im/s) | Analysée sur 10 s (fenêtres) | Temps d'analyse (ms) |
+|---|---|---|---|---|
+| PC, Chrome | Carte graphique | 30 | 14,5 (14,0 à 14,6) | 21 / 46 / 266 |
+| PC, Chrome | Processeur | 30 | 14,4 | 30 / 40 / 88 |
+| iPhone 15 Pro, iOS 26.6.2, Safari | Carte graphique | 30 | 15,0 (14,4 à 15,0) | 31-32 / 39 (54 avec deux visages) / 300 |
+| iPhone 15 Pro | Processeur | 30 | 15,0 | 20 / 31 / 109 |
+| iPhone XR, iOS 18.7.9, Safari | Carte graphique, sans repli | 26 à 27 | 14,5 (13,4 à 14,7) | 39-40 / 59 à 77 / 834 |
+| iPhone XR | Processeur | 26 à 27 | 14,8 (14,0 à 14,9) | 34 / 45 / 286 |
+
+Angles, identiques sur les trois appareils (n° 235) :
+
+| Mouvement | PC | iPhone 15 Pro | iPhone XR |
+|---|---|---|---|
+| Tête tournée vers la gauche du joueur : lacet | +27° | +28° | +34° |
+| Menton vers le bas : tangage | +29° | +30° | +29° |
+| Profil complet | Visage perdu (0 visage) | Idem | Idem |
+
+Mesures du visage :
+
+| Mesure | Relevé |
+|---|---|
+| Score `s`, visage neutre | 0,00 à 0,04 sur les trois appareils |
+| Score `s`, sourire léger | 0,23 (PC) |
+| Score `s`, sourire franc | 0,79 (PC), 0,56 (iPhone 15 Pro) ; iPhone XR non lisible sur la capture |
+| `cheekSquint` | 0,00 partout, sourires francs compris (n° 237) |
+| Largeur | 26 % de face ; 13 à 17 % à un mètre ([D2](D2-regles-jeu-arbitrage.md) Q15) |
+| Luminance | 123 à 137 en journée ; 74 à 96 le soir, lampe allumée |
+| Main devant le visage | 0 visage |
+| Deux personnes | 2 visages, mesures à « — » |
+| Statistiques de MediaPipe | Seule tentative bloquée après une minute ; détection maintenue sur les trois appareils (confirme n° 225) |
+
+Découverte : en pièce sombre, la webcam du PC descend d'elle-même de 30 à 10 images/s, et la cadence analysée suit à 10,0, exactement au plancher (n° 238). En condition B1 (pénombre), relever aussi la cadence caméra.
+
+Conclusions :
+
+- **L0.2 terminé** sur les trois appareils. Le plafond de 15 est respecté partout, et le coût du plafond strict reste faible (14,0 à 15,0, n° 231).
+- **Critère G3** : l'iPhone XR analyse 14,5 images/s sur carte graphique, loin au-dessus du plancher de 10. La mesure formelle (10 min, avec charge vidéo) reste celle du protocole PERF (§1.3.8).
+- **Mode de calcul** : sur les deux iPhone, le processeur est plus rapide que la carte graphique, et démarre plus vite (286 contre 834 ms sur le XR). Le choix « carte graphique d'abord » est à revoir ([D4](D4-architecture-technique.md) Q11).
+- **Score `s`** : progressif, et cohérent avec les valeurs simulées (neutre 0,03 à 0,35, sourire volontaire 0,55 à 0,95).
+- **Variante `cheekSquint`** : ne remonte rien avec ce modèle ; probablement à abandonner (n° 237).
 
 ## 2. Prototype 1 — appel vidéo seul
 

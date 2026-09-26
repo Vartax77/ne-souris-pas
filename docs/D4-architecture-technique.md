@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Dire quelles données circulent et par où, où se trouve la source de vérité de l'arbitrage, ce qui coûte, et comment ne pas fermer la porte au mode inconnus |
 | Statut | Brouillon |
-| Date | 2026-09-25 |
+| Date | 2026-09-26 |
 | Dépend de | [D1](D1-note-de-cadrage.md) ; [D2](D2-regles-jeu-arbitrage.md) (règles R1 à R7, machine à états §6) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.2, §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 7, 11 à 14, 26 à 28, 31, 66, 86, 89, 94, 95, 97 à 110, 111 à 125, 159 à 163, 168, 174, 198 à 206 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (prototype 1) ; [D5](D5-parcours-maquettes.md) (mise en page, erreurs) ; [D6](D6-lots-developpement.md) (modules) ; [D7](D7-juridique-confidentialite.md) (données, services, pays) |
 
@@ -247,6 +247,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | MediaPipe, blendshapes | `mouthSmileLeft`, `mouthSmileRight`, `cheekSquintLeft`, `cheekSquintRight` existent ; `outputFaceBlendshapes` vaut `false` par défaut | [S4], [S5] |
 | MediaPipe, performance | Aucun chiffre officiel d'images par seconde sur le web. Un ancien ticket (2022, autre modèle) relevait 6 à 7 images/s sur iPhone 11 à 13 | [S4], [S6] |
 | MediaPipe sur iOS | Délégué GPU défaillant sur iOS 18 pour une autre tâche (ticket ouvert) ; fuite de mémoire WebKit quand on recrée le détecteur (ticket ouvert) ; plantage au chargement depuis le cache (corrigé) | [S7], [S8], [S9] |
+| MediaPipe, carte graphique contre processeur (relevés L0.2) | iPhone XR (iOS 18.7.9) : la carte graphique fonctionne, sans repli ; le défaut signalé [S7] n'apparaît pas. Mais sur les deux iPhone, le processeur est plus rapide : 34 contre 39-40 ms par image sur le XR, 20 contre 31-32 ms sur le 15 Pro. Il démarre aussi plus vite : première image en 286 contre 834 ms sur le XR. Sur le PC, la carte graphique est plus rapide (21 contre 30 ms) | Relevés L0.2 de Valentin ([D3](D3-plan-de-tests.md) §1.7.2, n° 236) |
 | WebRTC, prise en charge | `RTCPeerConnection` et `getUserMedia` : Safari 11+ (iOS et macOS), Chrome, Firefox, Edge. `RTCDataChannel` : largement disponible depuis 2020. HTTPS obligatoire | [S10], [S11], [S12] |
 | PeerJS | Navigateurs annoncés : Firefox 80+, Chrome 83+, Edge 83+, Safari 15+ | [S13] |
 | iOS, lecture | `playsinline` obligatoire ; lecture automatique seulement si muet ou après un geste ; un flux caméra se lit automatiquement si la page capture déjà | [S14], [S15] |
@@ -472,7 +473,7 @@ Le mode inconnus est exclu de la v1 (n° 6, n° 31). Rien n'est construit pour l
 
 ## 13. Questions ouvertes
 
-Aucune. Q1 à Q10 ont été tranchées par Valentin le 2026-09-25 :
+Q1 à Q10 ont été tranchées par Valentin le 2026-09-25 :
 
 | N° | Réponse | Décision |
 |---|---|---|
@@ -486,6 +487,12 @@ Aucune. Q1 à Q10 ont été tranchées par Valentin le 2026-09-25 :
 | Q8 | Hébergement du prototype : GitHub Pages | n° 204 |
 | Q9 | H.264 quand un iPhone joue ; 640 × 480 ; à mesurer en P1 | n° 205 |
 | Q10 | Nom de domaine et prix : reportés (n° 46) ; le prototype tourne sur l'adresse GitHub Pages | n° 206 |
+
+Question ouverte, issue des relevés L0.2 (2026-09-26) :
+
+| N° | Question | Proposition |
+|---|---|---|
+| Q11 | « Carte graphique d'abord, processeur en secours » (n° 232) n'est pas le bon choix sur iOS : le processeur y est plus rapide et démarre 3 fois plus vite sur le XR. Quelle règle retenir ? (A) Mode par famille d'appareil : processeur sur iOS, carte graphique ailleurs. (B) Mesure des deux modes sur les premières images au démarrage, puis choix du plus rapide | **(A)**, avec le paramètre `?calcul=` gardé pour les tests. Elle est simple, sans coût au démarrage, et fondée sur des mesures. (B) crée deux détecteurs à chaque session (fuite de mémoire WebKit, §7.3) et ajoute environ 1 s d'attente sur le XR. Réévaluer (A) avec le premier appareil Android, et en P1 sous charge vidéo : l'encodage de la vidéo charge aussi le processeur ([D3](D3-plan-de-tests.md) §2.3.5) **À confirmer (P1)** |
 
 Décision de la source jugée fragile (règle 3 du projet), tranchée :
 

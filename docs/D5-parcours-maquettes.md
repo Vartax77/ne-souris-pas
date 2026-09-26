@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Dire ce que voit et fait chaque joueur, du lien reçu à la revanche, et ce qu'il voit quand quelque chose échoue |
 | Statut | Brouillon |
-| Date | 2026-09-25 |
+| Date | 2026-09-26 |
 | Dépend de | [D2](D2-regles-jeu-arbitrage.md) (machine à états §6, règles affichées §6.8, messages de calibrage R1) ; [D4](D4-architecture-technique.md) (mise en page §10, risques §12) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.5, §4.1 ; [D8](D8-journal-decisions.md) n° 9, 17, 28, 29, 97 à 110, 111 à 125, 126 à 133, 169 à 174, 206 à 209 |
 | Utilisé par | [D6](D6-lots-developpement.md) (lots d'interface) ; [D7](D7-juridique-confidentialite.md) (texte d'explication, case d'âge) |
 
@@ -89,7 +89,7 @@ Correspondance avec [D2](D2-regles-jeu-arbitrage.md) §6.2 :
 | E9 Fin de match | Fin de match | T23, T24, T27 à T31 |
 | E10 Interruption | Interrompu | T25 à T27 |
 | E11 Règles | Superposé à tout état, sans l'interrompre | Aucune ([D2](D2-regles-jeu-arbitrage.md) §6.3 et §6.8) |
-| ER1 à ER15 | États d'erreur, navigateur incompatible et fin de session | Section 4 |
+| ER1 à ER16 | États d'erreur, navigateur incompatible et fin de session | Section 4 |
 
 ### 3.1 E1 — Accueil : explication et âge
 
@@ -356,7 +356,7 @@ Ordinateur, paysage :
 | Moment | Texte |
 |---|---|
 | Écran noir | « Manche 2 » ; « 1 – 0 » (son score d'abord) |
-| Appareil trop lent (T14) | Écran ER7 superposé |
+| Appareil trop lent (T14) | Écran ER7 superposé ; ER16 si la caméra ralentit faute de lumière (n° 238) |
 | Compte à rebours | « 3 », « 2 », « 1 » |
 | Révélation | Aucun texte : les deux visages apparaissent ensemble |
 
@@ -598,7 +598,7 @@ Toute erreur affiche : ce qui s'est passé, ce que le joueur peut faire, un seul
 | ER4 | Connexion impossible | Erreur connexion (T9) | « Impossible de joindre votre adversaire. Vérifiez votre connexion internet, puis réessayez. » | Bouton « Réessayer » ; après deux échecs, conseil : « Essayez de passer du Wi-Fi à la 4G, ou l'inverse. » |
 | ER5 | Adversaire parti | Fin de session (T30) | « Votre adversaire est parti. » | Bouton « Créer un nouveau duel » |
 | ER6 | Lien plus valable (salon introuvable, expiré ou complet) | Erreur salon (T6) | « Ce lien n'est plus valable. Demandez un nouveau lien à votre adversaire. » | Bouton « Créer mon propre duel » |
-| ER7 | Appareil trop lent | Écran noir (T14) | « Appareil trop lent : fermez les autres applications. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
+| ER7 | Appareil trop lent (caméra à 12 images/s ou plus, ou luminance correcte) | Écran noir (T14) | « Appareil trop lent : fermez les autres applications. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
 | ER8 | Navigateur incompatible | Navigateur incompatible (T32) | « Ce navigateur ne permet pas de jouer. Utilisez Chrome ou Safari. » (n° 174 ; Firefox ajouté seulement s'il passe P0 et P1) | Bouton « Copier le lien » pour l'ouvrir ailleurs |
 | ER9 | Versions différentes des deux applications | Erreur version (T33, [D4](D4-architecture-technique.md) §4.2) | « Votre adversaire utilise une autre version du jeu. Rechargez tous les deux la page. » | Bouton « Recharger » |
 | ER10 | Connexion perdue, aucun vainqueur | Fin de session (T27) | « Connexion perdue. Match interrompu. » | Bouton « Créer un nouveau duel » |
@@ -607,6 +607,7 @@ Toute erreur affiche : ce qui s'est passé, ce que le joueur peut faire, un seul
 | ER13 | Forfait du joueur revenu trop tard | Fin de session (T27) | « Match perdu par forfait. » | Bouton « Créer un nouveau duel » |
 | ER14 | Fin de session après 60 s sans revanche | Fin de session (T31) | « Le salon a expiré. » | Bouton « Créer un nouveau duel » |
 | ER15 | Match annulé par coupure, avant la fin de la première manche (les deux joueurs) | Fin de session (T27, [D2](D2-regles-jeu-arbitrage.md) §6.4.3) | « Le match n'a pas pu commencer : la connexion a été perdue. » | Bouton « Créer un nouveau duel » |
+| ER16 | Trop sombre : la caméra fournit moins de 12 images/s et la luminance du visage est sous 60/255 | Écran noir (T14, [D2](D2-regles-jeu-arbitrage.md) §5.8) | « Trop sombre : votre caméra ralentit. Allumez une lampe face à vous. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
 
 Un seul libellé pour recommencer : « Créer un nouveau duel » (n° 170). Le mot « salon » n'apparaît que dans « Le salon a expiré. » (ER14).
 

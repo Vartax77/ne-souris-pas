@@ -5,7 +5,9 @@ const DEG = 180 / Math.PI;
 
 // Matrice de transformation du visage : 4 × 4, rangée par colonnes (data[colonne * 4 + ligne]),
 // rangement par défaut des matrices MediaPipe. Lacet = rotation autour de l'axe vertical,
-// tangage = autour de l'axe horizontal (D2 §2). Le sens est vérifié sur appareil (L0.2).
+// tangage = autour de l'axe horizontal (D2 §2).
+// Signes relevés sur les trois appareils (D8 n° 235) : lacet > 0 quand le joueur tourne la tête vers SA gauche ;
+// tangage > 0 quand le menton descend.
 export function angles(data) {
   const lacet = Math.atan2(data[8], data[10]) * DEG;
   const tangage = Math.asin(Math.max(-1, Math.min(1, -data[9]))) * DEG;

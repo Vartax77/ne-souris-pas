@@ -32,6 +32,15 @@ test("angles : lacet et tangage retrouvés depuis la matrice", () => {
   }
 });
 
+// Convention relevée sur appareil (D8 n° 235). Matrice d'un visage tourné de +27° vers la gauche du joueur
+// (rotation positive autour de l'axe vertical, comme la produit MediaPipe) et d'un menton baissé de +29°.
+test("convention : lacet > 0 = tête vers la gauche du joueur, tangage > 0 = menton vers le bas", () => {
+  assert.ok(angles(matrice(27, 0)).lacet > 0, "tête vers la gauche du joueur : lacet positif");
+  assert.ok(angles(matrice(-27, 0)).lacet < 0, "tête vers la droite du joueur : lacet négatif");
+  assert.ok(angles(matrice(0, 29)).tangage > 0, "menton vers le bas : tangage positif");
+  assert.ok(angles(matrice(0, -29)).tangage < 0, "menton vers le haut : tangage négatif");
+});
+
 test("largeur : écart horizontal des repères en %", () => {
   const r = rectangle([{ x: 0.3, y: 0.2 }, { x: 0.55, y: 0.6 }, { x: 0.4, y: 0.4 }]);
   assert.deepEqual(r, { x0: 0.3, y0: 0.2, x1: 0.55, y1: 0.6 });

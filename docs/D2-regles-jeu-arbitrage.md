@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Fixer les règles d'arbitrage et leurs réglages, assez précisément pour les coder sans interprétation |
 | Statut | Brouillon — complet : arbitrage (lots 2 et 3) et déroulé du match (lot 4) |
-| Date | 2026-09-25 |
+| Date | 2026-09-26 |
 | Dépend de | [D1](D1-note-de-cadrage.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.4 ; [D8](D8-journal-decisions.md) n° 17 à 29, 40, 49, 56 à 72, 83 à 96, 97 à 110, 159 à 161, 169 à 172, 183 à 191 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (réglage des valeurs en P0) ; [D4](D4-architecture-technique.md) (messages, horloges) ; [D5](D5-parcours-maquettes.md) (écrans) ; [D7](D7-juridique-confidentialite.md) (image de preuve) |
 
@@ -42,7 +42,7 @@ Toutes les mesures viennent de MediaPipe Face Landmarker, exécuté sur l'appare
 | Faute | Sourire confirmé (R2) ou deuxième perte de visage (R4). La première faute fait perdre la manche |
 | Aucun enregistrement | Aucun stockage persistant, nulle part : ni disque, ni stockage du navigateur, ni serveur. La mémoire vive est permise (n° 69) |
 
-Angles : lacet (tête tournée) et tangage (tête penchée), calculés depuis la matrice de transformation du visage.
+Angles : lacet (tête tournée) et tangage (tête penchée), calculés depuis la matrice de transformation du visage. Signes relevés sur les trois appareils de test (n° 235) : lacet **positif quand le joueur tourne la tête vers sa gauche**, tangage **positif quand le menton descend**. Les limites s'appliquent en valeur absolue. De profil complet, le visage n'est plus détecté : l'image est invalide.
 Largeur du visage : écart horizontal entre les repères extrêmes, rapporté à la largeur de l'image.
 
 ## 3. Tableau des réglages
@@ -63,7 +63,7 @@ Toutes les valeurs sont modifiables après les tests. « Hypothèse » : valeur 
 | Amplitude minimale `v − n` | 0,15 | score | Rejette un sourire volontaire trop faible | Hypothèse | **À confirmer (P0)** |
 | Coefficient `k` | 0,4 | sans unité | Place le seuil à 40 % du chemin entre neutre et sourire volontaire | Simulation (n° 83) | Simulé, **à confirmer (P0)** |
 | Seuil maximal `d_max` | 0,35 | score | Empêche de gonfler son seuil en exagérant le sourire volontaire (5.2) | Valentin (n° 183) | **À confirmer (P0)** |
-| Plancher de la variante `cheekSquint` | 0,20 | score | Variante du score testée en P0 | Hypothèse | **À confirmer (P0)** |
+| Plancher de la variante `cheekSquint` | 0,20 | score | Variante du score testée en P0. En L0.2, `cheekSquint` vaut 0,00 sur les trois appareils, même en sourire franc : variante **probablement à abandonner**, gardée en observation sur le panel (n° 237) | Hypothèse | **À confirmer (P0)** |
 | Cadence d'analyse maximale | 15 | images/s | Plafond commun aux deux appareils ; une cadence différente biaise « qui a souri en premier » | Simulation (n° 86) | Simulé, **à confirmer (P0)** |
 | Cadence d'analyse minimale | 10 | images/s | Plancher de la cadence commune | Valentin (n° 94) | **À confirmer (P0)** |
 | Fenêtre de lissage | 3 | images | Moyenne mobile pour `S` ; évite qu'une image bruitée compte | Simulation (n° 87) | Simulé, **à confirmer (P0)** |
@@ -100,6 +100,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 5. En cas de rejet, l'application affiche la **première** cause rencontrée, dans l'ordre ci-dessus, et fait recommencer les deux phases. Le nombre d'essais n'est pas limité.
 6. En cas de succès, l'appareil garde `n` et calcule `d = min(0,4 × (v − n), 0,35)`. La manche ne peut pas démarrer tant que les deux joueurs n'ont pas réussi leur calibrage.
 7. Si le seuil est plafonné par `d_max`, rien n'est affiché au joueur. Le plafonnement est noté pour l'analyse des tests P0.
+8. Le contrôle de luminance protège aussi la cadence. Dans une pièce sombre, une webcam allonge d'elle-même son temps d'exposition et fournit moins d'images : en L0.2, 10 images/s au lieu de 30 sur le PC, donc une cadence analysée exactement au plancher (n° 238). Un appareil peut ainsi passer sous le plancher de cadence par manque de lumière, et non par lenteur.
 
 | Cas | Comportement attendu |
 |---|---|
@@ -292,7 +293,11 @@ Valeurs attendues de `W`. Les allers-retours sont des exemples, pas des mesures.
 - Un appareil qui analyse plus d'images par seconde confirme une série plus tôt et la date plus finement : les cadences différentes biaisent « qui a souri en premier ».
 - Décision : cadence plafonnée à 15 images/s, identique sur les deux appareils. Les images en surplus ne sont pas analysées.
 - Avant chaque révélation, chaque appareil mesure sa cadence. Les deux s'alignent sur la plus basse, avec un plancher de 10 images/s (n° 94).
-- Appareil sous 10 images/s avant la révélation : la manche ne démarre pas, message « Appareil trop lent », nouvelle mesure toutes les 5 s (T14, n° 107, n° 184). Pendant la manche : la manche continue ; la cadence est réévaluée à la révélation suivante. **À confirmer (P0)**
+- Appareil sous 10 images/s avant la révélation : la manche ne démarre pas, nouvelle mesure toutes les 5 s (T14, n° 107, n° 184). Pendant la manche : la manche continue ; la cadence est réévaluée à la révélation suivante. **À confirmer (P0)**
+- Le message distingue la cause (n° 238) :
+  - la caméra elle-même fournit moins de 12 images/s **et** la luminance du visage est sous 60/255 : « Trop sombre » ([D5](D5-parcours-maquettes.md) ER16) ;
+  - sinon : « Appareil trop lent » (ER7).
+  - Seuils de départ (12 images/s, 60/255) : **à confirmer (P0)**, en condition B1 ([D3](D3-plan-de-tests.md) §1.2.2).
 
 ### 5.9 Arbitre sévère — dette produit (n° 84)
 
@@ -403,7 +408,7 @@ stateDiagram-v2
 | T11 | Calibrage | A échoue (R1) | Calibrage | Cause du rejet ; nouvel essai | « Votre adversaire recommence son calibrage » |
 | T12 | Calibrage ou Arrêt sur image | Deux calibrages réussis, ou fin de l'arrêt sur image sans fin de match | Écran noir | Les deux : écran noir, « Manche N », score ; le son reste ouvert (n° 189) | |
 | T13 | Écran noir | Synchronisation (5 allers-retours) faite, cadence commune ≥ 10 images/s, les deux appareils prêts, 2 s écoulées | Compte à rebours | Les deux : 3, 2, 1, calés sur le même t0 ([D4](D4-architecture-technique.md)) | |
-| T14 | Écran noir | Cadence de A sous 10 images/s | Écran noir | « Appareil trop lent : fermez les autres applications » ; nouvelle mesure toutes les 5 s (n° 184) **À confirmer (P0)** | « Votre adversaire a un souci technique… » |
+| T14 | Écran noir | Cadence de A sous 10 images/s | Écran noir | Caméra sous 12 images/s et luminance sous 60/255 : « Trop sombre » (ER16) ; sinon « Appareil trop lent : fermez les autres applications » (ER7) ; nouvelle mesure toutes les 5 s (n° 184, n° 238) **À confirmer (P0)** | « Votre adversaire a un souci technique… » |
 | T15 | Compte à rebours | t0 atteint | Manche | Les deux : révélation des deux visages, deux jauges, chronomètre 60 s | |
 | T16 | Manche | Première perte comptée de A (R4) | Manche | Avertissement « Visage perdu : encore une fois et vous perdez la manche » | Mention « Visage perdu » près de l'image de A |
 | T17 | Manche | Faute de A annoncée (R2 ou R4) | Décision | Rien de visible pendant moins d'une seconde | Idem |
@@ -548,7 +553,7 @@ Pendant le jeu, les règles s'ouvrent dans un panneau ([D5](D5-parcours-maquette
 
 ## 7. Questions ouvertes
 
-Aucune. Toutes les questions de ce document ont été tranchées par Valentin le 2026-09-25 :
+Questions tranchées par Valentin le 2026-09-25 :
 
 | N° | Réponse | Décision |
 |---|---|---|
@@ -565,3 +570,10 @@ Aucune. Toutes les questions de ce document ont été tranchées par Valentin le
 | Q12 | Son ouvert pendant l'écran noir | n° 189 |
 | Q13 | Repère du pic sur les jauges | n° 190 |
 | Q14 | Décisions divergentes : manche rejouée | n° 191 |
+
+Questions ouvertes, issues des relevés du lot L0.2 (2026-09-26) :
+
+| N° | Question | Proposition |
+|---|---|---|
+| Q15 | Largeur minimale de 20 % : en L0.2, le visage mesure 26 % de face, mais 13 à 17 % à un mètre. Or [D1](D1-note-de-cadrage.md) §6.3 définit les conditions normales comme « à moins d'un mètre ». La largeur variant comme l'inverse de la distance, 20 % correspondent à environ 75 cm : un joueur plus loin serait rejeté, et en manche, compté en perte de visage | Garder 20 % pour L0.3 (il sert à provoquer le rejet), noter la largeur de chaque testeur en P0 (grille A0), puis fixer le seuil à l'étape 7 du réglage ([D3](D3-plan-de-tests.md) §1.5.3). Valeur de repli si les testeurs se tiennent naturellement à un mètre : 12 % **À confirmer (P0)** |
+| Q16 | R1 point 4 : « image valide » exige déjà une largeur et des angles dans les limites (§2). Si la présence se calcule sur les images valides, un joueur trop loin est rejeté pour « présence », avec le message « Gardez votre visage dans l'ovale », et jamais pour « largeur » (« Rapprochez-vous »). Les causes 2 et 3 ne se déclencheraient jamais | Au calibrage, la présence compte les images avec **exactement un visage détecté** ; largeur et angles sont jugés sur leurs médianes (causes 2 et 3). En manche, la définition de §2 reste inchangée |

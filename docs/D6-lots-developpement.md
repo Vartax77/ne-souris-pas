@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Dire ce que livre chaque lot de développement, comment on sait qu'il est terminé, quel test de D3 le valide, et quel lot abandonner ou modifier si un test échoue |
 | Statut | Brouillon |
-| Date | 2026-09-25 |
+| Date | 2026-09-26 |
 | Dépend de | [D2](D2-regles-jeu-arbitrage.md) ; [D3](D3-plan-de-tests.md) ; [D4](D4-architecture-technique.md) ; [D5](D5-parcours-maquettes.md) ; [source de cadrage](../sources/cadrage-lots-1-2-3.md) §3.7, §4.1 ; [D8](D8-journal-decisions.md) n° 35, 44, 52 à 54, 70, 77, 82, 134 à 147, 175 à 178, 181, 210 à 212, 216, 219 à 225 |
 | Utilisé par | [D3](D3-plan-de-tests.md) (renvois aux lots) |
 
@@ -95,6 +95,7 @@ flowchart LR
 | Terminé quand | Sur les trois appareils : la cadence mesurée sur 10 s s'affiche et ne dépasse jamais 15 images/s ; le mode de calcul s'affiche ; les valeurs brutes s'affichent en direct et réagissent aux mouvements (tête tournée, penchée, recul, lumière, sourire, visage caché, deuxième visage) ; la détection fonctionne avec les statistiques de MediaPipe bloquées (n° 225) |
 | Test | [D3](D3-plan-de-tests.md) §1.3.8, critère G3 |
 | Dépend de | L0.1 |
+| Statut | **Terminé** le 2026-09-26 sur les trois appareils ; relevés en [D3](D3-plan-de-tests.md) §1.7.2 (n° 236) |
 
 #### L0.3 — Calibrage
 
@@ -246,7 +247,7 @@ L2.1 a été coupé en deux avant de commencer : toute la machine à états en u
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Écrans E1 à E11 et ER1 à ER15 de [D5](D5-parcours-maquettes.md), textes exacts ; manifeste et service worker, avec installation non proposée sur iOS (n° 202, n° 224) ; mise en page portrait et paysage ([D4](D4-architecture-technique.md) §10) ; maintien de l'écran allumé |
+| Tâches | Écrans E1 à E11 et ER1 à ER16 de [D5](D5-parcours-maquettes.md), textes exacts ; manifeste et service worker, avec installation non proposée sur iOS (n° 202, n° 224) ; mise en page portrait et paysage ([D4](D4-architecture-technique.md) §10) ; maintien de l'écran allumé |
 | Modules | Interface |
 | Terminé quand | Chaque écran s'affiche sur téléphone portrait et ordinateur paysage ; chaque erreur a été provoquée une fois |
 | Test | [D3](D3-plan-de-tests.md) §3.3, questionnaire §3.5 |
