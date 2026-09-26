@@ -11,10 +11,10 @@ Source de vérité : [cadrage des lots 1, 2 et 3](../sources/cadrage-lots-1-2-3.
 | D5 | [Parcours utilisateur et maquettes d'écrans](D5-parcours-maquettes.md) | Priorité 2 | Brouillon (arbitré ; une question ouverte : Q8) | 2026-09-26 |
 | D6 | [Découpage en lots de développement](D6-lots-developpement.md) | Priorité 2 | Brouillon (arbitré ; aucune question ouverte) | 2026-09-26 |
 | D7 | [Documents juridiques et confidentialité](D7-juridique-confidentialite.md) | Priorité 3 | Brouillon (arbitré ; à faire relire ; champs [À COMPLÉTER] à remplir) | 2026-09-25 |
-| D8 | [Journal des décisions](D8-journal-decisions.md) | Continue | Brouillon (n° 1 à 270) | 2026-09-26 |
+| D8 | [Journal des décisions](D8-journal-decisions.md) | Continue | Brouillon (n° 1 à 275) | 2026-09-26 |
 
 Priorité 1 : avant de coder le prototype 0. Priorité 2 : avant les prototypes 1 et 2. Priorité 3 : avant que le lien circule hors du cercle proche. P0, P1, P2 désignent uniquement les prototypes.
 
 Rapport de la session du 2026-09-25 (lots 4 à 9, contrôle de cohérence, questions ouvertes) : [RAPPORT-SESSION](RAPPORT-SESSION.md). Arbitrages de Valentin sur ce rapport : [D8](D8-journal-decisions.md) §16 (n° 159 à 218).
 
-Code du prototype 0 : dossier [`app/`](../app/), publié sur GitHub Pages par [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) (n° 219 à 270). Lots L0.1 à L0.5 : **terminés** (relevés en [D3](D3-plan-de-tests.md) §1.7 ; L0.3 sur le PC, essais iPhone reportés au protocole P0). Lot en cours : L0.6a, outils de test ([D6](D6-lots-developpement.md)). Question ouverte sur la parole : [D2](D2-regles-jeu-arbitrage.md) Q17. Vérification automatique : `node --test "tests/*.test.mjs"`.
+Code du prototype 0 : dossier [`app/`](../app/), publié sur GitHub Pages par [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) (n° 219 à 275). Lots L0.1 à L0.5 : **terminés** (relevés en [D3](D3-plan-de-tests.md) §1.7 ; L0.3 sur le PC, essais iPhone reportés au protocole P0). Lot en cours : L0.6a, outils de test : code publié, test court à faire ([D6](D6-lots-developpement.md)). Question ouverte sur la parole : [D2](D2-regles-jeu-arbitrage.md) Q17. Vérification automatique : `node --test "tests/*.test.mjs"`.

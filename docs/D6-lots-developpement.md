@@ -26,8 +26,9 @@ flowchart LR
         L02 --> L03["L0.3 Calibrage"]
         L03 --> L04["L0.4 Sourire et jauge"]
         L04 --> L05["L0.5 Pertes et preuve"]
-        L05 --> L06["L0.6 Outils de test"]
-        L06 --> L07["L0.7 Rejeu"]
+        L05 --> L06a["L0.6a Outils de test"]
+        L06a --> L06b["L0.6b Session PERF"]
+        L06a --> L07["L0.7 Rejeu"]
     end
     subgraph P1["P1 — appel vidéo seul"]
         L11["L1.1 Salon"] --> L12["L1.2 Appel et relais"]
@@ -56,7 +57,8 @@ flowchart LR
 | L0.3 | P0 | Calibrer le joueur (R1) | Arbitrage, Interface | A0, §1.3.5, G4 |
 | L0.4 | P0 | Détecter le sourire et afficher la jauge (R2, R3) | Arbitrage, Interface | A1 à A6, G1, G5 |
 | L0.5 | P0 | Compter les pertes (R4) et produire l'image de preuve (R7) | Arbitrage, Interface | A7 |
-| L0.6 | P0 | Outiller le protocole de test | Interface | §1.3 entier |
+| L0.6a | P0 | Outiller le protocole de test : séquences, revue, touche, journal | Interface | §1.3.1 à §1.3.7 |
+| L0.6b | P0 | Session performance avec charge vidéo simulée | Détection, WebRTC | §1.3.8, G3 |
 | L0.7 | P0 | Rejouer un journal avec d'autres valeurs | Arbitrage | §1.5, étapes 9 et 10 |
 | L1.1 | P1 | Créer un salon, partager le lien, se rejoindre | Mise en relation, Interface | §2.3.1 |
 | L1.2 | P1 | Appel audio et vidéo, direct ou relayé | WebRTC | §2.3.1, §2.3.2, C1, C2 |
@@ -130,15 +132,27 @@ flowchart LR
 | Dépend de | L0.4 |
 | Statut | **Terminé** le 2026-09-26 sur le PC et l'iPhone 15 Pro ; relevés en [D3](D3-plan-de-tests.md) §1.7.5 (n° 268) |
 
-#### L0.6 — Outils de test
+L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait la règle du §1 (n° 271).
+
+#### L0.6a — Outils de test
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Séquences minutées A0 à A7, B1 à B3, C, PERF avec consigne et chronomètre ; touche « sourire vu » ; revue après chaque sourire (confirmée, faux positif, litigieuse) ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), avec les 52 blendshapes par nom (n° 263), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence (calcul déjà fait en L0.4, n° 255). Protection BitLocker déjà activée (n° 223) |
+| Tâches | Séquences minutées A0 à A7, B1 à B3, C avec consigne et chronomètre, en données (`app/js/protocole.js`) ; touche « sourire vu » (barre d'espace interceptée, n° 273) ; revue en fin de séquence (confirmée, faux positif, litigieuse, n° 272) ; résumé par séquence ; journal CSV ([D3](D3-plan-de-tests.md) §1.4.1), avec les 52 blendshapes par nom (n° 263), enregistré dans un dossier chiffré séparé, hors du dépôt (n° 222) ; pic soutenu `P` en fin de séquence (calcul déjà fait en L0.4, n° 255). Protection BitLocker déjà activée (n° 223) |
 | Modules | Interface |
-| Terminé quand | Une session à blanc de 30 min (Valentin seul) produit un journal complet et lisible au tableur, dans le dossier chiffré |
-| Test | [D3](D3-plan-de-tests.md) §1.3 entier |
+| Terminé quand | La vérification automatique passe ; le test court sur le PC (A0, A1, A6, A7 interrompue, revue, export) produit un journal complet et lisible au tableur, rangé dans le dossier chiffré ; sur l'iPhone, l'export produit un fichier lisible. La séance à blanc de 30 min devient la première vraie séance P0 de Valentin (n° 271) |
+| Test | [D3](D3-plan-de-tests.md) §1.3.1 à §1.3.7 |
 | Dépend de | L0.5 |
+
+#### L0.6b — Session performance
+
+| Rubrique | Contenu |
+|---|---|
+| Tâches | Séquence PERF ([D3](D3-plan-de-tests.md) §1.3.8) : 10 min sans charge, puis 10 min avec charge vidéo simulée (appel WebRTC en boucle sur le même appareil, sans réseau) ; images/s par fenêtre de 10 s au journal. Plan à présenter |
+| Modules | Détection, WebRTC |
+| Terminé quand | À fixer avec le plan |
+| Test | [D3](D3-plan-de-tests.md) §1.3.8, critère G3 |
+| Dépend de | L0.6a |
 
 #### L0.7 — Rejeu
 
@@ -148,7 +162,7 @@ flowchart LR
 | Modules | Arbitrage (le même code qu'en jeu, pas une copie) |
 | Terminé quand | Le rejeu d'un journal avec les valeurs de départ redonne exactement les fautes observées en direct |
 | Test | [D3](D3-plan-de-tests.md) §1.5, étapes 9 et 10 |
-| Dépend de | L0.6 |
+| Dépend de | L0.6a |
 
 ### 3.2 Prototype 1 — appel vidéo seul
 

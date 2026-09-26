@@ -14,7 +14,7 @@
 <body>
   <main>
     <h1>Ne souris pas — prototype 0</h1>
-    <p class="lot">Lot L0.5 — pertes et preuve</p>
+    <p class="lot">Lot L0.6a — outils de test</p>
 
     <div class="cadre">
       <video id="video" autoplay muted playsinline></video>
@@ -37,6 +37,28 @@
       <button id="cal-commencer" type="button" disabled>Commencer</button>
       <p id="cal-resultat"></p>
       <pre id="cal-detail"></pre>
+    </section>
+
+    <section id="protocole">
+      <h2>Protocole P0</h2>
+      <p class="version">Aucune capture d'écran pendant une séquence : attendez la fin, ou « Interrompre ».</p>
+      <label>Code testeur <input id="proto-testeur" placeholder="T01" maxlength="3" autocomplete="off" size="4"></label>
+      <label>Séquence <select id="proto-seq"></select></label>
+      <p id="proto-preparation" class="version"></p>
+      <button id="proto-lancer" type="button" disabled>Lancer</button>
+      <button id="proto-interrompre" type="button" disabled>Interrompre</button>
+      <p id="proto-chrono"></p>
+      <p id="proto-consigne"></p>
+      <button id="proto-op" type="button" disabled>Sourire vu (ou barre d'espace)</button>
+      <div id="proto-revue" hidden>
+        <p id="proto-revue-titre"></p>
+        <canvas id="proto-revue-image" width="0" height="0" aria-label="Image à juger"></canvas>
+        <button id="proto-oui" type="button">C'est un sourire</button>
+        <button id="proto-non" type="button">Ce n'est pas un sourire</button>
+      </div>
+      <pre id="proto-resumes"></pre>
+      <button id="proto-export" type="button">Exporter le journal</button>
+      <p id="proto-journal" class="version"></p>
     </section>
 
     <section id="manche">

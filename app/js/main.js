@@ -1,4 +1,5 @@
-// Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai : sourire et jauge (L0.4), pertes et preuve (L0.5).
+// Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai : sourire et jauge (L0.4),
+// pertes et preuve (L0.5), protocole P0 : séquences, revue, journal (L0.6a).
 
 import { demarrerCamera } from "./capture.js";
 import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
@@ -8,6 +9,8 @@ import { evaluerCalibrage } from "./calibrage.js";
 import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
 import { creerSuiviPertes } from "./pertes.js";
 import { creerPreuve } from "./preuve.js";
+import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue } from "./protocole.js";
+import { creerJournal } from "./journal.js";
 import { REGLAGES } from "./reglages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -80,6 +83,7 @@ const CONSIGNE = "Placez votre visage dans l'ovale, bien éclairé, puis appuyez
 let cal = null, essais = 0;
 
 function lancerCalibrage() {
+  if (protocole.enCours) finirSequence(true); // une séquence ne survit pas à un nouveau calibrage
   if (manche?.active) demarrerManche(); // arrête la manche : n et d vont changer
   essais += 1;
   cal = { debut: undefined, neutre: [], sourire: [], imagesCamera: 0 };
@@ -92,6 +96,7 @@ function lancerCalibrage() {
 function enregistrer(m, t) {
   cal.debut ??= t;
   const e = t - cal.debut, { phaseNeutreMs: pn, phaseSourireMs: ps } = REGLAGES;
+  if (protocoleJournalise()) journaliserImage(m, t, { seq: codeCalibrage(), etat: e < pn ? "cal_neutre" : "cal_sourire" });
   if (e < pn) {
     cal.neutre.push(m);
     $("cal-consigne").textContent = "Visage neutre, sans parler…";
@@ -116,11 +121,16 @@ function terminerCalibrage() {
   const st = r.stats;
   if (r.ok) {
     afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
-    calibre = { n: r.n, d: r.d };
+    calibre = { n: r.n, d: r.d, seq: codeCalibrage() }; // seq : séquence sélectionnée au calibrage (B, C)
     $("manche-bouton").disabled = false;
     $("manche-calibre").textContent = `n ${f(r.n, 2)} · d ${f(r.d, 2)} (dernier calibrage réussi)`;
   } else {
     afficher("cal-resultat", r.message, "erreur");
+  }
+  if (protocoleJournalise()) {
+    journal.evenement(performance.now(), codeCalibrage(), r.ok
+      ? `calibrage ok n=${f(r.n, 2)} v=${f(r.v, 2)} d=${f(r.d, 2)}${r.plafonne ? " plafonné" : ""}`
+      : `calibrage rejet ${r.cause}`);
   }
   // Détail pour la grille A0 (D3 §1.4.3), affiché sur la page de test P0 seulement.
   $("cal-detail").textContent = [
@@ -162,6 +172,7 @@ function demarrerManche() {
     lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, pertes: null,
     picSoutenu: creerPicSoutenu(), preuve: creerPreuve(capturerImage), preuveAffichee: null,
     pauses: creerCompteurPauses(REGLAGES.delaiPerteMs), // pauses de la manche seule (n° 270)
+    picSoutenuVariante: creerPicSoutenu(), avertissements: 0, sourireEnCours: null,
   };
   const toilePreuve = $("preuve");
   toilePreuve.getContext("2d").clearRect(0, 0, toilePreuve.width, toilePreuve.height); // effacement (R7.5)
@@ -169,14 +180,21 @@ function demarrerManche() {
   // Page visible mais plus aucune image (caméra figée) : la perte est constatée en direct (D8 n° 266).
   // Page masquée : la minuterie est suspendue, et le retour de l'analyse rattrape la pause (pertes.js).
   manche.minuterie = setInterval(() => {
-    if (manche.pertes) for (const e of manche.pertes.verifier(performance.now())) noterPerte(e);
+    if (!manche.pertes) return;
+    for (const e of manche.pertes.verifier(performance.now())) {
+      noterPerte(e);
+      if (protocole.enCours) journal.evenement(e.t, protocole.enCours.code, e.type === "faute" ? "faute perte (constatée sans image)" : "avertissement (constaté sans image)");
+    }
   }, 250);
   $("manche-bouton").textContent = "Arrêter";
 }
 
 // Événements de R4 : avertissement (texte exact de D5 E7, T16) ou faute « Visage perdu » (R7.6 : sans image).
 function noterPerte(e) {
-  if (e.type === "avertissement") manche.avertissement = e;
+  if (e.type === "avertissement") {
+    manche.avertissement = e;
+    manche.avertissements += 1;
+  }
   else manche.fautes.push({ type: "perte", debut: e.t, ref: e }); // e.pauseMs est mis à jour à la reprise (n° 270)
 }
 
@@ -201,20 +219,38 @@ function traiterManche(m, t) {
     // Variante cheekSquint (R2.7) : s compté seulement si cheekSquint atteint le plancher.
     Sv = manche.lisserVariante(m.cheek >= REGLAGES.plancherCheek ? m.s : 0);
     souriantVariante = etatImage(Sv, calibre) === "souriant";
+    manche.picSoutenuVariante.ajouter(t, Sv - calibre.n);
   } else {
     manche.etat = "invalide"; // J et pic figés (R3.4)
     manche.picSoutenu.rompre();
+    manche.picSoutenuVariante.rompre();
   }
-  for (const e of manche.pertes.image(t, valide)) noterPerte(e);
+  let faute = "", evenement = "";
+  for (const e of manche.pertes.image(t, valide)) {
+    noterPerte(e);
+    if (e.type === "faute") faute = "perte";
+    else evenement = "avertissement";
+  }
   // Sourire (R2) et image de preuve (R7) : meilleure image de la série, confirmée avec le sourire.
   const ev = manche.suivi.image(t, souriant, S);
   if (souriant) manche.preuve.souriante(S);
   if (ev) {
-    manche.fautes.push({ type: "sourire", ...ev, ref: ev });
+    const sourire = { type: "sourire", ...ev, ref: ev, confirmation: ev.fin };
+    manche.fautes.push(sourire);
+    manche.sourireEnCours = sourire;
     manche.preuve.confirmer();
+    faute = "sourire";
+    evenement = `sourire debut=${f(ev.debut, 1)}`;
   }
-  if (!manche.suivi.actif()) manche.preuve.finSerie();
+  if (!manche.suivi.actif()) {
+    garderImageSourire();
+    manche.preuve.finSerie();
+  }
   if (manche.suiviVariante.image(t, souriantVariante, Sv)) manche.variante += 1;
+  if (protocole.enCours) {
+    journaliserImage(m, t, { seq: protocole.enCours.code, S, J: valide ? manche.J : NaN, etat: manche.etat, faute, evenement });
+    avancerSequence(t);
+  }
   $("jauge-niveau").style.width = `${manche.J * 100}%`;
   $("jauge-pic").style.left = `calc(${manche.pic * 100}% - ${manche.pic * 3}px)`; // reste dans le cadre à 100 %
 }
@@ -259,6 +295,151 @@ function afficherManche() {
     manche.preuveAffichee = image;
     $("preuve-legende").textContent = `Image au S le plus haut de la série : ${f(s, 2)}`;
   }
+}
+
+// Protocole P0 (D3 §1.3, lot L0.6a) : séquences minutées, touche « sourire vu », revue, journal CSV.
+// Le journal reste en mémoire vive jusqu'à l'export ; jamais d'image, de son ni de nom (D8 n° 73).
+const journal = creerJournal();
+const protocole = { seq: SEQUENCES[0], enCours: null, pressions: [], opEnAttente: false, revue: null, resumes: [] };
+
+const testeurValide = () => /^T\d{2}$/.test($("proto-testeur").value.trim());
+// Les calibrages sont journalisés dès qu'un code testeur est saisi, sous le code de la séquence
+// sélectionnée si elle comporte un calibrage (A0, B1 à B3, C), sinon sous A0.
+const protocoleJournalise = () => testeurValide();
+const codeCalibrage = () => (protocole.seq.calibrage || protocole.seq.calibrageAvant ? protocole.seq.code : "A0");
+
+// Une ligne du journal par image analysée (colonnes de D3 §1.4.1, dont les 52 blendshapes, n° 263).
+function journaliserImage(m, t, extra) {
+  const op = protocole.opEnAttente ? 1 : 0;
+  protocole.opEnAttente = false;
+  journal.image({
+    t, faces: m.visages, largeur: m.largeur, lacet: m.lacet, tangage: m.tangage,
+    smileG: m.smileG, smileD: m.smileD, cheekG: m.bs?.cheekSquintLeft, cheekD: m.bs?.cheekSquintRight,
+    lum: m.luminance, op, bs: m.bs, ...extra,
+  });
+}
+
+// Touche « sourire vu » (barre d'espace ou bouton) : pendant une séquence ou un calibrage journalisé.
+function marquerOp() {
+  if (!protocole.enCours && !(cal && protocoleJournalise())) return;
+  if (protocole.enCours) protocole.pressions.push(performance.now());
+  protocole.opEnAttente = true;
+}
+
+// Image de preuve du sourire confirmé qui vient de finir, gardée pour la revue (en mémoire vive, R7.5).
+function garderImageSourire() {
+  if (!manche.sourireEnCours) return;
+  manche.sourireEnCours.image = manche.preuve.valeur().image;
+  manche.sourireEnCours = null;
+}
+
+function lancerSequence() {
+  if (manche?.active) arreterManche();
+  protocole.pressions = [];
+  protocole.opEnAttente = false;
+  demarrerManche();
+  protocole.enCours = { code: protocole.seq.code, seq: protocole.seq, etape: -1 };
+  $("manche-bouton").disabled = true;
+  afficherProtocole();
+}
+
+// Étape en cours de la séquence ; fin automatique à la durée de D3.
+function avancerSequence(t) {
+  const { seq } = protocole.enCours;
+  const etape = etapeA(seq, (t - manche.t0) / 1000);
+  if (!etape) return finirSequence(false);
+  if (etape.index !== protocole.enCours.etape) {
+    protocole.enCours.etape = etape.index;
+    $("proto-consigne").textContent = etape.consigne;
+  }
+}
+
+function finirSequence(interrompue) {
+  const { code, seq } = protocole.enCours;
+  garderImageSourire();
+  arreterManche();
+  protocole.enCours = null;
+  $("manche-bouton").disabled = false;
+  $("proto-consigne").textContent = "";
+  journal.evenement(manche.t, code, interrompue ? "sequence interrompue" : "sequence terminee");
+  const sourires = manche.fautes.filter((e) => e.type === "sourire");
+  const P = manche.picSoutenu.valeur(), Pv = manche.picSoutenuVariante.valeur(), pauses = manche.pauses.stats();
+  const resume = {
+    code, titre: seq.titre, interrompue, duree: (manche.t - manche.t0) / 1000,
+    sourires: sourires.length, pertes: manche.fautes.length - sourires.length, avertissements: manche.avertissements,
+    P, Pv, r: P / calibre.d, rv: Pv / calibre.d, pauses,
+    classes: seq.revue && !interrompue ? { confirmee: 0, faux_positif: 0, litigieuse: 0 } : null,
+  };
+  protocole.resumes.push(resume);
+  const aRevoir = resume.classes ? sourires.filter((s) => s.image) : [];
+  if (aRevoir.length) protocole.revue = { code, items: aRevoir, k: 0, resume };
+  else for (const s of sourires) s.image = null; // effacement (R7.5)
+  afficherProtocole();
+}
+
+// Revue en fin de séquence (D3 §1.3.4, D8 n° 272) : le testeur juge chaque image de preuve.
+function repondreRevue(estUnSourire) {
+  const rv = protocole.revue;
+  const item = rv.items[rv.k];
+  const classe = classerRevue(estUnSourire, operateurAVu(protocole.pressions, item.debut, item.confirmation));
+  rv.resume.classes[classe] += 1;
+  journal.evenement(item.debut, rv.code, `revue ${rv.k + 1} : ${classe}`);
+  item.image = null; // effacée dès qu'elle est jugée (R7.5)
+  rv.k += 1;
+  if (rv.k >= rv.items.length) protocole.revue = null;
+  afficherProtocole();
+}
+
+const ligneResume = (r) => [
+  `${r.code} ${r.titre} — ${f(r.duree)} s${r.interrompue ? " (interrompue)" : ""}`,
+  `  fautes : sourires ${r.sourires}, visage perdu ${r.pertes} ; avertissements ${r.avertissements}`,
+  r.classes ? `  revue : confirmées ${r.classes.confirmee}, faux positifs ${r.classes.faux_positif}, litigieuses ${r.classes.litigieuse}` : null,
+  `  P ${f(r.P, 2)} (variante ${f(r.Pv, 2)}) · r ${f(r.r, 2)} (variante ${f(r.rv, 2)})`,
+  r.pauses.nombre ? `  PAUSE D'ANALYSE PENDANT LA SÉQUENCE (${r.pauses.nombre}, ${f(r.pauses.totalMs / 1000, 1)} s) : À REFAIRE` : null,
+].filter(Boolean).join("\n");
+
+function afficherProtocole() {
+  const seq = protocole.seq, en = protocole.enCours;
+  let raison = "";
+  if (!testeurValide()) raison = "Saisissez un code testeur (T01 à T99).";
+  else if (seq.calibrage) raison = " "; // A0 : la préparation dit déjà d'utiliser le calibrage ; « Lancer » reste inactif
+  else if (!calibre) raison = "Réussissez d'abord un calibrage.";
+  else if (seq.calibrageAvant && calibre.seq !== seq.code) raison = `Calibrez d'abord avec ${seq.code} sélectionnée.`;
+  $("proto-preparation").textContent = [seq.preparation, raison.trim()].filter(Boolean).join(" ");
+  $("proto-lancer").disabled = Boolean(raison) || Boolean(en) || Boolean(protocole.revue) || cal !== null;
+  $("proto-interrompre").disabled = !en;
+  $("proto-op").disabled = !en;
+  $("proto-seq").disabled = Boolean(en);
+  $("proto-chrono").textContent = en && manche.t0 !== undefined
+    ? `${en.code} — ${chrono(manche.t - manche.t0)} / ${chrono(dureeTotale(en.seq) * 1000)}` : "";
+  const rv = protocole.revue;
+  $("proto-revue").hidden = !rv;
+  if (rv) {
+    const item = rv.items[rv.k];
+    $("proto-revue-titre").textContent =
+      `Revue ${rv.k + 1} / ${rv.items.length} (${rv.code}) — sourire à ${chrono(item.debut - manche.t0)}, S max ${f(item.ref.sMax, 2)}. Est-ce un sourire ?`;
+    const toile = $("proto-revue-image");
+    toile.width = item.image.width;
+    toile.height = item.image.height;
+    toile.getContext("2d").drawImage(item.image, 0, 0);
+  }
+  $("proto-resumes").textContent = protocole.resumes.map(ligneResume).join("\n");
+  $("proto-journal").textContent =
+    `Journal : ${journal.taille()} lignes, dont ${journal.nonExportees()} non exportées.`;
+}
+
+function exporterJournal() {
+  if (!journal.taille()) return;
+  const jour = new Date().toLocaleDateString("sv"); // AAAA-MM-JJ, heure locale
+  const nom = `journal_${$("proto-testeur").value.trim() || "sans-code"}_${jour}.csv`;
+  const lien = document.createElement("a");
+  lien.href = URL.createObjectURL(new Blob([journal.csv()], { type: "text/csv;charset=utf-8" }));
+  lien.download = nom;
+  lien.click();
+  URL.revokeObjectURL(lien.href);
+  journal.marquerExporte();
+  afficherProtocole();
+  $("proto-journal").textContent += ` Dernier export : ${nom}. Déplacez-le dans le dossier chiffré, puis effacez-le des Téléchargements.`;
 }
 
 // Blendshapes candidats pour distinguer la parole d'un sourire (parade 3), affichés gauche/droite.
@@ -322,6 +503,7 @@ function suivre(video, moteur) {
       if (t - dernierAffichage < 250) return; // panneau rafraîchi 4 fois par seconde : ménage l'appareil
       dernierAffichage = t;
       if (manche?.t0 !== undefined) afficherManche();
+      afficherProtocole();
       m ??= mesurer(video, res);
       const visage = m.visages === 1;
       const ps = pauses.stats();
@@ -371,3 +553,39 @@ $("demarrer").addEventListener("click", async () => {
 
 $("cal-commencer").addEventListener("click", lancerCalibrage);
 $("manche-bouton").addEventListener("click", demarrerManche);
+
+// Protocole P0 : liste des séquences, boutons, touche de l'opérateur.
+for (const s of SEQUENCES) $("proto-seq").add(new Option(`${s.code} — ${s.titre}`, s.code));
+$("proto-seq").addEventListener("change", (e) => {
+  protocole.seq = SEQUENCES.find((s) => s.code === e.target.value);
+  afficherProtocole();
+});
+$("proto-testeur").addEventListener("input", afficherProtocole);
+$("proto-lancer").addEventListener("click", lancerSequence);
+$("proto-interrompre").addEventListener("click", () => finirSequence(true));
+$("proto-op").addEventListener("click", marquerOp);
+$("proto-oui").addEventListener("click", () => repondreRevue(true));
+$("proto-non").addEventListener("click", () => repondreRevue(false));
+$("proto-export").addEventListener("click", exporterJournal);
+
+// Barre d'espace = « sourire vu » pendant une séquence ou un calibrage : interceptée avant tout bouton,
+// à l'appui comme au relâchement, pour ne jamais activer le bouton qui a le focus (D8 n° 273).
+for (const type of ["keydown", "keyup"]) {
+  document.addEventListener(type, (e) => {
+    const r = toucheOperateur(e, protocole.enCours !== null || cal !== null);
+    if (r.bloquer) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (r.op) marquerOp();
+  }, true);
+}
+// Après un clic, aucun bouton ne garde le focus : un appui d'espace ne peut plus l'activer.
+document.addEventListener("click", (e) => e.target.closest?.("button")?.blur());
+
+// Journal non exporté : quitter ou recharger la page demande confirmation (il serait perdu).
+window.addEventListener("beforeunload", (e) => {
+  if (journal.nonExportees() > 0) e.preventDefault();
+});
+
+afficherProtocole();

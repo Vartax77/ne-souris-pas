@@ -101,6 +101,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 2. Installer l'appareil sur un support, à hauteur du visage, à 50–80 cm.
 3. Vérifier l'éclairage N : lumière allumée, pas de fenêtre derrière le testeur.
 4. Préparer la fiche testeur (1.4.2).
+5. **Aucune capture d'écran pendant une séquence** : une capture peut suspendre l'analyse et fausser la séquence. Attendre la fin, ou « Interrompre » (n° 275).
 
 #### 1.3.3 Accueil (3 min)
 
@@ -122,7 +123,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 | A6 | Sourires commandés | 90 s | Sur signal, 5 s chacun, 5 s de neutre entre : 3 sourires légers, 3 sourires francs, 2 rires | Faux négatifs |
 | A7 | Mouvements | 2 min | Tourner lentement la tête à gauche puis à droite ; la pencher en avant puis en arrière ; reculer jusqu'à 1,5 m ; sortir du champ 2 s, puis 6 s ; sourire derrière sa main ; laisser passer une deuxième personne derrière soi | Limites d'angle et de largeur ; R4 ; main devant la bouche |
 
-Après chaque sourire confirmé par le prototype (séquences A1 à A5), faire une **revue** :
+À la **fin** de chaque séquence A1 à A5 et B1 à B3, l'outil présente une **revue** de chaque sourire confirmé. Elle se fait en fin de séquence, et non après chaque sourire, pour ne pas interrompre des séquences minutées (n° 272) :
 
 1. Le prototype affiche l'image de preuve ([D2](D2-regles-jeu-arbitrage.md) R7, en mémoire vive seulement).
 2. Demander au testeur : « Est-ce un sourire ? »
@@ -192,7 +193,9 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `S`, `J` | Score lissé, jauge |
 | `etat` | neutre, doute, souriant, invalide |
 | `faute` | Vide, sourire ou perte |
-| `op` | 1 si la touche « sourire vu » est pressée |
+| `op` | 1 si la touche « sourire vu » est pressée (barre d'espace ou bouton). « L'opérateur a vu » un sourire si la touche est pressée entre 0,5 s avant le début de la série et 2 s après sa confirmation **À confirmer (P0)** (n° 272) |
+| `pause` | Trou d'images avant cette ligne, en ms, s'il dépasse 1,5 s dans la même séquence : la séquence est à refaire (n° 274) |
+| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…` ou `calibrage rejet <cause>`), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274) |
 
 Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; le disque est protégé par BitLocker et les journaux restent hors du dépôt public (n° 222, n° 223). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
