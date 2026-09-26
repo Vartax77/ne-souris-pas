@@ -472,6 +472,48 @@ Autres constats :
 
 **L0.3 terminé** sur le PC : critère n° 249 rempli.
 
+#### 1.7.4 Lot L0.4 — sourire et jauge (2026-09-26)
+
+Relevés de Valentin ([D6](D6-lots-developpement.md) L0.4, n° 259), avec la nouvelle consigne de la phase sourire (n° 257).
+
+Calibrages :
+
+| Appareil | `v` (`d`) | Autres |
+|---|---|---|
+| PC, Chrome, carte graphique | 0,82 (0,33) · 0,62 (0,25) · 0,52 (0,21) | Tous non plafonnés ; n 0,00 ; écart-type 0,000 à 0,001 |
+| iPhone 15 Pro, Safari, processeur | 0,68 (0,27) · 0,47 (0,19) | n 0,01 puis 0,00 ; largeur 36 % ; luminance 108 ; écart-type 0,003 à 0,004 ; 45 + 28 et 45 + 30 images ; caméra 30,2 im/s |
+
+Manche d'essai :
+
+| Appareil | Geste | Résultat |
+|---|---|---|
+| PC (`d` 0,21) | Grand sourire | 1 sourire confirmé, daté à 0,7 s (confirmation vers 1,4 s) ; durée 1,6 s ; 24 images ; S max 0,71 ; P 0,67 ; r 3,27. Jauge à 100 %, pic resté à 100 % au retour au neutre |
+| PC | Neutre | Jauge 0 % |
+| PC | Sourire très léger (s 0,07) | Aucun sourire ajouté |
+| iPhone 15 Pro (`d` 0,27) | Sourire bref | Aucun sourire confirmé, alors que la jauge a touché 100 % (pic 100 % ; P 0,09 ; r 0,35) : jauge à 100 % ne veut pas dire faute (D2 §6.6, règle 2) |
+| iPhone 15 Pro (`d` 0,19) | Sourire franc | 1 sourire confirmé à 0,8 s ; durée 0,9 s ; 14 images ; S max 0,76 ; P 0,62 ; r 3,29 ; analyse stable à 15,0 im/s |
+
+A3 sur le PC (`d` 0,33, le seuil le plus haut de la soirée), manche de 15,1 s : mots tenus 1 s « iii, ouistiti, cheese, pipi, merci », puis « pi-pi-pi-pi » pendant 5 s.
+
+| Faute | Début | Durée | Images | S max |
+|---|---|---|---|---|
+| 1 | 2,4 s | 2,1 s | 29 | 0,50 |
+| 2 | 5,2 s | 0,7 s | 9 | 0,52 |
+| 3 | 6,1 s | 1,6 s | 23 | 0,81 |
+
+P 0,71 ; r 2,17 ; variante `cheekSquint` : 0 sourire. Aucune faute après 7,7 s, donc probablement aucune pendant « pi-pi-pi-pi ».
+
+Autres constats :
+
+- **Analyse suspendue** : fenêtres de 10 s à 8,8, 1,9 et 0,1 sur le PC (captures d'écran). Sur l'iPhone, un sourire franc fait pendant une pause d'analyse (capture ou sortie de Safari : cadence 6,1 im/s sur 10 s, fenêtre à 0,1 à 42 s) **n'a pas été vu**. Même cause que n° 253, confirmée sur iPhone (n° 262).
+- **Étiquette « forcé par ?calcul= » sur l'iPhone** : exacte. Elle ne s'affiche que si l'adresse contient le paramètre, probablement resté dans l'onglet Safari depuis le test L0.2.
+
+Conclusions :
+
+- **L0.4 terminé** sur le PC et l'iPhone 15 Pro : sourire franc confirmé, sourire bref non compté, jauge conforme.
+- **Parole** : les mots qui étirent les lèvres montent à 0,50-0,81, au niveau d'un vrai sourire, et font une faute même avec `d` 0,33. La simulation supposait 0,25. `cheekSquint` ne remonte rien et ne peut pas servir de parade (n° 260, [D2](D2-regles-jeu-arbitrage.md) Q17).
+- **Dispersion de `v`** : 0,45 à 0,82 pour un même visage sur les deux appareils, malgré la nouvelle consigne. La consigne seule ne suffit pas (n° 261).
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés

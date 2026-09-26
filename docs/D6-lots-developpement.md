@@ -117,6 +117,7 @@ flowchart LR
 | Terminé quand | La vérification automatique passe ; sur le PC et l'iPhone 15 Pro, un sourire franc tenu 1 s est confirmé et un sourire éclair ne l'est pas ; la jauge suit le visage. A3 est relevée sur le PC, sans seuil de réussite. A2 abrégée et la comparaison calibrage timide / franc passent au protocole P0 (n° 258) |
 | Test | [D3](D3-plan-de-tests.md) A1 à A6, critères G1 et G5 |
 | Dépend de | L0.3 |
+| Statut | **Terminé** le 2026-09-26 sur le PC et l'iPhone 15 Pro : sourire franc confirmé, sourire bref non compté, jauge conforme ; relevés et mesure A3 en [D3](D3-plan-de-tests.md) §1.7.4 (n° 259) |
 
 #### L0.5 — Pertes et preuve
 

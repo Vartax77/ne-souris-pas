@@ -580,3 +580,9 @@ Questions issues des relevés du lot L0.2, tranchées par Valentin le 2026-09-26
 |---|---|---|
 | Q15 | Largeur minimale de 20 % : en L0.2, le visage mesure 26 % de face, mais 13 à 17 % à un mètre. Or [D1](D1-note-de-cadrage.md) §6.3 définit les conditions normales comme « à moins d'un mètre ». La largeur variant comme l'inverse de la distance, 20 % correspondent à environ 75 cm : un joueur plus loin serait rejeté, et en manche, compté en perte de visage | Garder 20 % pour L0.3 (il sert à provoquer le rejet), noter la largeur de chaque testeur en P0 (grille A0), puis fixer le seuil à l'étape 7 du réglage ([D3](D3-plan-de-tests.md) §1.5.3). Valeur de repli si les testeurs se tiennent naturellement à un mètre : 12 % **À confirmer (P0)** |
 | Q16 | R1 point 4 : « image valide » exige déjà une largeur et des angles dans les limites (§2). Si la présence se calcule sur les images valides, un joueur trop loin est rejeté pour « présence », avec le message « Gardez votre visage dans l'ovale », et jamais pour « largeur » (« Rapprochez-vous »). Les causes 2 et 3 ne se déclencheraient jamais | Au calibrage, la présence compte les images avec **exactement un visage détecté** ; largeur et angles sont jugés sur leurs médianes (causes 2 et 3). En manche, la définition de §2 reste inchangée |
+
+Question ouverte, issue des relevés du lot L0.4 (2026-09-26) :
+
+| N° | Question | Proposition |
+|---|---|---|
+| Q17 | Les mots tenus qui étirent les lèvres (« iii », « cheese ») montent à S 0,50-0,81, au niveau d'un vrai sourire, et font une faute même avec `d` 0,33 ([D3](D3-plan-de-tests.md) §1.7.4, n° 260). La parole reste-t-elle autorisée telle quelle (n° 8), et quelle parade retenir ? | Aucune avant les mesures de P0 : A2 (parole libre), A3, A5, A6, avec toutes les blendshapes journalisées pour tester les parades au rejeu (L0.7). Parades candidates et coûts : réponse de Claude du 2026-09-26, à reprendre ici après décision |
