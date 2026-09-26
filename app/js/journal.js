@@ -39,9 +39,14 @@ export function creerJournal(R = REGLAGES) {
       for (const nom of Object.keys(ligne.bs ?? {})) if (!nomsBs.includes(nom)) nomsBs.push(nom);
       lignes.push({ ...ligne, pause });
     },
+    // Début d'une prise (calibrage ou séquence) : l'attente depuis la prise précédente n'est pas une pause (n° 277).
+    debut(seq) {
+      dernierParSeq.delete(seq);
+    },
     // Un événement sans image (résultat de calibrage, avertissement, classement de la revue…).
-    evenement(t, seq, texte) {
-      lignes.push({ t, seq, evenement: texte });
+    // champs : autres colonnes, par exemple { faute: "perte" } pour une faute constatée par la minuterie.
+    evenement(t, seq, texte, champs = {}) {
+      lignes.push({ ...champs, t, seq, evenement: texte });
     },
     taille: () => lignes.length,
     nonExportees: () => lignes.length - exportees,

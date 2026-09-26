@@ -66,3 +66,28 @@ test("lignes non exportées : comptées jusqu'à l'export", () => {
   j.image(image(66.7));
   assert.equal(j.nonExportees(), 1);
 });
+
+test("faute constatée sans image : colonne faute remplie sur la ligne d'événement", () => {
+  const j = creerJournal();
+  j.evenement(415800, "A7", "faute perte (constatée sans image)", { faute: "perte" });
+  j.evenement(420000, "A7", "avertissement (constaté sans image)");
+  const [l1, l2] = lire(j).slice(1);
+  assert.equal(l1[COLONNES.indexOf("faute")], "perte");
+  assert.equal(l2[COLONNES.indexOf("faute")], "");
+});
+
+test("pause : mesurée à l'intérieur d'une prise seulement (calibrages d'A0, séquence relancée)", () => {
+  const j = creerJournal();
+  j.debut("A0");
+  j.image(image(0, { seq: "A0" }));
+  j.image(image(66.7, { seq: "A0" }));
+  j.debut("A0"); // deuxième calibrage, 3 s plus tard : pas une pause
+  j.image(image(3066.7, { seq: "A0" }));
+  j.image(image(5066.7, { seq: "A0" })); // trou de 2 s pendant ce calibrage : une pause
+  j.debut("A1");
+  j.image(image(20000));
+  j.debut("A1"); // A1 relancée : pas une pause
+  j.image(image(40000));
+  const p = lire(j).slice(1).map((l) => l[COLONNES.indexOf("pause")]);
+  assert.deepEqual(p, ["", "", "", "2000", "", ""]);
+});

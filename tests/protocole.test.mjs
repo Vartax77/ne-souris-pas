@@ -3,7 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue } from "../app/js/protocole.js";
+import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour } from "../app/js/protocole.js";
 
 test("toutes les séquences de D3 §1.3.4 à §1.3.6, dans l'ordre", () => {
   assert.deepEqual(SEQUENCES.map((s) => s.code), ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C"]);
@@ -71,4 +71,23 @@ test("classement de la revue (D3 §1.3.4)", () => {
   assert.equal(classerRevue(true, true), "confirmee");
   assert.equal(classerRevue(false, false), "faux_positif");
   assert.equal(classerRevue(false, true), "litigieuse");
+});
+
+test("revue : exactement A1 à A5 et B1 à B3 (D3 §1.3.4)", () => {
+  assert.deepEqual(SEQUENCES.filter((s) => s.revue).map((s) => s.code), ["A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3"]);
+});
+
+test("calibragePour : référence = dernier réussi non timide sous A0 ; B et C, leur propre calibrage (n° 279)", () => {
+  const seq = (code) => SEQUENCES.find((s) => s.code === code);
+  const franc1 = { n: 0.01, v: 0.71, d: 0.28, seq: "A0", timide: false };
+  const franc2 = { n: 0.02, v: 0.65, d: 0.26, seq: "A0", timide: false };
+  const timide = { n: 0.01, v: 0.39, d: 0.16, seq: "A0", timide: true };
+  const b1 = { n: 0.03, v: 0.6, d: 0.24, seq: "B1", timide: false };
+  assert.equal(calibragePour(seq("A1"), [franc1, franc2, timide]), franc2);
+  assert.equal(calibragePour(seq("A7"), [franc1, timide]), franc1);
+  assert.equal(calibragePour(null, [franc1, timide]), franc1); // manche d'essai
+  assert.equal(calibragePour(seq("A1"), [timide]), null);
+  assert.equal(calibragePour(seq("B1"), [franc1]), null);
+  assert.equal(calibragePour(seq("B1"), [franc1, b1]), b1);
+  assert.equal(calibragePour(seq("A2"), [franc1, b1]), franc1);
 });

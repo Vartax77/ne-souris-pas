@@ -9,7 +9,7 @@ import { evaluerCalibrage } from "./calibrage.js";
 import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
 import { creerSuiviPertes } from "./pertes.js";
 import { creerPreuve } from "./preuve.js";
-import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue } from "./protocole.js";
+import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour } from "./protocole.js";
 import { creerJournal } from "./journal.js";
 import { REGLAGES } from "./reglages.js";
 
@@ -86,7 +86,9 @@ function lancerCalibrage() {
   if (protocole.enCours) finirSequence(true); // une séquence ne survit pas à un nouveau calibrage
   if (manche?.active) demarrerManche(); // arrête la manche : n et d vont changer
   essais += 1;
-  cal = { debut: undefined, neutre: [], sourire: [], imagesCamera: 0 };
+  cal = { debut: undefined, neutre: [], sourire: [], imagesCamera: 0, timide: $("cal-timide").checked && codeCalibrage() === "A0" };
+  $("cal-timide").checked = false;
+  journal.debut(codeCalibrage());
   $("cal-essai").textContent = String(essais);
   $("cal-commencer").disabled = true;
   afficher("cal-resultat", "");
@@ -113,7 +115,7 @@ function enregistrer(m, t) {
 const pct = (x) => `${f(x * 100)} %`;
 
 function terminerCalibrage() {
-  const { neutre, sourire, imagesCamera } = cal;
+  const { neutre, sourire, imagesCamera, timide } = cal;
   cal = null;
   const dureeS = (REGLAGES.phaseNeutreMs + REGLAGES.phaseSourireMs) / 1000;
   // Cadence de la caméra elle-même pendant le calibrage : elle ralentit dans une pièce sombre (D8 n° 247).
@@ -121,15 +123,16 @@ function terminerCalibrage() {
   const st = r.stats;
   if (r.ok) {
     afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
-    calibre = { n: r.n, d: r.d, seq: codeCalibrage() }; // seq : séquence sélectionnée au calibrage (B, C)
-    $("manche-bouton").disabled = false;
-    $("manche-calibre").textContent = `n ${f(r.n, 2)} · d ${f(r.d, 2)} (dernier calibrage réussi)`;
+    // seq : séquence sélectionnée au calibrage (A0, B, C) ; un calibrage timide ne sert jamais (n° 279).
+    calibrages.push({ n: r.n, v: r.v, d: r.d, seq: codeCalibrage(), timide: timide });
+    choisirReference();
+    if (timide) afficher("cal-resultat", `${$("cal-resultat").textContent} — timide : journalisé, jamais utilisé pour jouer`, "ok");
   } else {
     afficher("cal-resultat", r.message, "erreur");
   }
   if (protocoleJournalise()) {
     journal.evenement(performance.now(), codeCalibrage(), r.ok
-      ? `calibrage ok n=${f(r.n, 2)} v=${f(r.v, 2)} d=${f(r.d, 2)}${r.plafonne ? " plafonné" : ""}`
+      ? `calibrage ok n=${f(r.n, 2)} v=${f(r.v, 2)} d=${f(r.d, 2)}${r.plafonne ? " plafonné" : ""}${timide ? " timide" : ""}`
       : `calibrage rejet ${r.cause}`);
   }
   // Détail pour la grille A0 (D3 §1.4.3), affiché sur la page de test P0 seulement.
@@ -147,7 +150,19 @@ function terminerCalibrage() {
 // Manche d'essai (R2, R3, lot L0.4), page de test P0 seulement. t0 = appui sur « Démarrer ».
 // Tous les sourires confirmés sont comptés, sans arrêt à la première faute ni à 60 s (D8 n° 254) :
 // c'est la colonne « Fautes » de la grille D3 §1.4.4.
+// calibre : calibrage de la manche en cours ou à venir ; calibrages : tous les calibrages réussis (n° 279).
 let calibre = null, manche = null;
+const calibrages = [];
+
+// Calibrage de référence pour la manche d'essai : dernier réussi et non timide sous A0.
+function choisirReference() {
+  calibre = calibragePour(null, calibrages);
+  $("manche-bouton").disabled = !calibre;
+  $("manche-calibre").textContent = calibre
+    ? `n ${f(calibre.n, 2)} · d ${f(calibre.d, 2)} (calibrage de référence : dernier réussi non timide)`
+    : "Aucun calibrage de référence (non timide).";
+}
+const nomCalibrage = (c) => (c.seq === "A0" ? "référence" : c.seq);
 
 // Copie de l'image caméra courante, en mémoire vive seulement (R7.5) : jamais écrite nulle part.
 function capturerImage() {
@@ -173,6 +188,7 @@ function demarrerManche() {
     picSoutenu: creerPicSoutenu(), preuve: creerPreuve(capturerImage), preuveAffichee: null,
     pauses: creerCompteurPauses(REGLAGES.delaiPerteMs), // pauses de la manche seule (n° 270)
     picSoutenuVariante: creerPicSoutenu(), avertissements: 0, sourireEnCours: null,
+    cal: calibre, // calibrage de cette manche (n° 279)
   };
   const toilePreuve = $("preuve");
   toilePreuve.getContext("2d").clearRect(0, 0, toilePreuve.width, toilePreuve.height); // effacement (R7.5)
@@ -183,7 +199,9 @@ function demarrerManche() {
     if (!manche.pertes) return;
     for (const e of manche.pertes.verifier(performance.now())) {
       noterPerte(e);
-      if (protocole.enCours) journal.evenement(e.t, protocole.enCours.code, e.type === "faute" ? "faute perte (constatée sans image)" : "avertissement (constaté sans image)");
+      // Toute faute a sa ligne avec la colonne faute remplie, même constatée sans image (n° 277).
+      if (protocole.enCours) journal.evenement(e.t, protocole.enCours.code, e.type === "faute" ? "faute perte (constatée sans image)" : "avertissement (constaté sans image)",
+        e.type === "faute" ? { faute: "perte" } : {});
     }
   }, 250);
   $("manche-bouton").textContent = "Arrêter";
@@ -283,7 +301,7 @@ function afficherManche() {
     `Fautes : ${manche.fautes.length} (sourires ${sourires}, visage perdu ${manche.fautes.length - sourires})   variante cheekSquint : ${manche.variante}`,
     ...manche.fautes.map(ligneFaute),
     ((p) => `Pauses d'analyse pendant la manche : ${p.nombre}${p.nombre ? ` · ${f(p.totalMs / 1000, 1)} s au total` : ""}`)(manche.pauses.stats()),
-    `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / calibre.d, 2)}`,
+    `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / manche.cal.d, 2)}`,
   ].join("\n");
   // Image de preuve (R7) : affichée dès qu'un sourire est confirmé, mise à jour si la série trouve mieux.
   const { image, s } = manche.preuve.valeur();
@@ -337,6 +355,10 @@ function lancerSequence() {
   if (manche?.active) arreterManche();
   protocole.pressions = [];
   protocole.opEnAttente = false;
+  calibre = calibragePour(protocole.seq, calibrages);
+  journal.debut(protocole.seq.code);
+  journal.evenement(performance.now(), protocole.seq.code,
+    `sequence debut n=${f(calibre.n, 2)} v=${f(calibre.v, 2)} d=${f(calibre.d, 2)} calibrage=${calibre.seq === "A0" ? "reference" : calibre.seq}`);
   demarrerManche();
   protocole.enCours = { code: protocole.seq.code, seq: protocole.seq, etape: -1 };
   $("manche-bouton").disabled = true;
@@ -359,6 +381,8 @@ function finirSequence(interrompue) {
   garderImageSourire();
   arreterManche();
   protocole.enCours = null;
+  const calSeq = manche.cal;
+  choisirReference(); // la manche d'essai reprend le calibrage de référence
   $("manche-bouton").disabled = false;
   $("proto-consigne").textContent = "";
   journal.evenement(manche.t, code, interrompue ? "sequence interrompue" : "sequence terminee");
@@ -367,8 +391,9 @@ function finirSequence(interrompue) {
   const resume = {
     code, titre: seq.titre, interrompue, duree: (manche.t - manche.t0) / 1000,
     sourires: sourires.length, pertes: manche.fautes.length - sourires.length, avertissements: manche.avertissements,
-    P, Pv, r: P / calibre.d, rv: Pv / calibre.d, pauses,
-    classes: seq.revue && !interrompue ? { confirmee: 0, faux_positif: 0, litigieuse: 0 } : null,
+    P, Pv, r: P / calSeq.d, rv: Pv / calSeq.d, pauses, cal: calSeq,
+    // Revue aussi après une interruption : les sourires confirmés restent des faux positifs possibles (n° 278).
+    classes: seq.revue ? { confirmee: 0, faux_positif: 0, litigieuse: 0 } : null,
   };
   protocole.resumes.push(resume);
   const aRevoir = resume.classes ? sourires.filter((s) => s.image) : [];
@@ -391,7 +416,7 @@ function repondreRevue(estUnSourire) {
 }
 
 const ligneResume = (r) => [
-  `${r.code} ${r.titre} — ${f(r.duree)} s${r.interrompue ? " (interrompue)" : ""}`,
+  `${r.code} ${r.titre} — ${f(r.duree)} s${r.interrompue ? " (interrompue)" : ""} — n ${f(r.cal.n, 2)} · d ${f(r.cal.d, 2)} (${nomCalibrage(r.cal)})`,
   `  fautes : sourires ${r.sourires}, visage perdu ${r.pertes} ; avertissements ${r.avertissements}`,
   r.classes ? `  revue : confirmées ${r.classes.confirmee}, faux positifs ${r.classes.faux_positif}, litigieuses ${r.classes.litigieuse}` : null,
   `  P ${f(r.P, 2)} (variante ${f(r.Pv, 2)}) · r ${f(r.r, 2)} (variante ${f(r.rv, 2)})`,
@@ -403,15 +428,16 @@ function afficherProtocole() {
   let raison = "";
   if (!testeurValide()) raison = "Saisissez un code testeur (T01 à T99).";
   else if (seq.calibrage) raison = " "; // A0 : la préparation dit déjà d'utiliser le calibrage ; « Lancer » reste inactif
-  else if (!calibre) raison = "Réussissez d'abord un calibrage.";
-  else if (seq.calibrageAvant && calibre.seq !== seq.code) raison = `Calibrez d'abord avec ${seq.code} sélectionnée.`;
+  else if (!calibragePour(seq, calibrages)) raison = seq.calibrageAvant
+    ? `Calibrez d'abord avec ${seq.code} sélectionnée.` : "Réussissez d'abord un calibrage non timide (A0).";
   $("proto-preparation").textContent = [seq.preparation, raison.trim()].filter(Boolean).join(" ");
   $("proto-lancer").disabled = Boolean(raison) || Boolean(en) || Boolean(protocole.revue) || cal !== null;
   $("proto-interrompre").disabled = !en;
   $("proto-op").disabled = !en;
   $("proto-seq").disabled = Boolean(en);
   $("proto-chrono").textContent = en && manche.t0 !== undefined
-    ? `${en.code} — ${chrono(manche.t - manche.t0)} / ${chrono(dureeTotale(en.seq) * 1000)}` : "";
+    ? `${en.code} — ${chrono(manche.t - manche.t0)} / ${chrono(dureeTotale(en.seq) * 1000)} — n ${f(calibre.n, 2)} · d ${f(calibre.d, 2)} (${nomCalibrage(calibre)})` : "";
+  $("cal-timide").disabled = cal !== null || codeCalibrage() !== "A0";
   const rv = protocole.revue;
   $("proto-revue").hidden = !rv;
   if (rv) {

@@ -19,7 +19,7 @@ const DEGRADEE = (code, titre, preparation) => ({
 
 export const SEQUENCES = Object.freeze([
   { code: "A0", titre: "Calibrage", calibrage: true,
-    preparation: "Trois calibrages réussis de suite, dont un volontairement timide ; après le timide, faire A2 abrégée et A3 (n° 258). Utilisez le bouton « Commencer » du calibrage." },
+    preparation: "Trois calibrages réussis de suite : deux francs, puis un volontairement timide, case « Calibrage timide » cochée. Le timide ne sert qu'à mesurer la dispersion de v ; son effet est mesuré au rejeu (n° 279). Utilisez le bouton « Commencer » du calibrage." },
   { code: "A1", titre: "Neutre silencieux", revue: true,
     etapes: [["Regardez l'écran, visage détendu, sans parler", 60]] },
   { code: "A2", titre: "Parole libre", revue: true,
@@ -53,6 +53,14 @@ export const SEQUENCES = Object.freeze([
     preparation: "Calibrez d'abord, avec C sélectionnée, en forçant le sourire volontaire au maximum ; notez d et « plafonné ».",
     etapes: [["Vous pouvez sourire franchement : l'opérateur vous provoque", 60]] },
 ]);
+
+// Calibrage d'une séquence (D8 n° 279) : A1 à A7 et la manche d'essai prennent le calibrage de référence,
+// dernier réussi et non timide sous A0 ; B1 à B3 et C, le dernier réussi fait avec la séquence sélectionnée.
+// calibrages : calibrages réussis { n, v, d, seq, timide }, dans l'ordre. null si aucun ne convient.
+export function calibragePour(seq, calibrages) {
+  const code = seq?.calibrageAvant ? seq.code : "A0";
+  return calibrages.findLast((c) => c.seq === code && !c.timide) ?? null;
+}
 
 export const dureeTotale = (seq) => (seq.etapes ?? []).reduce((a, [, s]) => a + s, 0);
 

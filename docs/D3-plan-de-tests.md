@@ -114,7 +114,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 
 | Code | Séquence | Durée | Consigne au testeur | Ce qu'on cherche |
 |---|---|---|---|---|
-| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc. **Trois calibrages réussis consécutifs**, dont un volontairement timide ; après le timide, refaire A2 abrégée (60 s) et A3, et noter fautes, P et r (n° 258) | Essais, causes de rejet, `n`, `v`, `d` ; dispersion de `v` par testeur ; effet d'un `v` bas sur les faux positifs |
+| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc. **Trois calibrages réussis consécutifs**, deux francs, puis un volontairement timide, déclaré comme tel (case « Calibrage timide »). Le timide ne sert jamais aux séquences : A1 à A7 prennent le **calibrage de référence**, dernier réussi et non timide sous A0 ; B1 à B3 et C, leur propre calibrage (n° 279) | Essais, causes de rejet, `n`, `v`, `d` ; dispersion de `v` par testeur ; effet d'un `v` bas sur les faux positifs, **mesuré au rejeu** (L0.7) : fautes d'A2 et d'A3 recalculées avec le `d` du calibrage timide (n° 279, modifie n° 258) |
 | A1 | Neutre silencieux | 60 s | Regarder l'écran, visage détendu, sans parler | Bruit de fond ; réglage de `m` |
 | A2 | Parole libre | 4 min 30 | Raconter sa journée, sans chercher à rire | Faux positifs dus à la parole |
 | A3 | Voyelles tenues | 60 s | Lire une liste : « iii », « ouistiti », « cheese », « pipi », « merci », chacun tenu 1 s ; puis répéter « pi-pi-pi-pi » sans pause pendant 5 s (syllabes enchaînées, pauses d'une image : n° 256) | Pire cas de la parole : fautes, P, r |
@@ -123,7 +123,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 | A6 | Sourires commandés | 90 s | Sur signal, 5 s chacun, 5 s de neutre entre : 3 sourires légers, 3 sourires francs, 2 rires | Faux négatifs |
 | A7 | Mouvements | 2 min | Tourner lentement la tête à gauche puis à droite ; la pencher en avant puis en arrière ; reculer jusqu'à 1,5 m ; sortir du champ 2 s, puis 6 s ; sourire derrière sa main ; laisser passer une deuxième personne derrière soi | Limites d'angle et de largeur ; R4 ; main devant la bouche |
 
-À la **fin** de chaque séquence A1 à A5 et B1 à B3, l'outil présente une **revue** de chaque sourire confirmé. Elle se fait en fin de séquence, et non après chaque sourire, pour ne pas interrompre des séquences minutées (n° 272) :
+À la **fin** de chaque séquence A1 à A5 et B1 à B3, même **interrompue**, l'outil présente une **revue** de chaque sourire confirmé. Elle se fait en fin de séquence, et non après chaque sourire, pour ne pas interrompre des séquences minutées (n° 272, n° 278). A6, A7 et C n'ont pas de revue : leurs sourires sont commandés ou permis :
 
 1. Le prototype affiche l'image de preuve ([D2](D2-regles-jeu-arbitrage.md) R7, en mémoire vive seulement).
 2. Demander au testeur : « Est-ce un sourire ? »
@@ -192,10 +192,10 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `lum` | Luminance moyenne du visage, sur 255 |
 | `S`, `J` | Score lissé, jauge |
 | `etat` | neutre, doute, souriant, invalide |
-| `faute` | Vide, sourire ou perte |
+| `faute` | Vide, sourire ou perte. Toute faute a exactement une ligne avec cette colonne remplie, même constatée sans image par la minuterie (n° 277) |
 | `op` | 1 si la touche « sourire vu » est pressée (barre d'espace ou bouton). « L'opérateur a vu » un sourire si la touche est pressée entre 0,5 s avant le début de la série et 2 s après sa confirmation **À confirmer (P0)** (n° 272) |
-| `pause` | Trou d'images avant cette ligne, en ms, s'il dépasse 1,5 s dans la même séquence : la séquence est à refaire (n° 274) |
-| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…` ou `calibrage rejet <cause>`), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274) |
+| `pause` | Trou d'images avant cette ligne, en ms, s'il dépasse 1,5 s **à l'intérieur d'une même prise** (un calibrage, une séquence) : la séquence est à refaire (n° 274). L'attente entre deux prises n'est pas une pause (n° 277) |
+| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…`, suivi de `timide` s'il y a lieu, ou `calibrage rejet <cause>`), début de séquence avec le calibrage utilisé (`sequence debut n=… v=… d=… calibrage=reference`, ou `=B1`…), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274, n° 279) |
 
 Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; le disque est protégé par BitLocker et les journaux restent hors du dépôt public (n° 222, n° 223). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
@@ -550,6 +550,30 @@ Conclusions :
 
 - **L0.5 terminé** sur le PC et l'iPhone 15 Pro.
 - **Parade 3 écartée comme veto** (n° 269). `jawOpen` (0,04 bouche grande ouverte), `mouthStretch` et `mouthDimple` ne bougent pas avec ce modèle. `mouthUpperUp` bouge, mais le rire (0,50-0,59) monte plus haut que les mots (0,10-0,29) : un veto sur lui laisserait passer les rires. `mouthUpperUp` reste observé dans le journal P0 des 52 blendshapes.
+
+#### 1.7.6 Lot L0.6a — outils de test (2026-09-27)
+
+**Test court n° 1** (PC), relevés de Valentin ([D6](D6-lots-developpement.md) L0.6a, n° 276). Journal `journal_T00_2026-09-27.csv` : 5 328 lignes, 70 colonnes dont 52 `bs_`, séparateur « ; » et virgule décimale corrects. A1 à A4 interrompues volontairement après 9 à 17 s ; A5, A6 et A7 complètes.
+
+Conforme :
+
+- 13,3 à 14 lignes par seconde dans les séquences, aucun trou de plus de 0,2 s ;
+- barre d'espace : un appui en A1, `op` = 1 à 64,0 s, séquence non interrompue ;
+- A5 (120 s) : état neutre sur les 1 611 lignes ;
+- A7 : pertes datées au début + 1,5 s (avertissements à 413,7, 420,8, 442,7 et 473,5 s ; fautes à 430,3, 453,3 et 481,9 s), alternance conforme à R4 ;
+- A0 : calibrages v 0,71 / d 0,28 et v 0,39 / d 0,16 réussis, troisième rejeté pour amplitude.
+
+Trois défauts, expliqués par le code et corrigés (n° 277, n° 278) :
+
+| Défaut | Cause | Correction |
+|---|---|---|
+| Faute constatée par la minuterie (« faute perte (constatée sans image) » à 415,8 s) absente de la colonne `faute` | La ligne d'événement n'écrivait que `t`, `seq` et `evenement` ; la faute n'est pas réémise à la reprise des images | La ligne d'événement porte `faute` = perte |
+| `pause` de 2 399 et 3 132 ms en A0 | Trou mesuré depuis la dernière image de la même séquence : deux calibrages se suivaient comme une seule prise. Même défaut pour une séquence relancée | Mesure remise à zéro au début de chaque calibrage et de chaque séquence |
+| Aucune ligne de revue | A1 à A4 interrompues : la revue n'était proposée qu'en fin normale ; A5 sans sourire ; A6 et A7 sans revue par conception. La procédure de test attendait à tort une revue après A6 | Revue aussi après une séquence interrompue |
+
+Point de méthode : toutes les séquences ont utilisé le calibrage timide (d 0,16), dernier réussi. Des fautes ont été comptées à S 0,17-0,29 (A3, A6, A7), qui n'en seraient pas avec d 0,28. Règle de calibrage de référence adoptée (n° 279). Ces séquences ne sont pas exploitables pour les faux positifs.
+
+Conclusion : **L0.6a non terminé**. Un test court n° 2 suit la correction.
 
 ## 2. Prototype 1 — appel vidéo seul
 
