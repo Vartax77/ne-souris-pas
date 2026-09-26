@@ -90,8 +90,8 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 2. **Phase neutre** : le joueur regarde la caméra, visage neutre, pendant 3 s.
 3. **Phase sourire** : le joueur sourit franchement pendant 2 s. `v` est le maximum de `S` sur la phase. On vise haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer (n° 91).
 4. Le calibrage est rejeté si une seule de ces conditions est vraie :
-   - moins de 90 % d'images valides dans l'une des phases ;
-   - largeur médiane du visage sous 20 % ;
+   - moins de 90 % d'images avec exactement un visage dans l'une des phases (au calibrage, la largeur et les angles sont jugés sur leurs médianes, pas dans la présence : n° 239) ;
+   - largeur médiane du visage sous 20 % (seuil fixé au réglage P0, repli à 12 % : n° 240) ;
    - lacet ou tangage médian au-delà des limites ;
    - luminance moyenne de la zone du visage sous 60/255 (calculée sur les pixels de l'image, pas par MediaPipe) ;
    - écart-type du score brut au-dessus de 0,05 en phase neutre ;
@@ -571,7 +571,7 @@ Questions tranchées par Valentin le 2026-09-25 :
 | Q13 | Repère du pic sur les jauges | n° 190 |
 | Q14 | Décisions divergentes : manche rejouée | n° 191 |
 
-Questions ouvertes, issues des relevés du lot L0.2 (2026-09-26) :
+Questions issues des relevés du lot L0.2, tranchées par Valentin le 2026-09-26 (Q15 : n° 240 ; Q16 : n° 239). Aucune question ouverte :
 
 | N° | Question | Proposition |
 |---|---|---|

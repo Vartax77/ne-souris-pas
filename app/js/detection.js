@@ -20,9 +20,18 @@ async function creer(mode) {
   });
 }
 
-// Crée le détecteur une seule fois par session (D4 §7.3). Carte graphique d'abord, processeur en secours.
-// modeDemande : "GPU" (défaut) ou "CPU" (forcé par ?calcul=cpu pour comparer).
-export async function preparerMoteur(modeDemande = "GPU") {
+// Mode de calcul par famille d'appareil (D4 Q11, D8 n° 241) : processeur sur iOS, où il est plus rapide
+// et démarre plus vite (relevés L0.2) ; carte graphique ailleurs. Tous les navigateurs iOS utilisent WebKit ;
+// un iPad récent se présente comme un Mac, d'où le test de l'écran tactile.
+export function modeParDefaut() {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return ios ? { mode: "CPU", choix: "par défaut sur iOS" } : { mode: "GPU", choix: "par défaut" };
+}
+
+// Crée le détecteur une seule fois par session (D4 §7.3). Sur carte graphique, un seul repli sur le processeur.
+// modeDemande : "GPU" ou "CPU".
+export async function preparerMoteur(modeDemande) {
   const debut = performance.now();
   const moteur = { mode: modeDemande, raison: "", detecteur: null, simd: "" };
   try {

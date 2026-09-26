@@ -63,3 +63,39 @@ button {
   line-height: 1.5;
   white-space: pre-wrap;
 }
+
+/* Ovale de placement (D5 E5), centré sur la vidéo. */
+.cadre {
+  position: relative;
+}
+
+.ovale {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 70%;
+  aspect-ratio: 3 / 4;
+  transform: translate(-50%, -50%);
+  border: 3px dashed rgba(255, 255, 255, .6);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+#calibrage {
+  margin: 1rem 0;
+}
+
+#calibrage h2 {
+  font-size: 1.1rem;
+  margin: 0 0 .5rem;
+}
+
+#cal-barre {
+  width: 100%;
+}
+
+#cal-detail {
+  font-size: .75rem;
+  color: #aaa;
+  white-space: pre-wrap;
+}

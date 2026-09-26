@@ -14,9 +14,12 @@
 <body>
   <main>
     <h1>Ne souris pas — prototype 0</h1>
-    <p class="lot">Lot L0.2 — détection</p>
+    <p class="lot">Lot L0.3 — calibrage</p>
 
-    <video id="video" autoplay muted playsinline></video>
+    <div class="cadre">
+      <video id="video" autoplay muted playsinline></video>
+      <div class="ovale" aria-hidden="true"></div>
+    </div>
 
     <button id="demarrer" type="button">Démarrer la caméra</button>
 
@@ -26,6 +29,15 @@
       <li>Chargements externes bloqués : <span id="etat-bloques">0</span></li>
     </ul>
     <ul id="bloques"></ul>
+
+    <section id="calibrage">
+      <h2>Calibrage — essai <span id="cal-essai">0</span></h2>
+      <p id="cal-consigne">Placez votre visage dans l'ovale, bien éclairé, puis appuyez sur Commencer.</p>
+      <progress id="cal-barre" max="1" value="0"></progress>
+      <button id="cal-commencer" type="button" disabled>Commencer</button>
+      <p id="cal-resultat"></p>
+      <pre id="cal-detail"></pre>
+    </section>
 
     <pre id="mesures">Démarrez la caméra pour lancer l’analyse.</pre>
 

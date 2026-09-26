@@ -277,7 +277,7 @@ Recherche du 2026-09-25. Les renvois [Sn] désignent les sources de la section 1
 | Choix | Raison |
 |---|---|
 | Détecteur créé une seule fois par session, jamais recréé | Fuite de mémoire WebKit [S8] |
-| Délégué GPU essayé d'abord, CPU en secours ; le mode retenu est journalisé | Défaillances GPU possibles sur iOS [S7] ; RT1 |
+| Mode de calcul par famille d'appareil : processeur sur iOS, carte graphique ailleurs, avec un seul repli sur le processeur ; `?calcul=` pour forcer un mode ; mode affiché et journalisé (n° 232, n° 241) | Défaillances GPU possibles sur iOS [S7] ; RT1 |
 | Un seul flux caméra et micro, partagé entre détection et envoi | [S15] |
 | Vidéo envoyée en H.264 quand un appareil iOS est dans le duel (n° 205) **À confirmer (P1)** | Économie de processeur, partagé avec MediaPipe [S21] |
 | Fichiers MediaPipe servis par l'hébergement de la PWA, version figée (1.0.1, n° 220) | Pas de CDN tiers (principe 5) ; RT12 |
@@ -488,7 +488,7 @@ Q1 à Q10 ont été tranchées par Valentin le 2026-09-25 :
 | Q9 | H.264 quand un iPhone joue ; 640 × 480 ; à mesurer en P1 | n° 205 |
 | Q10 | Nom de domaine et prix : reportés (n° 46) ; le prototype tourne sur l'adresse GitHub Pages | n° 206 |
 
-Question ouverte, issue des relevés L0.2 (2026-09-26) :
+Question issue des relevés L0.2, tranchée par Valentin le 2026-09-26 : proposition (A) retenue (n° 241). Aucune question ouverte :
 
 | N° | Question | Proposition |
 |---|---|---|

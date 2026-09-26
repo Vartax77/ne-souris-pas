@@ -101,7 +101,7 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | R1 complet : phase neutre 3 s, phase sourire 2 s, sept causes de rejet dans l'ordre de [D2](D2-regles-jeu-arbitrage.md), messages de [D5](D5-parcours-maquettes.md) §3.5 ; calcul de `n`, `v`, `d` avec plafond `d_max` |
+| Tâches | R1 complet : phase neutre 3 s, phase sourire 2 s, sept causes de rejet dans l'ordre de [D2](D2-regles-jeu-arbitrage.md), messages de [D5](D5-parcours-maquettes.md) §3.5 ; score lissé `S` (avancé de L0.4, n° 242) ; calcul de `n`, `v`, `d` avec plafond `d_max` ; ovale de placement ; détail de diagnostic pour la grille A0 (n° 243). Fichiers : `app/js/calibrage.js`, `reglages.js` ; vérification `tests/calibrage.test.mjs` |
 | Modules | Arbitrage, Interface |
 | Terminé quand | Chaque cause de rejet a été provoquée volontairement au moins une fois et affiche le bon message |
 | Test | [D3](D3-plan-de-tests.md) A0, §1.3.5, §1.3.6, critère G4 |
@@ -111,7 +111,7 @@ flowchart LR
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Score brut, variante `cheekSquint` en parallèle, lissage sur 3 images ; états neutre, doute, souriant, invalide ; série et confirmation (500 ms, 3 images, 1 image tolérée), horodatage rétroactif ; jauge `J` et pic |
+| Tâches | Score brut, variante `cheekSquint` en parallèle, lissage sur 3 images (déjà fait en L0.3, n° 242) ; états neutre, doute, souriant, invalide ; série et confirmation (500 ms, 3 images, 1 image tolérée), horodatage rétroactif ; jauge `J` et pic |
 | Modules | Arbitrage, Interface |
 | Terminé quand | Un sourire franc tenu 1 s est confirmé ; un sourire de 300 ms ne l'est pas ; la jauge suit le visage |
 | Test | [D3](D3-plan-de-tests.md) A1 à A6, critères G1 et G5 |

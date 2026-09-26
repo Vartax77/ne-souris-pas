@@ -1,9 +1,11 @@
 // Prototype 0, lot L0.2 (D6) : détection à cadence plafonnée, valeurs brutes en direct.
 
 import { demarrerCamera } from "./capture.js";
-import { preparerMoteur, lancerAnalyse } from "./detection.js";
+import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
 import { CADENCE_MAX, creerFenetre } from "./cadence.js";
 import { angles, rectangle, largeur, luminance, scores } from "./mesures.js";
+import { evaluerCalibrage } from "./calibrage.js";
+import { REGLAGES } from "./reglages.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -27,12 +29,16 @@ document.addEventListener("securitypolicyviolation", (e) => {
   $("bloques").append(li);
 });
 
-// ?calcul=cpu force le processeur, pour comparer les deux modes.
-const modeDemande = new URLSearchParams(location.search).get("calcul") === "cpu" ? "CPU" : "GPU";
+// ?calcul=cpu ou ?calcul=gpu force un mode, pour comparer ; sinon, règle par famille d'appareil (D8 n° 241).
+const force = new URLSearchParams(location.search).get("calcul")?.toUpperCase();
+const { mode: modeDemande, choix } = ["CPU", "GPU"].includes(force)
+  ? { mode: force, choix: "forcé par ?calcul=" }
+  : modeParDefaut();
 
 // Le modèle se charge dès l'ouverture, en parallèle de la demande de caméra (D4 §7.3).
 const moteurPret = preparerMoteur(modeDemande).then(
   (m) => {
+    m.choix = choix;
     afficher("etat-mediapipe", `prêt en ${f(m.secondes, 1)} s (${m.simd})`, "ok");
     return m;
   },
@@ -64,6 +70,60 @@ function mesurer(video, res) {
   };
 }
 
+// Calibrage R1 (D2 §4.1, lot L0.3) : deux phases minutées sur les horodatages des images analysées ;
+// mesures prises à chaque image analysée (D8 n° 243).
+const CONSIGNE = "Placez votre visage dans l'ovale, bien éclairé, puis appuyez sur Commencer.";
+let cal = null, essais = 0;
+
+function lancerCalibrage() {
+  essais += 1;
+  cal = { debut: undefined, neutre: [], sourire: [] };
+  $("cal-essai").textContent = String(essais);
+  $("cal-commencer").disabled = true;
+  afficher("cal-resultat", "");
+  $("cal-detail").textContent = "";
+}
+
+function enregistrer(m, t) {
+  cal.debut ??= t;
+  const e = t - cal.debut, { phaseNeutreMs: pn, phaseSourireMs: ps } = REGLAGES;
+  if (e < pn) {
+    cal.neutre.push(m);
+    $("cal-consigne").textContent = "Visage neutre, sans parler…";
+    $("cal-barre").value = e / pn;
+  } else if (e < pn + ps) {
+    cal.sourire.push(m);
+    $("cal-consigne").textContent = "Maintenant, souriez franchement !";
+    $("cal-barre").value = (e - pn) / ps;
+  } else {
+    terminerCalibrage();
+  }
+}
+
+const pct = (x) => `${f(x * 100)} %`;
+
+function terminerCalibrage() {
+  const { neutre, sourire } = cal;
+  cal = null;
+  const r = evaluerCalibrage(neutre, sourire);
+  const st = r.stats, dureeS = (REGLAGES.phaseNeutreMs + REGLAGES.phaseSourireMs) / 1000;
+  if (r.ok) {
+    afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
+  } else {
+    afficher("cal-resultat", r.message, "erreur");
+  }
+  // Détail pour la grille A0 (D3 §1.4.3), affiché sur la page de test P0 seulement.
+  $("cal-detail").textContent = [
+    `Détail (test P0) : présence ${pct(st.presenceNeutre)} / ${pct(st.presenceSourire)} · deux visages ${pct(st.deuxVisages)} · largeur ${f(st.largeur)} % · lacet ${f(st.lacet)}° · tangage ${f(st.tangage)}°`,
+    `luminance ${f(st.luminance)} · écart-type ${f(st.ecartType, 3)} · n ${f(st.n, 2)} · v ${f(st.v, 2)} · v − n ${f(st.amplitude, 2)}`,
+    `images ${neutre.length} + ${sourire.length} · cadence pendant le calibrage ${f((neutre.length + sourire.length) / dureeS, 1)} im/s`,
+  ].join("\n");
+  $("cal-consigne").textContent = CONSIGNE;
+  $("cal-barre").value = 0;
+  $("cal-commencer").textContent = "Recommencer";
+  $("cal-commencer").disabled = false;
+}
+
 function suivre(video, moteur) {
   const camera = creerFenetre(10000);
   const analyse10 = creerFenetre(10000);
@@ -89,12 +149,17 @@ function suivre(video, moteur) {
         min10 = Math.min(min10, c10);
         max10 = Math.max(max10, c10);
       }
+      let m;
+      if (cal) {
+        m = mesurer(video, res);
+        enregistrer(m, t);
+      }
       if (t - dernierAffichage < 250) return; // panneau rafraîchi 4 fois par seconde : ménage l'appareil
       dernierAffichage = t;
-      const m = mesurer(video, res);
+      m ??= mesurer(video, res);
       const visage = m.visages === 1;
       $("mesures").textContent = [
-        `Mode de calcul : ${moteur.mode === "GPU" ? "carte graphique (GPU)" : "processeur (CPU)"}${moteur.raison ? ` — repli : ${moteur.raison}` : ""}`,
+        `Mode de calcul : ${moteur.mode === "GPU" ? "carte graphique (GPU)" : "processeur (CPU)"} — ${moteur.raison ? `repli : ${moteur.raison}` : moteur.choix}`,
         `Cadence caméra : ${camera.pleine() ? f(camera.cadence(), 1) : "mesure en cours"} im/s`,
         `Cadence analysée : ${analyse10.pleine() ? f(c10, 1) : "mesure en cours"} im/s (10 s) · ${f(analyse1.cadence())} (1 s)`,
         `Fenêtres de 10 s : min ${f(min10, 1)} · max ${f(max10, 1)} · plafond ${CADENCE_MAX}`,
@@ -131,4 +196,7 @@ $("demarrer").addEventListener("click", async () => {
     return;
   }
   suivre($("video"), await moteurPret);
+  $("cal-commencer").disabled = false;
 });
+
+$("cal-commencer").addEventListener("click", lancerCalibrage);
