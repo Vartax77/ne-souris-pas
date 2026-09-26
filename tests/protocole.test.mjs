@@ -3,7 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour } from "../app/js/protocole.js";
+import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour, codeTesteurValide, creerCalibrages } from "../app/js/protocole.js";
 
 test("toutes les séquences de D3 §1.3.4 à §1.3.6, dans l'ordre", () => {
   assert.deepEqual(SEQUENCES.map((s) => s.code), ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C"]);
@@ -90,4 +90,34 @@ test("calibragePour : référence = dernier réussi non timide sous A0 ; B et C,
   assert.equal(calibragePour(seq("B1"), [franc1]), null);
   assert.equal(calibragePour(seq("B1"), [franc1, b1]), b1);
   assert.equal(calibragePour(seq("A2"), [franc1, b1]), franc1);
+});
+
+test("code testeur : T00 à T99 seulement, jamais de nom (n° 281)", () => {
+  for (const ok of ["T00", "T01", "T99"]) assert.ok(codeTesteurValide(ok), ok);
+  for (const non of ["", "T1", "T001", "t01", "Valentin", null, undefined]) assert.ok(!codeTesteurValide(non), String(non));
+});
+
+test("calibrages : refusés sans code testeur, effacés au changement de code, limités au testeur en cours (n° 281)", () => {
+  const A1 = SEQUENCES.find((s) => s.code === "A1");
+  const franc = { n: 0, v: 0.64, d: 0.25, seq: "A0", timide: false };
+  const c = creerCalibrages();
+  c.ajouter(franc); // aucun code saisi
+  assert.equal(c.pour(A1), null);
+  c.changerTesteur("");
+  c.ajouter(franc);
+  assert.equal(c.pour(A1), null);
+  c.changerTesteur("T01");
+  c.ajouter(franc);
+  assert.equal(c.pour(A1).d, 0.25);
+  assert.equal(c.pour(A1).testeur, "T01");
+  c.changerTesteur("T01"); // même code : rien n'est effacé
+  assert.equal(c.pour(A1).d, 0.25);
+  c.changerTesteur("T02"); // testeur suivant : il ne joue pas avec le calibrage de T01
+  assert.equal(c.pour(A1), null);
+  c.changerTesteur("T01"); // retour à T01 : ses calibrages ont été effacés
+  assert.equal(c.pour(A1), null);
+  // calibragePour ignore les calibrages d'un autre testeur, même s'ils sont dans la liste.
+  const autre = { ...franc, testeur: "T01" }, mien = { ...franc, d: 0.3, testeur: "T02" };
+  assert.equal(calibragePour(A1, [autre], "T02"), null);
+  assert.equal(calibragePour(A1, [mien, autre], "T02"), mien);
 });

@@ -54,12 +54,33 @@ export const SEQUENCES = Object.freeze([
     etapes: [["Vous pouvez sourire franchement : l'opérateur vous provoque", 60]] },
 ]);
 
-// Calibrage d'une séquence (D8 n° 279) : A1 à A7 et la manche d'essai prennent le calibrage de référence,
-// dernier réussi et non timide sous A0 ; B1 à B3 et C, le dernier réussi fait avec la séquence sélectionnée.
-// calibrages : calibrages réussis { n, v, d, seq, timide }, dans l'ordre. null si aucun ne convient.
-export function calibragePour(seq, calibrages) {
+// Code testeur : T00 à T99 (T00 : essais de Valentin), jamais de nom (D3 §1.4.2). Sans code, ni calibrage ni séquence (n° 281).
+export const codeTesteurValide = (code) => /^T\d{2}$/.test(code);
+
+// Calibrage d'une séquence (D8 n° 279, n° 281) : A1 à A7 et la manche d'essai prennent le calibrage de
+// référence, dernier réussi et non timide sous A0 ; B1 à B3 et C, le dernier réussi fait avec la séquence
+// sélectionnée. Seuls comptent les calibrages du testeur en cours.
+// calibrages : calibrages réussis { n, v, d, seq, timide, testeur }, dans l'ordre. null si aucun ne convient.
+export function calibragePour(seq, calibrages, testeur) {
   const code = seq?.calibrageAvant ? seq.code : "A0";
-  return calibrages.findLast((c) => c.seq === code && !c.timide) ?? null;
+  return calibrages.findLast((c) => c.seq === code && !c.timide && c.testeur === testeur) ?? null;
+}
+
+// Calibrages réussis en mémoire vive (n° 281) : vidés à chaque changement du code testeur, pour qu'un
+// testeur ne joue jamais avec le calibrage du précédent ; refusés sans code valide.
+export function creerCalibrages() {
+  let testeur = null, liste = [];
+  return {
+    changerTesteur(code) {
+      if (code === testeur) return;
+      testeur = code;
+      liste = [];
+    },
+    ajouter(c) {
+      if (codeTesteurValide(testeur)) liste.push({ ...c, testeur });
+    },
+    pour: (seq) => calibragePour(seq, liste, testeur),
+  };
 }
 
 export const dureeTotale = (seq) => (seq.etapes ?? []).reduce((a, [, s]) => a + s, 0);

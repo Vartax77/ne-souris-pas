@@ -9,7 +9,7 @@ import { evaluerCalibrage } from "./calibrage.js";
 import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
 import { creerSuiviPertes } from "./pertes.js";
 import { creerPreuve } from "./preuve.js";
-import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour } from "./protocole.js";
+import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, codeTesteurValide, creerCalibrages } from "./protocole.js";
 import { creerJournal } from "./journal.js";
 import { REGLAGES } from "./reglages.js";
 
@@ -83,6 +83,7 @@ const CONSIGNE = "Placez votre visage dans l'ovale, bien éclairé, puis appuyez
 let cal = null, essais = 0;
 
 function lancerCalibrage() {
+  if (!testeurValide()) return; // sans code testeur, aucun calibrage (n° 281)
   if (protocole.enCours) finirSequence(true); // une séquence ne survit pas à un nouveau calibrage
   if (manche?.active) demarrerManche(); // arrête la manche : n et d vont changer
   essais += 1;
@@ -124,7 +125,7 @@ function terminerCalibrage() {
   if (r.ok) {
     afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
     // seq : séquence sélectionnée au calibrage (A0, B, C) ; un calibrage timide ne sert jamais (n° 279).
-    calibrages.push({ n: r.n, v: r.v, d: r.d, seq: codeCalibrage(), timide: timide });
+    calibrages.ajouter({ n: r.n, v: r.v, d: r.d, seq: codeCalibrage(), timide });
     choisirReference();
     if (timide) afficher("cal-resultat", `${$("cal-resultat").textContent} — timide : journalisé, jamais utilisé pour jouer`, "ok");
   } else {
@@ -144,19 +145,19 @@ function terminerCalibrage() {
   $("cal-consigne").textContent = CONSIGNE;
   $("cal-barre").value = 0;
   $("cal-commencer").textContent = "Recommencer";
-  $("cal-commencer").disabled = false;
+  afficherProtocole(); // réactive « Commencer » si un code testeur est saisi
 }
 
 // Manche d'essai (R2, R3, lot L0.4), page de test P0 seulement. t0 = appui sur « Démarrer ».
 // Tous les sourires confirmés sont comptés, sans arrêt à la première faute ni à 60 s (D8 n° 254) :
 // c'est la colonne « Fautes » de la grille D3 §1.4.4.
-// calibre : calibrage de la manche en cours ou à venir ; calibrages : tous les calibrages réussis (n° 279).
-let calibre = null, manche = null;
-const calibrages = [];
+// calibre : calibrage de la manche en cours ou à venir ; calibrages : calibrages réussis du testeur en cours (n° 279, n° 281).
+let calibre = null, manche = null, cameraPrete = false;
+const calibrages = creerCalibrages();
 
 // Calibrage de référence pour la manche d'essai : dernier réussi et non timide sous A0.
 function choisirReference() {
-  calibre = calibragePour(null, calibrages);
+  calibre = calibrages.pour(null);
   $("manche-bouton").disabled = !calibre;
   $("manche-calibre").textContent = calibre
     ? `n ${f(calibre.n, 2)} · d ${f(calibre.d, 2)} (calibrage de référence : dernier réussi non timide)`
@@ -320,7 +321,7 @@ function afficherManche() {
 const journal = creerJournal();
 const protocole = { seq: SEQUENCES[0], enCours: null, pressions: [], opEnAttente: false, revue: null, resumes: [] };
 
-const testeurValide = () => /^T\d{2}$/.test($("proto-testeur").value.trim());
+const testeurValide = () => codeTesteurValide($("proto-testeur").value.trim());
 // Les calibrages sont journalisés dès qu'un code testeur est saisi, sous le code de la séquence
 // sélectionnée si elle comporte un calibrage (A0, B1 à B3, C), sinon sous A0.
 const protocoleJournalise = () => testeurValide();
@@ -355,7 +356,7 @@ function lancerSequence() {
   if (manche?.active) arreterManche();
   protocole.pressions = [];
   protocole.opEnAttente = false;
-  calibre = calibragePour(protocole.seq, calibrages);
+  calibre = calibrages.pour(protocole.seq);
   journal.debut(protocole.seq.code);
   journal.evenement(performance.now(), protocole.seq.code,
     `sequence debut n=${f(calibre.n, 2)} v=${f(calibre.v, 2)} d=${f(calibre.d, 2)} calibrage=${calibre.seq === "A0" ? "reference" : calibre.seq}`);
@@ -426,9 +427,9 @@ const ligneResume = (r) => [
 function afficherProtocole() {
   const seq = protocole.seq, en = protocole.enCours;
   let raison = "";
-  if (!testeurValide()) raison = "Saisissez un code testeur (T01 à T99).";
+  if (!testeurValide()) raison = "Saisissez un code testeur (T00 à T99).";
   else if (seq.calibrage) raison = " "; // A0 : la préparation dit déjà d'utiliser le calibrage ; « Lancer » reste inactif
-  else if (!calibragePour(seq, calibrages)) raison = seq.calibrageAvant
+  else if (!calibrages.pour(seq)) raison = seq.calibrageAvant
     ? `Calibrez d'abord avec ${seq.code} sélectionnée.` : "Réussissez d'abord un calibrage non timide (A0).";
   $("proto-preparation").textContent = [seq.preparation, raison.trim()].filter(Boolean).join(" ");
   $("proto-lancer").disabled = Boolean(raison) || Boolean(en) || Boolean(protocole.revue) || cal !== null;
@@ -438,6 +439,12 @@ function afficherProtocole() {
   $("proto-chrono").textContent = en && manche.t0 !== undefined
     ? `${en.code} — ${chrono(manche.t - manche.t0)} / ${chrono(dureeTotale(en.seq) * 1000)} — n ${f(calibre.n, 2)} · d ${f(calibre.d, 2)} (${nomCalibrage(calibre)})` : "";
   $("cal-timide").disabled = cal !== null || codeCalibrage() !== "A0";
+  // Sans code testeur : ni calibrage, ni séquence, et le code ne change pas pendant une prise (n° 281).
+  $("cal-commencer").disabled = !cameraPrete || cal !== null || !testeurValide();
+  if (cal === null && cameraPrete) {
+    $("cal-consigne").textContent = testeurValide() ? CONSIGNE : "Saisissez d'abord un code testeur (T00 à T99) dans « Protocole P0 ».";
+  }
+  $("proto-testeur").disabled = Boolean(en) || Boolean(protocole.revue) || cal !== null;
   const rv = protocole.revue;
   $("proto-revue").hidden = !rv;
   if (rv) {
@@ -574,7 +581,8 @@ $("demarrer").addEventListener("click", async () => {
     return;
   }
   suivre($("video"), await moteurPret);
-  $("cal-commencer").disabled = false;
+  cameraPrete = true;
+  afficherProtocole();
 });
 
 $("cal-commencer").addEventListener("click", lancerCalibrage);
@@ -586,7 +594,13 @@ $("proto-seq").addEventListener("change", (e) => {
   protocole.seq = SEQUENCES.find((s) => s.code === e.target.value);
   afficherProtocole();
 });
-$("proto-testeur").addEventListener("input", afficherProtocole);
+// Changer de code testeur efface les calibrages en mémoire (n° 281).
+$("proto-testeur").addEventListener("input", () => {
+  calibrages.changerTesteur($("proto-testeur").value.trim());
+  if (manche?.active) arreterManche();
+  choisirReference();
+  afficherProtocole();
+});
 $("proto-lancer").addEventListener("click", lancerSequence);
 $("proto-interrompre").addEventListener("click", () => finirSequence(true));
 $("proto-op").addEventListener("click", marquerOp);

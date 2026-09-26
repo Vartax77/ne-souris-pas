@@ -573,7 +573,30 @@ Trois défauts, expliqués par le code et corrigés (n° 277, n° 278) :
 
 Point de méthode : toutes les séquences ont utilisé le calibrage timide (d 0,16), dernier réussi. Des fautes ont été comptées à S 0,17-0,29 (A3, A6, A7), qui n'en seraient pas avec d 0,28. Règle de calibrage de référence adoptée (n° 279). Ces séquences ne sont pas exploitables pour les faux positifs.
 
-Conclusion : **L0.6a non terminé**. Un test court n° 2 suit la correction.
+Conclusion du test n° 1 : L0.6a non terminé. Un test court n° 2 suit la correction.
+
+**Test court n° 2** (PC), relevés de Valentin (n° 280). Journal : 3 315 lignes, 70 colonnes.
+
+Conforme :
+
+- ligne `sequence debut n=0,00 v=0,64 d=0,25 calibrage=reference` au lancement d'A1, d'A3 et d'A7 ;
+- colonne `pause` vide partout ; aucun trou d'images de plus de 0,17 s ;
+- toutes les fautes ont leur colonne `faute` : A1, 2 sourires ; A3, 12 sourires ; A7, 5 pertes et 1 sourire ;
+- A7 : 9 pertes recalculées depuis les images, avertissements et fautes datés exactement au début + 1,5 s ou + 5 s (exemple : perte de 10,5 s à 319,0 s, avertissement à 320,5 s, faute à 324,0 s) ;
+- barre d'espace : `op` = 1 à 48,5 s et à 52,1 s en A1, pendant chaque sourire ;
+- revue : A1, 2 confirmées (« oui » aux deux) ; A3, 11 faux positifs et 1 confirmée. La classe « litigieuse » n'a pas été produite à la main ; elle reste couverte par la vérification automatique (`tests/protocole.test.mjs`).
+
+Mesure pour Q17 ([D2](D2-regles-jeu-arbitrage.md)) : A3 complète avec le calibrage franc (d 0,25) donne **12 fautes en 60 s** de voyelles tenues, à S 0,61-0,78.
+
+Défaut trouvé, corrigé (n° 281) : les deux calibrages francs ont été faits **avant** la saisie de « T00 ». Ils ne sont pas dans le journal, mais la page les a pris comme référence (v 0,64, d 0,25) ; la seule ligne A0 est une tentative timide à 143 s, rejetée pour amplitude. En P0, un testeur aurait pu jouer avec le calibrage du testeur précédent, sans trace. Correction :
+
+1. aucun calibrage ni aucune séquence tant qu'aucun code testeur valide n'est saisi, avec le message « Saisissez d'abord un code testeur (T00 à T99) » ;
+2. changer de code testeur efface les calibrages en mémoire ; le code ne peut pas changer pendant un calibrage, une séquence ou une revue ;
+3. seuls comptent les calibrages faits sous A0 avec le code en cours.
+
+Vérification : tests automatiques des trois règles (`tests/protocole.test.mjs`) ; dans Chrome sans interface, sans code, puis avec « T1 » et « Valentin », « Commencer » et « Lancer » restent bloqués et un clic forcé ne lance rien ; avec « T01 », « Commencer » s'active.
+
+Conclusion : **L0.6a terminé** sur le PC, sans troisième test manuel (décision de Valentin, n° 280). Le contrôle de l'export sur l'iPhone, prévu au critère de D6, n'a pas été fait : il est reporté à la première séance P0 sur l'iPhone.
 
 ## 2. Prototype 1 — appel vidéo seul
 
