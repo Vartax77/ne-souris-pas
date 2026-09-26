@@ -415,6 +415,43 @@ Conclusions :
 - **Score `s`** : progressif, et cohérent avec les valeurs simulées (neutre 0,03 à 0,35, sourire volontaire 0,55 à 0,95).
 - **Variante `cheekSquint`** : ne remonte rien avec ce modèle ; probablement à abandonner (n° 237).
 
+#### 1.7.3 Lot L0.3 — calibrage (2026-09-26)
+
+Relevés de Valentin sur le PC (Chrome, carte graphique) ([D6](D6-lots-developpement.md) L0.3, n° 244).
+
+Calibrage réel réussi (septième essai) :
+
+| Résultat | Détail |
+|---|---|
+| n 0,00 · v 0,63 · v − n 0,63 · d 0,25, non plafonné | Présence 100 % / 100 % · deux visages 0 % · largeur 30 % · lacet 4° · tangage 5° · luminance 134 · écart-type 0,002 · 43 + 25 images · cadence pendant le calibrage 13,6 im/s |
+
+Mesures en direct après le calibrage :
+
+| Situation | Relevé |
+|---|---|
+| Neutre | s 0,00 · largeur 30 % · lacet 2° · tangage 9° · luminance 116 |
+| Sourire franc | s 0,69 (G 0,66 · D 0,72) · `cheekSquint` 0,00 |
+| Hors champ | 0 visage |
+| Personne debout au fond de la pièce | 0 visage : visage trop petit pour MediaPipe, il ne rend donc pas l'image invalide |
+| À un mètre | Largeur 13 % · s 0,00 |
+| Tête tournée vers la gauche | Lacet 29° · s 0,01 : aucun faux positif |
+| Cadence caméra | 14,8 à 29,1 im/s à luminance égale (114 à 119) ; 14,8 à 15,2 im/s le soir à 21 h, lampe allumée (luminance 114) |
+| Fenêtre de 10 s minimale | 8,4 im/s, probablement au démarrage : la page affiche désormais le moment du minimum pour le vérifier |
+
+Simulation de R1 par Valentin, avec ces valeurs : trois défauts, corrigés (n° 245 à 247).
+
+| Défaut | Constat dans le code | Correction |
+|---|---|---|
+| Deux visages masqué par la présence | Présent dans le texte de D2 et dans un cas limite du code (8 % à deux visages, 5 % sans visage) | « Deux visages » testé en premier ; en cas d'échec de présence, le message suit la cause dominante (n° 245) |
+| Seuil de 60/255 jamais atteint | Présent : une pièce presque noire mesure 76 à 86, car l'exposition automatique compense | Pièce sombre = caméra sous 12 im/s **ou** luminance sous 60/255 (n° 247). Marge faible : 14,8 le soir avec une lampe |
+| Sourire tenu signalé comme de la parole | Présent : l'écart-type était testé avant le neutre trop haut | Neutre trop haut testé avant l'écart-type (n° 246) |
+
+Inconnue : la parole ne dépasse l'écart-type de 0,05 que si elle fait monter s d'environ 0,15. Une parole discrète passe le calibrage sans fausser `n` (n° 248). Le geste réel « parler » la mesurera.
+
+Vérification automatique (`tests/calibrage.test.mjs`) : une séquence par cause de rejet, construite avec ces relevés, y compris les trois défauts et le plafond `d_max` (v − n de 0,80 et de 0,90). Avec l'ancien code, elle échoue exactement sur les trois défauts ; avec le nouveau, tout passe.
+
+Suite (n° 249) : L0.3 se termine par trois gestes réels sur le PC (parler, deux visages proches, lampe éteinte). Les essais de calibrage sur iPhone passent au protocole P0 (séquence A0).
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés

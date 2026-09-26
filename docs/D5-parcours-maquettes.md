@@ -306,11 +306,12 @@ Ordinateur, paysage :
 | Rejet : deux visages | « Un seul visage dans le champ. » |
 | Rejet : largeur | « Rapprochez-vous de la caméra. » |
 | Rejet : angles | « Regardez l'écran bien en face. » |
-| Rejet : luminance | Écran ER3 (section 4) |
+| Rejet : pièce sombre (caméra sous 12 images/s ou luminance sous 60/255) | Écran ER3 (section 4) |
 | Rejet : écart-type | « Restez silencieux et immobile. » |
 | Rejet : neutre trop haut | « Détendez votre visage, sans sourire. » |
 | Rejet : amplitude | « Souriez franchement. » |
 | Après un rejet | Bouton « Recommencer » |
+| Ordre des causes | Celui de [D2](D2-regles-jeu-arbitrage.md) R1 point 4, révisé après L0.3 : deux visages, présence, largeur, angles, pièce sombre, neutre trop haut, écart-type, amplitude (n° 245 à 247) |
 
 Téléphone, portrait :
 
@@ -594,11 +595,11 @@ Toute erreur affiche : ce qui s'est passé, ce que le joueur peut faire, un seul
 |---|---|---|---|---|
 | ER1 | Caméra ou micro refusés | Erreur caméra (T3) | « Sans caméra ni micro, le duel est impossible. Autorisez-les dans les réglages de votre navigateur, puis réessayez. » | Bouton « Réessayer » ; lien « Comment faire ? » avec la marche à suivre pour Safari, Chrome et Firefox |
 | ER2 | Aucune caméra détectée | Erreur caméra (T3) | « Aucune caméra trouvée sur cet appareil. Essayez avec un téléphone ou un ordinateur équipé d'une webcam. » | Bouton « Réessayer » |
-| ER3 | Lumière insuffisante (rejet de calibrage, luminance) | Calibrage (T11) | « Pas assez de lumière. Allumez une lampe face à vous ou tournez-vous vers une fenêtre. » | Bouton « Recommencer » |
+| ER3 | Pièce sombre au calibrage : caméra sous 12 images/s ou luminance sous 60/255 (n° 247) | Calibrage (T11) | « Pas assez de lumière. Allumez une lampe face à vous ou tournez-vous vers une fenêtre. » | Bouton « Recommencer » |
 | ER4 | Connexion impossible | Erreur connexion (T9) | « Impossible de joindre votre adversaire. Vérifiez votre connexion internet, puis réessayez. » | Bouton « Réessayer » ; après deux échecs, conseil : « Essayez de passer du Wi-Fi à la 4G, ou l'inverse. » |
 | ER5 | Adversaire parti | Fin de session (T30) | « Votre adversaire est parti. » | Bouton « Créer un nouveau duel » |
 | ER6 | Lien plus valable (salon introuvable, expiré ou complet) | Erreur salon (T6) | « Ce lien n'est plus valable. Demandez un nouveau lien à votre adversaire. » | Bouton « Créer mon propre duel » |
-| ER7 | Appareil trop lent (caméra à 12 images/s ou plus, ou luminance correcte) | Écran noir (T14) | « Appareil trop lent : fermez les autres applications. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
+| ER7 | Appareil trop lent (caméra à 12 images/s ou plus, et luminance d'au moins 60/255) | Écran noir (T14) | « Appareil trop lent : fermez les autres applications. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
 | ER8 | Navigateur incompatible | Navigateur incompatible (T32) | « Ce navigateur ne permet pas de jouer. Utilisez Chrome ou Safari. » (n° 174 ; Firefox ajouté seulement s'il passe P0 et P1) | Bouton « Copier le lien » pour l'ouvrir ailleurs |
 | ER9 | Versions différentes des deux applications | Erreur version (T33, [D4](D4-architecture-technique.md) §4.2) | « Votre adversaire utilise une autre version du jeu. Rechargez tous les deux la page. » | Bouton « Recharger » |
 | ER10 | Connexion perdue, aucun vainqueur | Fin de session (T27) | « Connexion perdue. Match interrompu. » | Bouton « Créer un nouveau duel » |
@@ -607,7 +608,7 @@ Toute erreur affiche : ce qui s'est passé, ce que le joueur peut faire, un seul
 | ER13 | Forfait du joueur revenu trop tard | Fin de session (T27) | « Match perdu par forfait. » | Bouton « Créer un nouveau duel » |
 | ER14 | Fin de session après 60 s sans revanche | Fin de session (T31) | « Le salon a expiré. » | Bouton « Créer un nouveau duel » |
 | ER15 | Match annulé par coupure, avant la fin de la première manche (les deux joueurs) | Fin de session (T27, [D2](D2-regles-jeu-arbitrage.md) §6.4.3) | « Le match n'a pas pu commencer : la connexion a été perdue. » | Bouton « Créer un nouveau duel » |
-| ER16 | Trop sombre : la caméra fournit moins de 12 images/s et la luminance du visage est sous 60/255 | Écran noir (T14, [D2](D2-regles-jeu-arbitrage.md) §5.8) | « Trop sombre : votre caméra ralentit. Allumez une lampe face à vous. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
+| ER16 | Trop sombre : la caméra fournit moins de 12 images/s ou la luminance du visage est sous 60/255 (n° 247) | Écran noir (T14, [D2](D2-regles-jeu-arbitrage.md) §5.8) | « Trop sombre : votre caméra ralentit. Allumez une lampe face à vous. Nouvel essai dans 5 s… » | Attente automatique ; bouton « Abandonner » |
 
 Un seul libellé pour recommencer : « Créer un nouveau duel » (n° 170). Le mot « salon » n'apparaît que dans « Le salon a expiré. » (ER14).
 

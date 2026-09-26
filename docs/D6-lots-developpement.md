@@ -103,7 +103,7 @@ flowchart LR
 |---|---|
 | Tâches | R1 complet : phase neutre 3 s, phase sourire 2 s, sept causes de rejet dans l'ordre de [D2](D2-regles-jeu-arbitrage.md), messages de [D5](D5-parcours-maquettes.md) §3.5 ; score lissé `S` (avancé de L0.4, n° 242) ; calcul de `n`, `v`, `d` avec plafond `d_max` ; ovale de placement ; détail de diagnostic pour la grille A0 (n° 243). Fichiers : `app/js/calibrage.js`, `reglages.js` ; vérification `tests/calibrage.test.mjs` |
 | Modules | Arbitrage, Interface |
-| Terminé quand | Chaque cause de rejet a été provoquée volontairement au moins une fois et affiche le bon message |
+| Terminé quand | Chaque cause de rejet est vérifiée par la vérification automatique (`tests/calibrage.test.mjs`, séquences construites à partir des relevés) ; un calibrage réel réussit sur le PC ; trois gestes réels sur le PC donnent le bon message : parler, deux visages proches, lampe éteinte. Les essais de calibrage sur iPhone passent au protocole P0 (séquence A0, [D3](D3-plan-de-tests.md) §1.3.4) (n° 249) |
 | Test | [D3](D3-plan-de-tests.md) A0, §1.3.5, §1.3.6, critère G4 |
 | Dépend de | L0.2 |
 

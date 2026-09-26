@@ -77,7 +77,7 @@ let cal = null, essais = 0;
 
 function lancerCalibrage() {
   essais += 1;
-  cal = { debut: undefined, neutre: [], sourire: [] };
+  cal = { debut: undefined, neutre: [], sourire: [], imagesCamera: 0 };
   $("cal-essai").textContent = String(essais);
   $("cal-commencer").disabled = true;
   afficher("cal-resultat", "");
@@ -103,10 +103,12 @@ function enregistrer(m, t) {
 const pct = (x) => `${f(x * 100)} %`;
 
 function terminerCalibrage() {
-  const { neutre, sourire } = cal;
+  const { neutre, sourire, imagesCamera } = cal;
   cal = null;
-  const r = evaluerCalibrage(neutre, sourire);
-  const st = r.stats, dureeS = (REGLAGES.phaseNeutreMs + REGLAGES.phaseSourireMs) / 1000;
+  const dureeS = (REGLAGES.phaseNeutreMs + REGLAGES.phaseSourireMs) / 1000;
+  // Cadence de la caméra elle-même pendant le calibrage : elle ralentit dans une pièce sombre (D8 n° 247).
+  const r = evaluerCalibrage(neutre, sourire, REGLAGES, { cadenceCamera: imagesCamera / dureeS });
+  const st = r.stats;
   if (r.ok) {
     afficher("cal-resultat", `Calibrage réussi : n ${f(r.n, 2)} · v ${f(r.v, 2)} · v − n ${f(st.amplitude, 2)} · d ${f(r.d, 2)} (${r.plafonne ? "plafonné par d_max" : "non plafonné"})`, "ok");
   } else {
@@ -116,7 +118,7 @@ function terminerCalibrage() {
   $("cal-detail").textContent = [
     `Détail (test P0) : présence ${pct(st.presenceNeutre)} / ${pct(st.presenceSourire)} · deux visages ${pct(st.deuxVisages)} · largeur ${f(st.largeur)} % · lacet ${f(st.lacet)}° · tangage ${f(st.tangage)}°`,
     `luminance ${f(st.luminance)} · écart-type ${f(st.ecartType, 3)} · n ${f(st.n, 2)} · v ${f(st.v, 2)} · v − n ${f(st.amplitude, 2)}`,
-    `images ${neutre.length} + ${sourire.length} · cadence pendant le calibrage ${f((neutre.length + sourire.length) / dureeS, 1)} im/s`,
+    `images ${neutre.length} + ${sourire.length} · cadence analysée ${f((neutre.length + sourire.length) / dureeS, 1)} im/s · cadence caméra ${f(st.cadenceCamera, 1)} im/s`,
   ].join("\n");
   $("cal-consigne").textContent = CONSIGNE;
   $("cal-barre").value = 0;
@@ -129,10 +131,13 @@ function suivre(video, moteur) {
   const analyse10 = creerFenetre(10000);
   const analyse1 = creerFenetre(1000);
   let min10 = Infinity, max10 = 0, tempsTotal = 0, tempsMax = 0, analysees = 0, dernierAffichage = 0, premiere;
+  let debut, momentMin; // moment du minimum des fenêtres de 10 s, pour savoir s'il vient du démarrage
 
   lancerAnalyse(video, moteur, {
     image(t) {
+      debut ??= t;
       camera.ajouter(t);
+      if (cal?.debut !== undefined) cal.imagesCamera += 1;
     },
     resultat(res, t, ms) {
       analyse10.ajouter(t);
@@ -146,7 +151,10 @@ function suivre(video, moteur) {
       }
       const c10 = analyse10.cadence();
       if (analyse10.pleine()) {
-        min10 = Math.min(min10, c10);
+        if (c10 < min10) {
+          min10 = c10;
+          momentMin = (t - debut) / 1000;
+        }
         max10 = Math.max(max10, c10);
       }
       let m;
@@ -162,7 +170,7 @@ function suivre(video, moteur) {
         `Mode de calcul : ${moteur.mode === "GPU" ? "carte graphique (GPU)" : "processeur (CPU)"} — ${moteur.raison ? `repli : ${moteur.raison}` : moteur.choix}`,
         `Cadence caméra : ${camera.pleine() ? f(camera.cadence(), 1) : "mesure en cours"} im/s`,
         `Cadence analysée : ${analyse10.pleine() ? f(c10, 1) : "mesure en cours"} im/s (10 s) · ${f(analyse1.cadence())} (1 s)`,
-        `Fenêtres de 10 s : min ${f(min10, 1)} · max ${f(max10, 1)} · plafond ${CADENCE_MAX}`,
+        `Fenêtres de 10 s : min ${f(min10, 1)}${momentMin === undefined ? "" : ` (à ${f(momentMin)} s)`} · max ${f(max10, 1)} · plafond ${CADENCE_MAX}`,
         `Temps d'analyse : moyen ${f(tempsTotal / analysees)} ms · max ${f(tempsMax)} ms · 1re image ${f(premiere)} ms`,
         `Visages : ${m.visages}`,
         `Largeur : ${visage ? f(m.largeur) : "—"} %   Lacet : ${visage ? f(m.lacet) : "—"}°   Tangage : ${visage ? f(m.tangage) : "—"}°`,

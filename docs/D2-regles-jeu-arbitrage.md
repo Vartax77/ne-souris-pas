@@ -89,18 +89,19 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 1. Le calibrage a lieu une fois par match, avant la première manche (n° 18, confirmé par n° 71).
 2. **Phase neutre** : le joueur regarde la caméra, visage neutre, pendant 3 s.
 3. **Phase sourire** : le joueur sourit franchement pendant 2 s. `v` est le maximum de `S` sur la phase. On vise haut : selon la simulation, sous-estimer `v` coûte environ 20 fois plus de faux positifs que le surestimer (n° 91).
-4. Le calibrage est rejeté si une seule de ces conditions est vraie :
-   - moins de 90 % d'images avec exactement un visage dans l'une des phases (au calibrage, la largeur et les angles sont jugés sur leurs médianes, pas dans la présence : n° 239) ;
-   - largeur médiane du visage sous 20 % (seuil fixé au réglage P0, repli à 12 % : n° 240) ;
-   - lacet ou tangage médian au-delà des limites ;
-   - luminance moyenne de la zone du visage sous 60/255 (calculée sur les pixels de l'image, pas par MediaPipe) ;
-   - écart-type du score brut au-dessus de 0,05 en phase neutre ;
-   - neutre `n` au-dessus de 0,35 ;
-   - amplitude `v − n` sous 0,15.
+4. Le calibrage est rejeté si une seule de ces conditions est vraie. Ordre révisé après les relevés L0.3 (n° 245 à 247) :
+   1. plus de 10 % d'images avec deux visages ou plus dans l'une des phases → « Un seul visage dans le champ » ;
+   2. moins de 90 % d'images avec exactement un visage dans l'une des phases (au calibrage, la largeur et les angles sont jugés sur leurs médianes, pas dans la présence : n° 239). Le message suit la cause dominante des images invalides : si les images à deux visages sont au moins aussi nombreuses que les images sans visage, « Un seul visage dans le champ » ; sinon « Gardez votre visage dans l'ovale » ;
+   3. largeur médiane du visage sous 20 % (seuil fixé au réglage P0, repli à 12 % : n° 240) ;
+   4. lacet ou tangage médian au-delà des limites ;
+   5. **pièce sombre** : la caméra fournit moins de 12 images/s pendant le calibrage, **ou** la luminance moyenne de la zone du visage est sous 60/255 (calculée sur les pixels de l'image, pas par MediaPipe). Voir point 8 ;
+   6. neutre `n` au-dessus de 0,35 (testé avant l'écart-type : un sourire tenu qui fluctue doit être signalé comme un sourire, n° 246) ;
+   7. écart-type du score brut au-dessus de 0,05 en phase neutre ;
+   8. amplitude `v − n` sous 0,15.
 5. En cas de rejet, l'application affiche la **première** cause rencontrée, dans l'ordre ci-dessus, et fait recommencer les deux phases. Le nombre d'essais n'est pas limité.
 6. En cas de succès, l'appareil garde `n` et calcule `d = min(0,4 × (v − n), 0,35)`. La manche ne peut pas démarrer tant que les deux joueurs n'ont pas réussi leur calibrage.
 7. Si le seuil est plafonné par `d_max`, rien n'est affiché au joueur. Le plafonnement est noté pour l'analyse des tests P0.
-8. Le contrôle de luminance protège aussi la cadence. Dans une pièce sombre, une webcam allonge d'elle-même son temps d'exposition et fournit moins d'images : en L0.2, 10 images/s au lieu de 30 sur le PC, donc une cadence analysée exactement au plancher (n° 238). Un appareil peut ainsi passer sous le plancher de cadence par manque de lumière, et non par lenteur.
+8. Pièce sombre (n° 238, n° 247). Dans une pièce sombre, une webcam allonge d'elle-même son temps d'exposition et fournit moins d'images : en L0.2, 10 images/s au lieu de 30 sur le PC, donc une cadence analysée exactement au plancher. L'exposition automatique ramène aussi la luminance mesurée vers un niveau normal : 76 à 86 dans une pièce presque noire, contre 74 à 114 le soir avec une lampe. La luminance seule ne détecte donc pas le noir ; la cadence de la caméra, si. Le critère combine les deux : caméra sous 12 images/s, ou luminance sous 60/255, gardée comme filet de sécurité pour un appareil qui garderait sa cadence dans le noir. **Marge faible** : le soir avec une lampe, la caméra du PC tourne déjà à 14,8-15,2 images/s. Seuils **à confirmer (P0)**, en condition B1, surtout sur iPhone.
 
 | Cas | Comportement attendu |
 |---|---|
@@ -109,7 +110,7 @@ Colonnes des tableaux de cas limites : le cas, puis le comportement attendu de l
 | Rire sans sourire | Rien de particulier. |
 | Lunettes | Calibrer avec les lunettes portées pendant le jeu. Un reflet qui empêche la détection fait baisser la présence : rejet pour cause de présence. |
 | Barbe | L'amplitude mesurée est plus faible, mais le seuil propre au joueur s'y adapte. Si `v − n < 0,15` : rejet, message « Souriez franchement ». |
-| Deux visages | Images invalides. Si elles dépassent 10 % d'une phase : rejet, message « Un seul visage dans le champ ». |
+| Deux visages | Images invalides. Si elles dépassent 10 % d'une phase : rejet, message « Un seul visage dans le champ », testé en premier (n° 245). Une personne au fond de la pièce n'est pas détectée par MediaPipe (visage trop petit) : elle ne gêne pas (relevé L0.3). |
 | Caméra coupée | Aucune image : rejet pour cause de présence. |
 
 ### 4.2 R2 — Détection du sourire
@@ -295,7 +296,7 @@ Valeurs attendues de `W`. Les allers-retours sont des exemples, pas des mesures.
 - Avant chaque révélation, chaque appareil mesure sa cadence. Les deux s'alignent sur la plus basse, avec un plancher de 10 images/s (n° 94).
 - Appareil sous 10 images/s avant la révélation : la manche ne démarre pas, nouvelle mesure toutes les 5 s (T14, n° 107, n° 184). Pendant la manche : la manche continue ; la cadence est réévaluée à la révélation suivante. **À confirmer (P0)**
 - Le message distingue la cause (n° 238) :
-  - la caméra elle-même fournit moins de 12 images/s **et** la luminance du visage est sous 60/255 : « Trop sombre » ([D5](D5-parcours-maquettes.md) ER16) ;
+  - la caméra elle-même fournit moins de 12 images/s **ou** la luminance du visage est sous 60/255 : « Trop sombre » ([D5](D5-parcours-maquettes.md) ER16) — même critère qu'au calibrage (R1 point 8, n° 247) ;
   - sinon : « Appareil trop lent » (ER7).
   - Seuils de départ (12 images/s, 60/255) : **à confirmer (P0)**, en condition B1 ([D3](D3-plan-de-tests.md) §1.2.2).
 
@@ -408,7 +409,7 @@ stateDiagram-v2
 | T11 | Calibrage | A échoue (R1) | Calibrage | Cause du rejet ; nouvel essai | « Votre adversaire recommence son calibrage » |
 | T12 | Calibrage ou Arrêt sur image | Deux calibrages réussis, ou fin de l'arrêt sur image sans fin de match | Écran noir | Les deux : écran noir, « Manche N », score ; le son reste ouvert (n° 189) | |
 | T13 | Écran noir | Synchronisation (5 allers-retours) faite, cadence commune ≥ 10 images/s, les deux appareils prêts, 2 s écoulées | Compte à rebours | Les deux : 3, 2, 1, calés sur le même t0 ([D4](D4-architecture-technique.md)) | |
-| T14 | Écran noir | Cadence de A sous 10 images/s | Écran noir | Caméra sous 12 images/s et luminance sous 60/255 : « Trop sombre » (ER16) ; sinon « Appareil trop lent : fermez les autres applications » (ER7) ; nouvelle mesure toutes les 5 s (n° 184, n° 238) **À confirmer (P0)** | « Votre adversaire a un souci technique… » |
+| T14 | Écran noir | Cadence de A sous 10 images/s | Écran noir | Caméra sous 12 images/s ou luminance sous 60/255 : « Trop sombre » (ER16) ; sinon « Appareil trop lent : fermez les autres applications » (ER7) ; nouvelle mesure toutes les 5 s (n° 184, n° 238) **À confirmer (P0)** | « Votre adversaire a un souci technique… » |
 | T15 | Compte à rebours | t0 atteint | Manche | Les deux : révélation des deux visages, deux jauges, chronomètre 60 s | |
 | T16 | Manche | Première perte comptée de A (R4) | Manche | Avertissement « Visage perdu : encore une fois et vous perdez la manche » | Mention « Visage perdu » près de l'image de A |
 | T17 | Manche | Faute de A annoncée (R2 ou R4) | Décision | Rien de visible pendant moins d'une seconde | Idem |
