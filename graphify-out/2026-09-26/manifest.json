@@ -1,0 +1,176 @@
+{
+  "CLAUDE.md": {
+    "mtime": 1790342937.4129157,
+    "seen": 1790343258.0508513,
+    "ast_hash": "aca02c7c9294c7ebaff2da25c5978191",
+    "semantic_hash": "aca02c7c9294c7ebaff2da25c5978191"
+  },
+  "sources/cadrage-lots-1-2-3.md": {
+    "mtime": 1790342901.7525232,
+    "seen": 1790343258.050858,
+    "ast_hash": "5bb737442c59607401c13b4ae190cdb8",
+    "semantic_hash": "5bb737442c59607401c13b4ae190cdb8"
+  },
+  "docs/D1-note-de-cadrage.md": {
+    "mtime": 1790364766.325251,
+    "seen": 1790365883.7028656,
+    "ast_hash": "1fb0d772b665e432875b61cb4eca79b8",
+    "semantic_hash": "1fb0d772b665e432875b61cb4eca79b8"
+  },
+  "docs/D8-journal-decisions.md": {
+    "mtime": 1790458615.7717693,
+    "seen": 1790458677.8420575,
+    "ast_hash": "0a4fb2b0037f0fd9881d2ede2e0af835",
+    "semantic_hash": ""
+  },
+  "docs/README.md": {
+    "mtime": 1790458674.7443445,
+    "seen": 1790458677.84206,
+    "ast_hash": "f382e05968237ff55c81d468107777ff",
+    "semantic_hash": ""
+  },
+  "docs/D2-regles-jeu-arbitrage.md": {
+    "mtime": 1790458616.071751,
+    "seen": 1790458677.84205,
+    "ast_hash": "cfac4f3480e9957a1e63f579b8d5f43e",
+    "semantic_hash": ""
+  },
+  "docs/D3-plan-de-tests.md": {
+    "mtime": 1790458615.0998437,
+    "seen": 1790458677.8420513,
+    "ast_hash": "a5a875293e57ac96660ae6517a855073",
+    "semantic_hash": ""
+  },
+  "docs/D4-architecture-technique.md": {
+    "mtime": 1790448928.215833,
+    "seen": 1790448940.1822324,
+    "ast_hash": "9ce5c303cb6c1c0cc0acb3df18301bea",
+    "semantic_hash": ""
+  },
+  "docs/D5-parcours-maquettes.md": {
+    "mtime": 1790456992.379703,
+    "seen": 1790457022.489105,
+    "ast_hash": "6e0068dc590fb4e007a673e445b95af5",
+    "semantic_hash": ""
+  },
+  "docs/D6-lots-developpement.md": {
+    "mtime": 1790458615.9392016,
+    "seen": 1790458677.8420548,
+    "ast_hash": "7c8ae8cad50d314388de73d2d27a5cb4",
+    "semantic_hash": ""
+  },
+  "docs/D7-juridique-confidentialite.md": {
+    "mtime": 1790369044.1934936,
+    "seen": 1790372452.735755,
+    "ast_hash": "bfe2f7cad848176d0e4e181e672f0a8e",
+    "semantic_hash": ""
+  },
+  "docs/RAPPORT-SESSION.md": {
+    "mtime": 1790365389.9914258,
+    "seen": 1790365883.70289,
+    "ast_hash": "ed048543675d040aff915babe4d92094",
+    "semantic_hash": "ed048543675d040aff915babe4d92094"
+  },
+  "app/js/cadence.js": {
+    "mtime": 1790456616.601534,
+    "seen": 1790457022.4890707,
+    "ast_hash": "3bd395d5be0562b3ffff8448e6714091",
+    "semantic_hash": ""
+  },
+  "app/js/capture.js": {
+    "mtime": 1790369098.5623095,
+    "seen": 1790372452.7357306,
+    "ast_hash": "5b9b1c2befd05b99e4c92a0957ecd030",
+    "semantic_hash": ""
+  },
+  "app/js/detection.js": {
+    "mtime": 1790448764.7592971,
+    "seen": 1790448940.182209,
+    "ast_hash": "e95f07f8b6cc67e97793001daada2e64",
+    "semantic_hash": ""
+  },
+  "app/js/main.js": {
+    "mtime": 1790458667.109169,
+    "seen": 1790458677.8420303,
+    "ast_hash": "c7f1bbcbbb1ea6c6587f74322487feb7",
+    "semantic_hash": ""
+  },
+  "app/js/mesures.js": {
+    "mtime": 1790456656.0754843,
+    "seen": 1790457022.4890826,
+    "ast_hash": "4fcf2c853cc55efbbcd91f1ef0996346",
+    "semantic_hash": ""
+  },
+  "tests/mesures.test.mjs": {
+    "mtime": 1790448422.623746,
+    "seen": 1790448433.3196874,
+    "ast_hash": "937f6fc4c5f1ed04cabe5e061c44c999",
+    "semantic_hash": ""
+  },
+  ".github/workflows/pages.yml": {
+    "mtime": 1790369139.1899862,
+    "seen": 1790372452.7357373,
+    "ast_hash": "5050acb7d1ca84dfc884e6610e6a7a2c",
+    "semantic_hash": ""
+  },
+  "app/index.html": {
+    "mtime": 1790456708.047366,
+    "seen": 1790457022.4890988,
+    "ast_hash": "201339f7ebdc527b274b5221995cab61",
+    "semantic_hash": ""
+  },
+  "app/js/calibrage.js": {
+    "mtime": 1790452339.7336576,
+    "seen": 1790452497.4965177,
+    "ast_hash": "f376bf1797a18213a60476b1f77f5150",
+    "semantic_hash": ""
+  },
+  "app/js/reglages.js": {
+    "mtime": 1790456616.5648916,
+    "seen": 1790457022.4890876,
+    "ast_hash": "90821cd339b229dff749bc2f9b4747a5",
+    "semantic_hash": ""
+  },
+  "tests/calibrage.test.mjs": {
+    "mtime": 1790452340.2319918,
+    "seen": 1790452497.4965293,
+    "ast_hash": "12cbd1bcaaacfd40c3be722fe150cd94",
+    "semantic_hash": ""
+  },
+  "app/js/arbitrage.js": {
+    "mtime": 1790456616.566513,
+    "seen": 1790457022.4890645,
+    "ast_hash": "490083ba273425daa3c1c421423d1952",
+    "semantic_hash": ""
+  },
+  "tests/arbitrage.test.mjs": {
+    "mtime": 1790454181.700243,
+    "seen": 1790454332.5136616,
+    "ast_hash": "73a6f94ba7be70bca8263add1248e9a1",
+    "semantic_hash": ""
+  },
+  "app/js/pertes.js": {
+    "mtime": 1790458630.457581,
+    "seen": 1790458677.8420336,
+    "ast_hash": "23f80030a6e6ed48c0cddf979ee414af",
+    "semantic_hash": ""
+  },
+  "app/js/preuve.js": {
+    "mtime": 1790456617.0296252,
+    "seen": 1790457022.489086,
+    "ast_hash": "c428e9e3c3850c7fba54a7098f75c7bd",
+    "semantic_hash": ""
+  },
+  "tests/pertes.test.mjs": {
+    "mtime": 1790458655.3486507,
+    "seen": 1790458677.8420415,
+    "ast_hash": "4be66092afc6204b9e65a3026b63463b",
+    "semantic_hash": ""
+  },
+  "tests/sans-stockage.test.mjs": {
+    "mtime": 1790456648.2273319,
+    "seen": 1790457022.489095,
+    "ast_hash": "52f5a6aa451664c30fcf80fa76a2cee1",
+    "semantic_hash": ""
+  }
+}
