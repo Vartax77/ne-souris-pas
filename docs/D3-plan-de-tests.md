@@ -598,6 +598,8 @@ Vérification : tests automatiques des trois règles (`tests/protocole.test.mjs`
 
 Conclusion : **L0.6a terminé** sur le PC, sans troisième test manuel (décision de Valentin, n° 280). Le contrôle de l'export sur l'iPhone, prévu au critère de D6, n'a pas été fait : il est reporté à la première séance P0 sur l'iPhone.
 
+**Export sur l'iPhone** (iPhone 15 Pro, Safari), relevés de Valentin (n° 282). Journal complet et lisible : 239 lignes, 70 colonnes dont 52 `bs_`, marque d'encodage présente. Fichier récupéré et partagé depuis l'application Fichiers. Contenu : un calibrage sous A0 (v 0,74, d 0,29), puis A1 interrompue avec sa ligne `sequence debut` ; 14,8 lignes par seconde, aucun trou de plus de 0,15 s. La réserve du n° 280 est levée : **L0.6a terminé** sur le PC et l'iPhone 15 Pro.
+
 ## 2. Prototype 1 — appel vidéo seul
 
 ### 2.1 Objectif et risques testés

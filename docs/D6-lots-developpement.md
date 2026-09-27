@@ -143,7 +143,7 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 | Terminé quand | La vérification automatique passe ; le test court sur le PC (A0, A1, A6, A7 interrompue, revue, export) produit un journal complet et lisible au tableur, rangé dans le dossier chiffré ; sur l'iPhone, l'export produit un fichier lisible. La séance à blanc de 30 min devient la première vraie séance P0 de Valentin (n° 271) |
 | Test | [D3](D3-plan-de-tests.md) §1.3.1 à §1.3.7 |
 | Dépend de | L0.5 |
-| Statut | **Terminé** le 2026-09-27 sur le PC, après deux tests courts ; relevés en [D3](D3-plan-de-tests.md) §1.7.6 (n° 280). Contrôle de l'export sur l'iPhone reporté à la première séance P0 sur l'iPhone |
+| Statut | **Terminé** le 2026-09-27 sur le PC, après deux tests courts ; relevés en [D3](D3-plan-de-tests.md) §1.7.6 (n° 280). Export vérifié sur l'iPhone 15 Pro le 2026-09-27 (n° 282) |
 
 #### L0.6b — Session performance
 
