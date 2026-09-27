@@ -710,7 +710,25 @@ Constats :
 - Le test court n° 1 n'a pas de case « timide » (avant n° 279) : son calibrage v 0,39 y est traité comme un franc, et sert de `franc_bas`.
 - Faux positifs au `franc_bas` (n° 291), sur ce journal : A3 4 et A4 1, toutes nouvelles, faute de revue à l'époque (n° 278).
 
-Reste à faire pour clore L0.7 ([D6](D6-lots-developpement.md)) : un journal produit par le nouveau code sur le PC, rejoué « identique », avec les lignes `camera=` et `testeur`.
+**Test de clôture** (PC), relevés de Valentin (n° 293). Journal `journal_T00_2026-09-27_L07.csv`, produit par le nouveau code : 3 prises de calibrage (deux francs, un timide), 9 lignes de rejeu.
+
+| Séquence | Calibrage | `d` | Sourires | Pertes | P | Faux positifs | Contrôle |
+|---|---|---|---|---|---|---|---|
+| A1 | direct | 0,28 | 0 | 0 | 0,17 | 0 | Identique |
+| A1 | franc_bas / timide | 0,275 / 0,223 | 0 | 0 | 0,17 | 0 | — |
+| A3 | direct | 0,28 | 13 | 0 | 0,79 | 13 | Identique |
+| A3 | franc_bas / timide | 0,275 / 0,223 | 13 | 0 | 0,79 | 13 / 13 | — |
+| A7 | direct | 0,28 | 1 | 6 | 0,46 | — | Identique |
+| A7 | franc_bas / timide | 0,275 / 0,223 | 1 | 6 | 0,46 | — | — |
+
+Constats :
+
+- Les trois séquences sont **identiques** au direct : critère de D6 rempli sur un journal du nouveau code.
+- Aucun écart entre calibrages sur ce visage : les deux francs étaient proches (`d` 0,28 et 0,275) et le timide peu timide (`d` 0,223). Cette séance ne dit donc rien de l'écart que visent n° 279 et n° 284 ; seuls des testeurs à `v` dispersé le mesureront.
+- A3 confirme [D2](D2-regles-jeu-arbitrage.md) Q17 : **13 fautes en 60 s** de mots tenus, au seuil le plus haut de la séance (après 12 au test court n° 2, n° 280).
+- Journaux et rejeux rangés dans le dossier chiffré `C:\Users\Vartax\Journaux-P0`.
+
+Conclusion : **L0.7 terminé**. Le code du prototype 0 est complet (L0.1 à L0.7).
 
 ## 2. Prototype 1 — appel vidéo seul
 

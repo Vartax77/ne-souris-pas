@@ -165,7 +165,7 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 | Terminé quand | Le rejeu d'un journal avec les valeurs de départ redonne exactement les fautes observées en direct : vérification automatique ; journaux T00 existants (test court n° 3 et iPhone « identique » ; test court n° 1 avec le seul écart attendu de la minuterie) ; un journal produit par le nouveau code sur le PC (A0 : deux francs et un timide ; A1, A3, A7 avec sorties du champ) « identique », avec les lignes `camera=` et `testeur` |
 | Test | [D3](D3-plan-de-tests.md) §1.5, étapes 9 et 10 ; outil en §1.5.4 |
 | Dépend de | L0.6a |
-| Statut | Code terminé le 2026-09-27 (`app/js/manche.js`, `outils/rejeu.mjs`, `tests/rejeu.test.mjs`) ; journaux existants rejoués ([D3](D3-plan-de-tests.md) §1.7.8, n° 292). Reste le journal du nouveau code |
+| Statut | **Terminé** le 2026-09-27 : journaux existants rejoués (n° 292) ; journal du nouveau code « identique » sur A1, A3, A7 ([D3](D3-plan-de-tests.md) §1.7.8, n° 293). Le code du prototype 0 est complet |
 
 ### 3.2 Prototype 1 — appel vidéo seul
 
