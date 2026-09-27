@@ -163,13 +163,17 @@ Revenir en N à la fin.
 
 #### 1.3.8 Session performance (Valentin seul, par appareil)
 
-1. Appareil chargé à 100 %, luminosité fixe, hors charge secteur.
-2. Lancer l'analyse continue, visage dans le champ, 10 min. Noter la batterie au début et à la fin.
-3. Recommencer 10 min avec une **charge vidéo simulée** : un appel WebRTC en boucle sur le même appareil, sans réseau, pour reproduire le coût de l'encodage vidéo du vrai jeu.
-4. Toucher le dos de l'appareil à 5 min et à 10 min : tiède, chaud ou brûlant.
-5. Relever les images/s par fenêtre de 10 s (journal).
+Séquence PERF du prototype (lot L0.6b, n° 285) : **10 min d'un seul tenant, 5 min sans charge puis 5 min avec charge**, enchaînées sans arrêt. L'étape avec charge vient en second, sur un appareil déjà chaud : c'est le cas le plus défavorable.
 
-Chauffe excessive (précise n° 51) : une fenêtre de 10 s sous 10 images/s pendant les 5 premières minutes, ou un ralentissement visible de l'affichage, ou un appareil brûlant au toucher. **À confirmer (P0)**
+1. Appareil chargé à 100 %, débranché, luminosité fixe, verrouillage automatique désactivé. Code testeur T00 et calibrage de référence (A0) d'abord.
+2. Lancer PERF, visage dans le champ, immobile, sans parler. Noter la batterie au début, à 5 min et à 10 min.
+3. À 5 min, la **charge vidéo simulée** démarre seule : un appel WebRTC en boucle sur le même appareil, sans serveur ; aucun octet ne quitte l'appareil. Il envoie le flux caméra en H.264 si possible (n° 205), plafonné à 1,7 Mbit/s ([D4](D4-architecture-technique.md) C5), et affiche la vidéo reçue en vignette, comme le visage de l'adversaire en jeu. Si l'appel ne se connecte pas en 10 s, la séquence s'interrompt.
+4. Toucher le dos de l'appareil à 5 min et à 10 min : tiède, chaud ou brûlant.
+5. Aucune capture d'écran pendant la séquence (n° 275).
+
+Mesuré automatiquement, par fenêtre de 10 s consécutive (une ligne `perf fenetre` au journal) : cadence analysée, temps d'analyse moyen et maximal, cadence caméra, cadence d'affichage, et, avec charge, images encodées et décodées par seconde, débit envoyé, résolution, codec, limitation par le processeur. La charge est ainsi **prouvée**, et non supposée. En fin de séquence, un bilan par étape : cadence médiane et plus basse, fenêtres sous 10, temps d'analyse de la 1re et de la dernière minute (une dérive annonce une chauffe), caméra et affichage les plus bas, charge, et G3 automatique.
+
+Chauffe excessive (précise n° 51) : une fenêtre de 10 s sous 10 images/s dans une étape de 5 min, ou un ralentissement visible de l'affichage, ou un appareil brûlant au toucher. **À confirmer (P0)**. Les deux derniers jugements restent manuels.
 
 La mesure sans charge est optimiste : elle ignore l'appel vidéo. Le critère s'applique aux deux mesures, sans charge et avec charge (n° 81).
 
@@ -195,7 +199,7 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `faute` | Vide, sourire ou perte. Toute faute a exactement une ligne avec cette colonne remplie, même constatée sans image par la minuterie (n° 277) |
 | `op` | 1 si la touche « sourire vu » est pressée (barre d'espace ou bouton). « L'opérateur a vu » un sourire si la touche est pressée entre 0,5 s avant le début de la série et 2 s après sa confirmation **À confirmer (P0)** (n° 272) |
 | `pause` | Trou d'images avant cette ligne, en ms, s'il dépasse 1,5 s **à l'intérieur d'une même prise** (un calibrage, une séquence) : la séquence est à refaire (n° 274). L'attente entre deux prises n'est pas une pause (n° 277) |
-| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…`, suivi de `timide` s'il y a lieu, ou `calibrage rejet <cause>`), début de séquence avec le calibrage utilisé (`sequence debut n=… v=… d=… calibrage=reference`, ou `=B1`…), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274, n° 279) |
+| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…`, suivi de `timide` s'il y a lieu, ou `calibrage rejet <cause>`), début de séquence avec le calibrage utilisé (`sequence debut n=… v=… d=… calibrage=reference`, ou `=B1`…), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274, n° 279) ; en PERF, `perf fenetre …` toutes les 10 s et `perf appel connecte` ou `perf appel echec` (n° 285) |
 
 Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; le disque est protégé par BitLocker et les journaux restent hors du dépôt public (n° 222, n° 223). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
@@ -262,10 +266,12 @@ Une série de cinq lignes par testeur.
 
 #### 1.4.8 Performance
 
-| Appareil | Navigateur | Charge vidéo | Images/s médiane | Fenêtre de 10 s la plus basse | Batterie consommée en 10 min | Toucher à 5 min | Toucher à 10 min | Ralentissement visible |
-|---|---|---|---|---|---|---|---|---|
-| | | Sans | | | | | | |
-| | | Avec | | | | | | |
+Une ligne par étape de 5 min de la séquence PERF (§1.3.8).
+
+| Appareil | Navigateur | Charge vidéo | Images/s médiane | Fenêtre de 10 s la plus basse | Temps d'analyse 1re / dernière minute (ms) | Caméra, affichage les plus bas (im/s) | Charge : encodées, décodées (im/s), débit | Pauses | Batterie consommée en 5 min | Toucher en fin d'étape | Ralentissement visible | G3 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| | | Sans | | | | | — | | | | | |
+| | | Avec | | | | | | | | | | |
 
 #### 1.4.9 Synthèse
 

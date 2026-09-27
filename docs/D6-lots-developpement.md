@@ -149,9 +149,9 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Séquence PERF ([D3](D3-plan-de-tests.md) §1.3.8) : 10 min sans charge, puis 10 min avec charge vidéo simulée (appel WebRTC en boucle sur le même appareil, sans réseau) ; images/s par fenêtre de 10 s au journal. Plan à présenter |
+| Tâches | Séquence PERF ([D3](D3-plan-de-tests.md) §1.3.8) : 5 min sans charge puis 5 min avec charge vidéo simulée, enchaînées (n° 285) ; appel WebRTC en boucle sur le même appareil, sans serveur, H.264 plafonné à 1,7 Mbit/s, vidéo reçue affichée ; fenêtres de 10 s consécutives au journal (cadence analysée, temps d'analyse, caméra, affichage, charge prouvée par `getStats`) ; bilan par étape et G3 automatique. Calibrage de référence au `v` le plus haut (n° 283). Fichiers : `app/js/perf.js` ; vérification `tests/perf.test.mjs` |
 | Modules | Détection, WebRTC |
-| Terminé quand | À fixer avec le plan |
+| Terminé quand | La vérification automatique passe ; PERF complète, sans pause, sur le PC, l'iPhone 15 Pro et l'iPhone XR, avec « appel connecté » et des images encodées et décodées à chaque fenêtre de l'étape avec charge ; journaux exportés ; grille [D3](D3-plan-de-tests.md) §1.4.8 remplie ; verdict G3 relevé sur le XR. Le lot est terminé même si G3 échoue : l'échec renvoie au §4 (ajustement de L0.2) |
 | Test | [D3](D3-plan-de-tests.md) §1.3.8, critère G3 |
 | Dépend de | L0.6a |
 

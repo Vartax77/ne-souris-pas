@@ -52,6 +52,12 @@ export const SEQUENCES = Object.freeze([
   { code: "C", titre: "Exagération", calibrageAvant: true,
     preparation: "Calibrez d'abord, avec C sélectionnée, en forçant le sourire volontaire au maximum ; notez d et « plafonné ».",
     etapes: [["Vous pouvez sourire franchement : l'opérateur vous provoque", 60]] },
+  // Session performance (D3 §1.3.8, n° 285) : 5 min sans charge puis 5 min avec la charge vidéo simulée,
+  // démarrée d'elle-même au début de la 2e étape (perf.js).
+  { code: "PERF", titre: "Session performance", perf: true,
+    preparation: "Valentin seul (T00). Appareil chargé à 100 %, débranché, luminosité fixe, verrouillage automatique désactivé. Calibrage de référence d'abord (A0). Aucune capture d'écran pendant la séquence. Toucher le dos de l'appareil à 5:00 et à 10:00.",
+    etapes: [["Sans charge : visage dans le champ, immobile, sans parler", 300],
+      ["Avec charge vidéo simulée : visage dans le champ, immobile, sans parler", 300]] },
 ]);
 
 // Code testeur : T00 à T99 (T00 : essais de Valentin), jamais de nom (D3 §1.4.2). Sans code, ni calibrage ni séquence (n° 281).

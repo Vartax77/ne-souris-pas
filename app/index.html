@@ -14,7 +14,7 @@
 <body>
   <main>
     <h1>Ne souris pas — prototype 0</h1>
-    <p class="lot">Lot L0.6a — outils de test</p>
+    <p class="lot">Lot L0.6b — session performance</p>
 
     <div class="cadre">
       <video id="video" autoplay muted playsinline></video>
@@ -50,6 +50,8 @@
       <button id="proto-interrompre" type="button" disabled>Interrompre</button>
       <p id="proto-chrono"></p>
       <p id="proto-consigne"></p>
+      <!-- PERF : vidéo reçue de l'appel simulé en boucle, affichée pour que son décodage compte (L0.6b). -->
+      <video id="perf-retour" autoplay muted playsinline hidden></video>
       <button id="proto-op" type="button" disabled>Sourire vu (ou barre d'espace)</button>
       <div id="proto-revue" hidden>
         <p id="proto-revue-titre"></p>

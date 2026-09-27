@@ -175,3 +175,11 @@ button {
   font-size: .8rem;
   white-space: pre-wrap;
 }
+
+/* PERF : vignette de la vidéo reçue (appel simulé). [hidden] doit l'emporter sur video { display: block }. */
+#perf-retour {
+  width: 30%;
+}
+#perf-retour[hidden] {
+  display: none;
+}

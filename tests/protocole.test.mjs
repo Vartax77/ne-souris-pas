@@ -5,8 +5,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, calibragePour, codeTesteurValide, creerCalibrages } from "../app/js/protocole.js";
 
-test("toutes les séquences de D3 §1.3.4 à §1.3.6, dans l'ordre", () => {
-  assert.deepEqual(SEQUENCES.map((s) => s.code), ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C"]);
+test("toutes les séquences de D3 §1.3.4 à §1.3.6, puis PERF (§1.3.8), dans l'ordre", () => {
+  assert.deepEqual(SEQUENCES.map((s) => s.code), ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C", "PERF"]);
 });
 
 test("durées de D3 : A1 60 s, A2 4 min 30, A3 60 s, A4 60 s, A5 2 × 60 s, A6 90 s, A7 2 min, C 60 s", () => {
@@ -14,6 +14,8 @@ test("durées de D3 : A1 60 s, A2 4 min 30, A3 60 s, A4 60 s, A5 2 × 60 s, A6 9
   assert.deepEqual([d.A1, d.A2, d.A3, d.A4, d.A5, d.A6, d.A7, d.C], [60, 270, 60, 60, 120, 90, 120, 60]);
   // B : neutre 30 s, parole 30 s, 2 sourires francs de 5 s (D3 §1.3.5).
   for (const c of ["B1", "B2", "B3"]) assert.equal(d[c], 80);
+  // PERF : 5 min sans charge, puis 5 min avec (D3 §1.3.8, n° 285).
+  assert.deepEqual(SEQUENCES.find((s) => s.code === "PERF").etapes.map(([, s]) => s), [300, 300]);
 });
 
 test("A6 : 3 sourires légers, 3 francs, 2 rires, 5 s chacun, séparés par 5 s de neutre", () => {
@@ -87,6 +89,7 @@ test("calibragePour : référence = franc au v le plus haut sous A0 ; B et C, le
   const pc1 = { n: 0, v: 0.52, d: 0.21, seq: "A0", timide: false };
   const pc2 = { n: 0, v: 0.40, d: 0.16, seq: "A0", timide: false };
   assert.equal(calibragePour(seq("A1"), [pc1, pc2]), pc1);
+  assert.equal(calibragePour(seq("PERF"), [pc1, pc2]), pc1); // PERF joue au calibrage de référence
   assert.equal(calibragePour(seq("A1"), [franc1, franc2, timide]), franc1);
   // Un timide au v plus haut ne sert jamais ; à égalité de v, le plus récent.
   assert.equal(calibragePour(seq("A1"), [franc2, { ...timide, v: 0.9 }]), franc2);

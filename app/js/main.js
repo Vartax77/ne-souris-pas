@@ -1,5 +1,5 @@
 // Prototype 0 (D6) : détection (L0.2), calibrage (L0.3), manche d'essai : sourire et jauge (L0.4),
-// pertes et preuve (L0.5), protocole P0 : séquences, revue, journal (L0.6a).
+// pertes et preuve (L0.5), protocole P0 : séquences, revue, journal (L0.6a), session performance (L0.6b).
 
 import { demarrerCamera } from "./capture.js";
 import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
@@ -11,6 +11,7 @@ import { creerSuiviPertes } from "./pertes.js";
 import { creerPreuve } from "./preuve.js";
 import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, codeTesteurValide, creerCalibrages } from "./protocole.js";
 import { creerJournal } from "./journal.js";
+import { creerFenetresPerf, ecartStats, bilanPerf, demarrerAppelBoucle } from "./perf.js";
 import { REGLAGES } from "./reglages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -223,7 +224,9 @@ function traiterManche(m, t) {
     manche.suivi = creerSuiviSourire(t);
     manche.suiviVariante = creerSuiviSourire(t);
     manche.pertes = creerSuiviPertes(t);
+    if (perf) perf.fenetres = creerFenetresPerf(t); // fenêtres de PERF comptées depuis le début de la séquence
   }
+  compterPerf(t, "analyse", derniereMs);
   manche.t = t;
   manche.pauses.ajouter(t);
   const valide = imageValide(m);
@@ -352,8 +355,76 @@ function garderImageSourire() {
   manche.sourireEnCours = null;
 }
 
+// Session performance (D3 §1.3.8, lot L0.6b, n° 285) : fenêtres de 10 s consécutives (cadence analysée,
+// temps d'analyse, caméra, affichage), charge vidéo simulée à partir de la 2e étape, bilan G3 en fin de séquence.
+let perf = null, derniereMs = 0; // derniereMs : temps d'analyse de l'image en cours (detection.js)
+
+function compterPerf(t, quoi, ms) {
+  if (!perf?.fenetres) return;
+  for (const w of perf.fenetres.avancer(t)) fermerFenetre(w);
+  perf.fenetres[quoi](ms);
+}
+
+function fermerFenetre(w) {
+  const avec = w.debutS >= perf.basculeS;
+  let c = null;
+  if (avec && perf.appel) {
+    const s = perf.appel.dernier();
+    c = ecartStats(perf.base, s);
+    perf.base = s;
+  }
+  perf.liste.push({ ...w, charge: c });
+  journal.evenement(w.finMs, perf.code, [
+    `perf fenetre k=${w.k} charge=${avec ? "avec" : "sans"} analyse=${f(w.analyse, 1)} camera=${f(w.camera, 1)}`,
+    `affichage=${f(w.affichage)} ms_moy=${f(w.msMoy)} ms_max=${f(w.msMax)}`,
+    c ? `enc=${f(c.enc, 1)} dec=${f(c.dec, 1)} kbits=${f(c.kbits)} res=${c.largeur}x${c.hauteur} codec=${c.codec} limite=${c.limite}` : null,
+  ].filter(Boolean).join(" "));
+}
+
+// Cadence d'affichage : une image affichée par rappel de requestAnimationFrame (ralentissement visible).
+function boucleAffichage(t) {
+  if (!perf || perf.fini) return;
+  compterPerf(t, "affichage");
+  perf.raf = requestAnimationFrame(boucleAffichage);
+}
+
+// Appel WebRTC en boucle sur le même appareil (perf.js). Sans charge réelle, la mesure ne vaut rien :
+// un échec interrompt la séquence.
+async function demarrerCharge() {
+  const p = perf;
+  try {
+    const appel = await demarrerAppelBoucle($("video").srcObject, $("perf-retour"));
+    if (p.fini) return appel.fermer();
+    p.appel = appel;
+    p.base = appel.dernier();
+    $("perf-retour").hidden = false;
+    journal.evenement(performance.now(), p.code,
+      `perf appel connecte codec=${p.base.codec} plafond=${appel.plafond ? "1,7 Mbit/s" : "non applique"}`);
+  } catch (e) {
+    if (p.fini) return;
+    p.echec = e.message ?? String(e);
+    journal.evenement(performance.now(), p.code, `perf appel echec ${p.echec}`);
+    finirSequence(true);
+  }
+}
+
+function arreterPerf() {
+  perf.fini = true;
+  cancelAnimationFrame(perf.raf);
+  perf.appel?.fermer();
+  $("perf-retour").hidden = true;
+  const { basculeS, dureeS, liste, echec } = perf;
+  perf = null;
+  return { ...bilanPerf(liste, basculeS, dureeS), echec };
+}
+
 function lancerSequence() {
   if (manche?.active) arreterManche();
+  const s = protocole.seq;
+  if (s.perf) {
+    perf = { code: s.code, basculeS: s.etapes[0][1], dureeS: dureeTotale(s), fenetres: null, liste: [], appel: null, base: null, fini: false };
+    perf.raf = requestAnimationFrame(boucleAffichage);
+  }
   protocole.pressions = [];
   protocole.opEnAttente = false;
   calibre = calibrages.pour(protocole.seq);
@@ -374,6 +445,7 @@ function avancerSequence(t) {
   if (etape.index !== protocole.enCours.etape) {
     protocole.enCours.etape = etape.index;
     $("proto-consigne").textContent = etape.consigne;
+    if (seq.perf && etape.index === 1) demarrerCharge();
   }
 }
 
@@ -395,6 +467,7 @@ function finirSequence(interrompue) {
     P, Pv, r: P / calSeq.d, rv: Pv / calSeq.d, pauses, cal: calSeq,
     // Revue aussi après une interruption : les sourires confirmés restent des faux positifs possibles (n° 278).
     classes: seq.revue ? { confirmee: 0, faux_positif: 0, litigieuse: 0 } : null,
+    perf: perf ? arreterPerf() : null,
   };
   protocole.resumes.push(resume);
   const aRevoir = resume.classes ? sourires.filter((s) => s.image) : [];
@@ -416,11 +489,28 @@ function repondreRevue(estUnSourire) {
   afficherProtocole();
 }
 
+// Bilan d'une étape de PERF (perf.js). G3 automatique : étape complète, aucune fenêtre sous 10 im/s, aucune
+// pause, et, avec charge, l'appel mesuré sur chaque fenêtre. « Brûlant » et « ralentissement visible » : à la main.
+function lignesPerf(nom, b, pauses) {
+  if (!b) return [`  ${nom} : aucune fenêtre`];
+  const chargeOk = nom === "sans charge" || b.charges === b.fenetres;
+  return [
+    `  ${nom} : ${b.fenetres} fenêtres${b.complete ? "" : " (incomplète)"} — cadence médiane ${f(b.mediane, 1)} · plus basse ${f(b.plusBasse, 1)} (à ${chrono(b.momentS * 1000)}) · sous 10 : ${b.sous}`,
+    `    temps d'analyse : 1re minute ${f(b.msPremiere)} ms, dernière ${f(b.msDerniere)} ms · caméra min ${f(b.cameraMin, 1)} · affichage min ${f(b.affichageMin)} im/s`,
+    nom === "sans charge" ? null : b.charges
+      ? `    charge : encodées ${f(b.enc, 1)} (min ${f(b.encMin, 1)}) · décodées ${f(b.dec, 1)} (min ${f(b.decMin, 1)}) im/s · ${f(b.kbits)} kbit/s${b.limiteCpu ? " · LIMITÉE PAR LE PROCESSEUR" : ""}${chargeOk ? "" : ` · mesurée sur ${b.charges} fenêtres seulement`}`
+      : "    charge : AUCUNE (appel non connecté)",
+    `    G3 automatique : ${b.g3 && !pauses.nombre && chargeOk ? "conforme" : "NON CONFORME"}`,
+  ].filter(Boolean);
+}
+
 const ligneResume = (r) => [
   `${r.code} ${r.titre} — ${f(r.duree)} s${r.interrompue ? " (interrompue)" : ""} — n ${f(r.cal.n, 2)} · d ${f(r.cal.d, 2)} (${nomCalibrage(r.cal)})`,
   `  fautes : sourires ${r.sourires}, visage perdu ${r.pertes} ; avertissements ${r.avertissements}`,
   r.classes ? `  revue : confirmées ${r.classes.confirmee}, faux positifs ${r.classes.faux_positif}, litigieuses ${r.classes.litigieuse}` : null,
-  `  P ${f(r.P, 2)} (variante ${f(r.Pv, 2)}) · r ${f(r.r, 2)} (variante ${f(r.rv, 2)})`,
+  r.perf ? null : `  P ${f(r.P, 2)} (variante ${f(r.Pv, 2)}) · r ${f(r.r, 2)} (variante ${f(r.rv, 2)})`,
+  ...(r.perf ? [...lignesPerf("sans charge", r.perf.sans, r.pauses), ...lignesPerf("avec charge", r.perf.avec, r.pauses)] : []),
+  r.perf?.echec ? `  APPEL SIMULÉ EN ÉCHEC : ${r.perf.echec}` : null,
   r.pauses.nombre ? `  PAUSE D'ANALYSE PENDANT LA SÉQUENCE (${r.pauses.nombre}, ${f(r.pauses.totalMs / 1000, 1)} s) : À REFAIRE` : null,
 ].filter(Boolean).join("\n");
 
@@ -506,8 +596,10 @@ function suivre(video, moteur) {
       }
       camera.ajouter(t);
       if (cal?.debut !== undefined) cal.imagesCamera += 1;
+      compterPerf(t, "camera");
     },
     resultat(res, t, ms) {
+      derniereMs = ms;
       analyse10.ajouter(t);
       analyse1.ajouter(t);
       if (premiere === undefined) {
