@@ -168,7 +168,7 @@ Séquence PERF du prototype (lot L0.6b, n° 285) : **10 min d'un seul tenant, 5 
 
 1. Appareil chargé à 100 %, débranché, luminosité fixe, verrouillage automatique désactivé. Code testeur T00 et calibrage de référence (A0) d'abord.
 2. Lancer PERF, visage dans le champ, immobile, sans parler. Noter la batterie au début, à 5 min et à 10 min.
-3. À 5 min, la **charge vidéo simulée** démarre seule : un appel WebRTC en boucle sur le même appareil, sans serveur ; aucun octet ne quitte l'appareil. Il envoie le flux caméra en H.264 si possible (n° 205), plafonné à 1,7 Mbit/s ([D4](D4-architecture-technique.md) C5), et affiche la vidéo reçue en vignette, comme le visage de l'adversaire en jeu. Si l'appel ne se connecte pas en 10 s, la séquence s'interrompt.
+3. À 5 min, la **charge vidéo simulée** démarre seule : un appel WebRTC en boucle sur le même appareil, sans serveur ; aucun octet ne quitte l'appareil. Il envoie le flux caméra en H.264 si possible (n° 205), plafonné à 1,7 Mbit/s ([D4](D4-architecture-technique.md) C5), et affiche la vidéo reçue en vignette, comme le visage de l'adversaire en jeu. L'appel envoie aussi le son du micro, comme en jeu : c'est pourquoi la page demande le micro dès le prototype 0 (n° 301). Si l'appel ne se connecte pas en 10 s, la séquence s'interrompt.
 4. Toucher le dos de l'appareil à 5 min et à 10 min : tiède, chaud ou brûlant.
 5. Aucune capture d'écran pendant la séquence (n° 275).
 
