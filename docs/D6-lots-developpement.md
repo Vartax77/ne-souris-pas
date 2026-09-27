@@ -160,11 +160,12 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Relire un journal CSV et rejouer R1 à R4 avec d'autres valeurs de réglage (maintien, lissage, `k`, `m`, angles) et d'autres calibrages : `d` du timide (n° 279) et du franc le plus bas de chaque testeur, sur lequel G1 est jugé (n° 284) ; sortie : fautes par séquence |
+| Tâches | Relire un journal CSV et rejouer R1 à R4 avec d'autres valeurs de réglage (maintien, lissage, `k`, `m`, angles) et d'autres calibrages : `d` du timide (n° 279) et du franc le plus bas de chaque testeur, sur lequel G1 est jugé (n° 284) ; sortie : fautes par séquence. Arbitrage de la manche extrait de `main.js` dans `creerArbitre` (n° 288) ; commande `outils/rejeu.mjs` (n° 289) ; lignes `camera=` et `testeur` au journal (n° 290) ; faux positifs au rejeu (n° 291) |
 | Modules | Arbitrage (le même code qu'en jeu, pas une copie) |
-| Terminé quand | Le rejeu d'un journal avec les valeurs de départ redonne exactement les fautes observées en direct |
-| Test | [D3](D3-plan-de-tests.md) §1.5, étapes 9 et 10 |
+| Terminé quand | Le rejeu d'un journal avec les valeurs de départ redonne exactement les fautes observées en direct : vérification automatique ; journaux T00 existants (test court n° 3 et iPhone « identique » ; test court n° 1 avec le seul écart attendu de la minuterie) ; un journal produit par le nouveau code sur le PC (A0 : deux francs et un timide ; A1, A3, A7 avec sorties du champ) « identique », avec les lignes `camera=` et `testeur` |
+| Test | [D3](D3-plan-de-tests.md) §1.5, étapes 9 et 10 ; outil en §1.5.4 |
 | Dépend de | L0.6a |
+| Statut | Code terminé le 2026-09-27 (`app/js/manche.js`, `outils/rejeu.mjs`, `tests/rejeu.test.mjs`) ; journaux existants rejoués ([D3](D3-plan-de-tests.md) §1.7.8, n° 292). Reste le journal du nouveau code |
 
 ### 3.2 Prototype 1 — appel vidéo seul
 

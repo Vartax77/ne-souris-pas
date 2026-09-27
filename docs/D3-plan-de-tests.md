@@ -201,7 +201,7 @@ Une ligne par image analysée. Uniquement des nombres et des codes : ni image, n
 | `faute` | Vide, sourire ou perte. Toute faute a exactement une ligne avec cette colonne remplie, même constatée sans image par la minuterie (n° 277) |
 | `op` | 1 si la touche « sourire vu » est pressée (barre d'espace ou bouton). « L'opérateur a vu » un sourire si la touche est pressée entre 0,5 s avant le début de la série et 2 s après sa confirmation **À confirmer (P0)** (n° 272) |
 | `pause` | Trou d'images avant cette ligne, en ms, s'il dépasse 1,5 s **à l'intérieur d'une même prise** (un calibrage, une séquence) : la séquence est à refaire (n° 274). L'attente entre deux prises n'est pas une pause (n° 277) |
-| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…`, suivi de `timide` s'il y a lieu, ou `calibrage rejet <cause>`), début de séquence avec le calibrage utilisé (`sequence debut n=… v=… d=… calibrage=reference`, ou `=B1`…), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274, n° 279) ; en PERF, `perf fenetre …` toutes les 10 s et `perf appel connecte` ou `perf appel echec` (n° 285) |
+| `evenement` | Résultat d'un calibrage (`calibrage ok n=… v=… d=…`, suivi de `timide` s'il y a lieu, ou `calibrage rejet <cause>`), début de séquence avec le calibrage utilisé (`sequence debut n=… v=… d=… calibrage=reference`, ou `=B1`…), `avertissement`, `sourire debut=…`, fin de séquence, classement de la revue (n° 274, n° 279) ; en PERF, `perf fenetre …` toutes les 10 s et `perf appel connecte` ou `perf appel echec` (n° 285) ; `testeur Txx` à chaque code saisi, et `camera=…` (cadence caméra) en fin de ligne de calibrage, pour le rejeu (n° 290) |
 
 Les journaux restent sur l'ordinateur de Valentin, dans un dossier chiffré séparé ; le disque est protégé par BitLocker et les journaux restent hors du dépôt public (n° 222, n° 223). Ils sont supprimés à la clôture du prototype 0, une fois les valeurs de [D2](D2-regles-jeu-arbitrage.md) validées, avec la colonne « Carnation » des fiches (n° 73, n° 78).
 
@@ -322,12 +322,44 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 | 6 | Luminance minimale | B1 à B3 | La plus basse luminance où les conditions restent sans faux positif et où les francs sont détectés |
 | 7 | Lacet, tangage, largeur minimale | A7 | Juste sous le point de décrochage le plus bas observé |
 | 8 | Délai de visage perdu, perte continue maximale | A1 à A6 | Aucune perte comptée en jeu normal. Sinon, allonger le délai |
-| 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 400 et 600 ms de maintien, et avec 2 et 4 images de lissage, puis recalculer 1.5.2 |
+| 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 400 et 600 ms de maintien, et avec 2 et 4 images de lissage (`maintienMs=400`, `lissage=2`…, §1.5.4), puis recalculer 1.5.2 |
 | 10 | Vérification | Journal du groupe de validation | Rejouer R1 à R4 **en entier** avec les valeurs retenues, sans les retoucher, et avec le `d` du **franc le plus bas** de chaque testeur, pas celui de la séance (n° 284). Remplir la colonne « Validation » de 1.4.9 |
 
 **Pourquoi le franc le plus bas** (n° 284) : en séance, la référence est le franc au `v` le plus haut (n° 283), donc le seuil le plus haut du testeur. En jeu, R1 ne fait qu'un calibrage, souvent moins bon. Le rejeu au franc le plus bas est le pire cas réaliste. Si l'écart entre les fautes de la séance et celles de ce rejeu est grand, un calibrage à deux sourires en jeu (meilleur des deux) sera envisagé après P0. Seuil d'écart : **À confirmer (P0)**.
 
 Les pourcentages et marges de ce tableau sont des règles de méthode, pas des réglages du jeu : ils ne passent pas dans [D2](D2-regles-jeu-arbitrage.md).
+
+#### 1.5.4 Outil de rejeu (lot L0.7)
+
+Commande, sur le PC de Valentin, dans le dossier chiffré (n° 289) :
+
+```
+node outils/rejeu.mjs "<journal.csv>" [k=0.35] [maintienMs=600] [lissage=4] …
+```
+
+- Tout réglage de [D2](D2-regles-jeu-arbitrage.md) §3 (`REGLAGES`) peut être changé ; un nom inconnu est refusé.
+- Le rejeu utilise le même code qu'en jeu : `creerArbitre` (`app/js/manche.js`) et `evaluerCalibrage` (n° 137, n° 288).
+- Chaque calibrage est **recalculé depuis ses images**, pas repris des valeurs arrondies de la ligne `calibrage ok`.
+- Sortie : un tableau, et `rejeu_<journal>.csv` écrit **à côté du journal**. Aucune image, aucun nom.
+
+Calibrages rejoués pour A1 à A7 (B1 à B3 et C : `direct` seulement) :
+
+| Nom | Calibrage | Sert à |
+|---|---|---|
+| `direct` | Celui de la séance, reconnu par ses valeurs annoncées en `sequence debut` | Contrôle : aux réglages de départ, la colonne `controle` doit dire « identique » |
+| `franc_bas` | Franc au `v` le plus bas sous A0, même testeur | **G1** (n° 284) |
+| `timide` | Timide sous A0, même testeur | Effet d'un `v` bas sur A2 et A3 (n° 279) |
+
+Colonnes : `sourires`, `pertes`, `variante` (`cheekSquint`, étape 1), `P`, `v_moins_n`, `r`, `P_etapes` (A6 : `P` de chaque étape, pour `k_max`), `faux_positifs`, `controle`.
+
+Faux positifs au rejeu (n° 291) : une faute rejouée qui chevauche un sourire revu en séance hérite de son classement (« confirmée » ne compte pas). Une faute **nouvelle** compte comme faux positif (pire cas, n° 284) ; le fichier dit si l'opérateur avait pressé « sourire vu ».
+
+Cas particuliers, signalés dans `controle` :
+
+- calibrage fait hors du journal (n° 281) : valeurs annoncées à 2 décimales, séquence « approximatif » ;
+- journal d'avant n° 279, sans `sequence debut` : calibrage = dernier réussi, règle d'alors (« ancien journal ») ;
+- `smileG` et `smileD` sont arrondis à 4 décimales : une image pile au seuil peut changer d'état ; le contrôle les compte.
+
 
 ### 1.6 Critères de décision
 
@@ -658,6 +690,27 @@ Non simulable : le poids réel de l'encodage vidéo sur chaque appareil, la chau
 Lecture : sur le XR, G3 tient dans le scénario charge +30 % et chauffe +20 %. Il passe sous 10 im/s avec charge +60 % et chauffe +40 %, et échoue nettement à charge ×2. Seule la séance réelle tranche.
 
 Conclusion : **L0.6b terminé pour le code** (n° 287). Le PC est dispensé de la séance PERF réelle. Les séances réelles sur l'iPhone XR (décisive pour G3), puis sur l'iPhone 15 Pro, ont lieu au début de la première séance P0, avant tout visage testeur. **G3 reste À confirmer (P0).** Si le XR échoue, [D6](D6-lots-developpement.md) §4 s'applique ; rien n'est décidé d'avance.
+
+#### 1.7.8 Lot L0.7 — rejeu (2026-09-27)
+
+Vérification automatique : 94 tests passent, dont `tests/rejeu.test.mjs` (journal simulé rejoué « identique », faute de la minuterie retrouvée, `franc_bas` et `timide`, faux positifs nouveaux, `k` plus bas, cas « approximatif » et « ancien journal »). La page tourne sans erreur dans Chrome sans interface avec `creerArbitre`.
+
+Rejeu des journaux T00 existants aux réglages de départ (n° 292) :
+
+| Journal | Contenu | Résultat |
+|---|---|---|
+| Test court n° 3, PC | Deux francs sous A0 (v 0,52 et 0,40), A1 interrompue | **Identique** |
+| iPhone 15 Pro | Un calibrage sous A0, A1 interrompue | **Identique** |
+| Test court n° 1, PC, d'avant les corrections de L0.6a | A0, A1 à A7 ; aucune ligne `sequence debut` | A1 à A6 **identiques**. A7 : un seul écart, **attendu** : « faute perte ajoutée à 6,4 s » (A7 commence à 409,3 s : c'est la faute de la minuterie à 415,8 s, absente de la colonne `faute` avant n° 277) |
+| Test court n° 2, PC | Calibrages faits avant la saisie du code, hors journal (n° 281) | **Approximatif** : mêmes fautes (A1 2, A3 12, A7 1 sourire et 5 pertes) ; 2, 2 et 5 images d'état différent, toutes à moins de 0,004 d'un seuil (S de 0,0508 à 0,0534 pour `n + m` = 0,05 ; 0,2507 et 0,2510 pour `n + d` = 0,25) : effet des `n` et `d` annoncés à 2 décimales |
+
+Constats :
+
+- L'extraction de l'arbitrage (n° 288) ne change rien au direct : un journal produit par l'**ancien** code est rejoué à l'identique.
+- Le test court n° 1 n'a pas de case « timide » (avant n° 279) : son calibrage v 0,39 y est traité comme un franc, et sert de `franc_bas`.
+- Faux positifs au `franc_bas` (n° 291), sur ce journal : A3 4 et A4 1, toutes nouvelles, faute de revue à l'époque (n° 278).
+
+Reste à faire pour clore L0.7 ([D6](D6-lots-developpement.md)) : un journal produit par le nouveau code sur le PC, rejoué « identique », avec les lignes `camera=` et `testeur`.
 
 ## 2. Prototype 1 — appel vidéo seul
 

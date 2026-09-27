@@ -23,6 +23,45 @@ function cellule(v) {
   return /[;"\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 }
 
+// Lecture d'un journal exporté (rejeu, lot L0.7) : inverse de csv(). Une ligne par objet ; les colonnes
+// numériques en nombres (NaN si vides), les blendshapes dans bs. Colonnes texte : seq, etat, faute, evenement.
+const TEXTE = new Set(["seq", "etat", "faute", "evenement"]);
+
+function cellules(ligne) {
+  const res = [];
+  let cur = "", guillemets = false;
+  for (let i = 0; i < ligne.length; i += 1) {
+    const c = ligne[i];
+    if (guillemets) {
+      if (c === '"' && ligne[i + 1] === '"') { cur += '"'; i += 1; }
+      else if (c === '"') guillemets = false;
+      else cur += c;
+    } else if (c === '"') guillemets = true;
+    else if (c === ";") { res.push(cur); cur = ""; }
+    else cur += c;
+  }
+  res.push(cur);
+  return res;
+}
+
+export function lireJournal(texte) {
+  const [entete, ...corps] = texte.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l !== "");
+  const noms = cellules(entete);
+  return corps.map((l) => {
+    const o = { bs: {} };
+    cellules(l).forEach((v, i) => {
+      const nom = noms[i];
+      if (TEXTE.has(nom)) o[nom] = v;
+      else {
+        const x = v === "" ? NaN : Number(v.replace(",", "."));
+        if (nom.startsWith("bs_")) o.bs[nom.slice(3)] = x;
+        else o[nom] = x;
+      }
+    });
+    return o;
+  });
+}
+
 export function creerJournal(R = REGLAGES) {
   const lignes = [];
   const nomsBs = []; // noms des blendshapes, dans l'ordre de première apparition

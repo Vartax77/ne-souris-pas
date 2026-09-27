@@ -6,8 +6,7 @@ import { preparerMoteur, lancerAnalyse, modeParDefaut } from "./detection.js";
 import { CADENCE_MAX, creerFenetre, creerCompteurPauses } from "./cadence.js";
 import { angles, rectangle, largeur, luminance, scores, valeurs } from "./mesures.js";
 import { evaluerCalibrage } from "./calibrage.js";
-import { imageValide, etatImage, jauge, creerLissage, creerSuiviSourire, creerPicSoutenu } from "./arbitrage.js";
-import { creerSuiviPertes } from "./pertes.js";
+import { creerArbitre } from "./manche.js";
 import { creerPreuve } from "./preuve.js";
 import { SEQUENCES, dureeTotale, etapeA, toucheOperateur, operateurAVu, classerRevue, codeTesteurValide, creerCalibrages } from "./protocole.js";
 import { creerJournal } from "./journal.js";
@@ -133,9 +132,10 @@ function terminerCalibrage() {
     afficher("cal-resultat", r.message, "erreur");
   }
   if (protocoleJournalise()) {
-    journal.evenement(performance.now(), codeCalibrage(), r.ok
+    // camera= : cadence caméra du calibrage, pour que le rejeu recalcule le rejet « pièce sombre » (n° 290).
+    journal.evenement(performance.now(), codeCalibrage(), `${r.ok
       ? `calibrage ok n=${f(r.n, 2)} v=${f(r.v, 2)} d=${f(r.d, 2)}${r.plafonne ? " plafonné" : ""}${timide ? " timide" : ""}`
-      : `calibrage rejet ${r.cause}`);
+      : `calibrage rejet ${r.cause}`} camera=${f(st.cadenceCamera, 1)}`);
   }
   // Détail pour la grille A0 (D3 §1.4.3), affiché sur la page de test P0 seulement.
   $("cal-detail").textContent = [
@@ -185,11 +185,11 @@ function arreterManche() {
 function demarrerManche() {
   if (manche?.active) return arreterManche();
   manche = {
-    active: true, t0: undefined, t: 0, etat: "—", J: 0, pic: 0, fautes: [], variante: 0, avertissement: null,
-    lisser: creerLissage(), lisserVariante: creerLissage(), suivi: null, suiviVariante: null, pertes: null,
-    picSoutenu: creerPicSoutenu(), preuve: creerPreuve(capturerImage), preuveAffichee: null,
+    active: true, t0: undefined, t: 0, fautes: [], avertissement: null,
+    arbitre: creerArbitre(calibre), // R2 à R4 : le même code qu'au rejeu (n° 137, n° 288)
+    preuve: creerPreuve(capturerImage), preuveAffichee: null,
     pauses: creerCompteurPauses(REGLAGES.delaiPerteMs), // pauses de la manche seule (n° 270)
-    picSoutenuVariante: creerPicSoutenu(), avertissements: 0, sourireEnCours: null,
+    avertissements: 0, sourireEnCours: null,
     cal: calibre, // calibrage de cette manche (n° 279)
   };
   const toilePreuve = $("preuve");
@@ -198,8 +198,7 @@ function demarrerManche() {
   // Page visible mais plus aucune image (caméra figée) : la perte est constatée en direct (D8 n° 266).
   // Page masquée : la minuterie est suspendue, et le retour de l'analyse rattrape la pause (pertes.js).
   manche.minuterie = setInterval(() => {
-    if (!manche.pertes) return;
-    for (const e of manche.pertes.verifier(performance.now())) {
+    for (const e of manche.arbitre.verifier(performance.now())) {
       noterPerte(e);
       // Toute faute a sa ligne avec la colonne faute remplie, même constatée sans image (n° 277).
       if (protocole.enCours) journal.evenement(e.t, protocole.enCours.code, e.type === "faute" ? "faute perte (constatée sans image)" : "avertissement (constaté sans image)",
@@ -221,60 +220,37 @@ function noterPerte(e) {
 function traiterManche(m, t) {
   if (manche.t0 === undefined) {
     manche.t0 = t;
-    manche.suivi = creerSuiviSourire(t);
-    manche.suiviVariante = creerSuiviSourire(t);
-    manche.pertes = creerSuiviPertes(t);
     if (perf) perf.fenetres = creerFenetresPerf(t); // fenêtres de PERF comptées depuis le début de la séquence
   }
   compterPerf(t, "analyse", derniereMs);
   manche.t = t;
   manche.pauses.ajouter(t);
-  const valide = imageValide(m);
-  let souriant = false, souriantVariante = false, S = NaN, Sv = NaN;
-  if (valide) {
-    S = manche.lisser(m.s);
-    manche.etat = etatImage(S, calibre);
-    souriant = manche.etat === "souriant";
-    manche.J = jauge(S, calibre);
-    manche.pic = Math.max(manche.pic, manche.J);
-    manche.picSoutenu.ajouter(t, S - calibre.n);
-    // Variante cheekSquint (R2.7) : s compté seulement si cheekSquint atteint le plancher.
-    Sv = manche.lisserVariante(m.cheek >= REGLAGES.plancherCheek ? m.s : 0);
-    souriantVariante = etatImage(Sv, calibre) === "souriant";
-    manche.picSoutenuVariante.ajouter(t, Sv - calibre.n);
-  } else {
-    manche.etat = "invalide"; // J et pic figés (R3.4)
-    manche.picSoutenu.rompre();
-    manche.picSoutenuVariante.rompre();
-  }
-  let faute = "", evenement = "";
-  for (const e of manche.pertes.image(t, valide)) {
+  const a = manche.arbitre, r = a.image(t, m);
+  let evenement = "";
+  for (const e of r.pertes) {
     noterPerte(e);
-    if (e.type === "faute") faute = "perte";
-    else evenement = "avertissement";
+    if (e.type === "avertissement") evenement = "avertissement";
   }
   // Sourire (R2) et image de preuve (R7) : meilleure image de la série, confirmée avec le sourire.
-  const ev = manche.suivi.image(t, souriant, S);
-  if (souriant) manche.preuve.souriante(S);
-  if (ev) {
+  if (r.souriant) manche.preuve.souriante(r.S);
+  if (r.sourire) {
+    const ev = r.sourire;
     const sourire = { type: "sourire", ...ev, ref: ev, confirmation: ev.fin };
     manche.fautes.push(sourire);
     manche.sourireEnCours = sourire;
     manche.preuve.confirmer();
-    faute = "sourire";
     evenement = `sourire debut=${f(ev.debut, 1)}`;
   }
-  if (!manche.suivi.actif()) {
+  if (!r.serieActive) {
     garderImageSourire();
     manche.preuve.finSerie();
   }
-  if (manche.suiviVariante.image(t, souriantVariante, Sv)) manche.variante += 1;
   if (protocole.enCours) {
-    journaliserImage(m, t, { seq: protocole.enCours.code, S, J: valide ? manche.J : NaN, etat: manche.etat, faute, evenement });
+    journaliserImage(m, t, { seq: protocole.enCours.code, S: r.S, J: r.valide ? a.J : NaN, etat: a.etat, faute: r.faute, evenement });
     avancerSequence(t);
   }
-  $("jauge-niveau").style.width = `${manche.J * 100}%`;
-  $("jauge-pic").style.left = `calc(${manche.pic * 100}% - ${manche.pic * 3}px)`; // reste dans le cadre à 100 %
+  $("jauge-niveau").style.width = `${a.J * 100}%`;
+  $("jauge-pic").style.left = `calc(${a.pic * 100}% - ${a.pic * 3}px)`; // reste dans le cadre à 100 %
 }
 
 const chrono = (ms) => {
@@ -294,15 +270,15 @@ function ligneFaute(e, k) {
 }
 
 function afficherManche() {
-  const P = manche.picSoutenu.valeur();
+  const P = manche.arbitre.picSoutenu.valeur();
   const sourires = manche.fautes.filter((e) => e.type === "sourire").length;
   $("manche-avertissement").textContent = manche.avertissement
     ? `Visage perdu : encore une fois et vous perdez la manche (à ${chrono(manche.avertissement.t - manche.t0)})`
     : "";
   $("manche-etat").textContent = [
     `Manche d'essai — ${chrono(manche.t - manche.t0)}${manche.active ? "" : " (arrêtée)"}`,
-    `État : ${manche.etat}   J ${f(manche.J * 100)} %   pic ${f(manche.pic * 100)} %`,
-    `Fautes : ${manche.fautes.length} (sourires ${sourires}, visage perdu ${manche.fautes.length - sourires})   variante cheekSquint : ${manche.variante}`,
+    `État : ${manche.arbitre.etat}   J ${f(manche.arbitre.J * 100)} %   pic ${f(manche.arbitre.pic * 100)} %`,
+    `Fautes : ${manche.fautes.length} (sourires ${sourires}, visage perdu ${manche.fautes.length - sourires})   variante cheekSquint : ${manche.arbitre.variante}`,
     ...manche.fautes.map(ligneFaute),
     ((p) => `Pauses d'analyse pendant la manche : ${p.nombre}${p.nombre ? ` · ${f(p.totalMs / 1000, 1)} s au total` : ""}`)(manche.pauses.stats()),
     `Pic soutenu P (500 ms) : ${f(P, 2)}   r = P / d : ${f(P / manche.cal.d, 2)}`,
@@ -460,7 +436,7 @@ function finirSequence(interrompue) {
   $("proto-consigne").textContent = "";
   journal.evenement(manche.t, code, interrompue ? "sequence interrompue" : "sequence terminee");
   const sourires = manche.fautes.filter((e) => e.type === "sourire");
-  const P = manche.picSoutenu.valeur(), Pv = manche.picSoutenuVariante.valeur(), pauses = manche.pauses.stats();
+  const P = manche.arbitre.picSoutenu.valeur(), Pv = manche.arbitre.picSoutenuVariante.valeur(), pauses = manche.pauses.stats();
   const resume = {
     code, titre: seq.titre, interrompue, duree: (manche.t - manche.t0) / 1000,
     sourires: sourires.length, pertes: manche.fautes.length - sourires.length, avertissements: manche.avertissements,
@@ -687,8 +663,15 @@ $("proto-seq").addEventListener("change", (e) => {
   afficherProtocole();
 });
 // Changer de code testeur efface les calibrages en mémoire (n° 281).
+// Chaque code valide saisi est journalisé : le rejeu sépare ainsi les testeurs d'un même journal (n° 290).
+let testeurJournalise = null;
 $("proto-testeur").addEventListener("input", () => {
-  calibrages.changerTesteur($("proto-testeur").value.trim());
+  const code = $("proto-testeur").value.trim();
+  calibrages.changerTesteur(code);
+  if (codeTesteurValide(code) && code !== testeurJournalise) {
+    testeurJournalise = code;
+    journal.evenement(performance.now(), "", `testeur ${code}`);
+  }
   if (manche?.active) arreterManche();
   choisirReference();
   afficherProtocole();
