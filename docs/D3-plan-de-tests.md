@@ -182,6 +182,8 @@ La mesure sans charge est optimiste : elle ignore l'appel vidéo. Le critère s'
 
 ### 1.4 Mesures et grille de résultats
 
+**Règle de publication** (n° 299) : ce document est public. Il ne reçoit que des **totaux**, par groupe (réglage, validation) ou par appareil, jamais une ligne par testeur, même codée. Les grilles par testeur (§1.4.2 à §1.4.7) sont remplies dans le dossier chiffré, à côté des journaux ; les tableaux ci-dessous n'en sont que les modèles.
+
 #### 1.4.1 Journal numérique
 
 Une ligne par image analysée. Uniquement des nombres et des codes : ni image, ni son, ni nom.
@@ -755,8 +757,7 @@ Le code du prototype 0 est complet (n° 293). Liste à suivre avant et pendant l
 #### 1.8.3 Documents
 
 - La [fiche d'information testeur](fiche-information-testeur-P0.md), imprimée ou lue à voix haute avant l'accord oral (n° 298), et un papier où noter le code remis au testeur.
-- La fiche testeur (§1.4.2), sans nom.
-- Les grilles de §1.4.
+- La fiche testeur (§1.4.2), sans nom, et les grilles de §1.4 : remplies et gardées dans le dossier chiffré, à côté des journaux ; seuls des totaux par groupe ou par appareil passent dans ce document (n° 299).
 
 #### 1.8.4 Répartition des testeurs (n° 295)
 
@@ -767,7 +768,7 @@ Chaque testeur passe sur **un seul appareil**, en alternant dans l'ordre de pass
 | Appareil | 15 Pro | XR | PC | 15 Pro | XR | PC | 15 Pro | XR |
 | Groupe (8 testeurs) | Réglage | Réglage | Réglage | Réglage | Réglage | Validation | Validation | Validation |
 
-Avec 8 testeurs, les deux groupes contiennent les trois appareils. Avec 5 à 7 testeurs, le groupe de validation n'en contient que deux ou trois : à 5 testeurs (réglage T01 à T03, validation T04 et T05), le PC manque à la validation.
+Avec 8 testeurs, les deux groupes contiennent les trois appareils. Avec 5 à 7 testeurs, le groupe de validation n'en contient que deux ou trois : à 5 testeurs (réglage T01 à T03, validation T04 et T05), le PC manquerait à la validation. **Si le panel s'arrête à 5 testeurs, T05 passe sur le PC** (n° 300) : la validation contient alors le 15 Pro et le PC, et le XR n'y est plus. Un groupe de deux testeurs ne peut pas couvrir trois appareils.
 
 #### 1.8.5 Déroulé par testeur (environ 30 min)
 
