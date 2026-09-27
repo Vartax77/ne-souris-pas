@@ -67,6 +67,7 @@ Appareils disponibles (n° 192) :
 
 - L'appareil le plus ancien est un iPhone : G3 est donc jugé sur Safari iOS.
 - Aucun appareil Android n'est disponible pour l'instant ; Valentin en cherche un à emprunter. Android reste une cible de [D4](D4-architecture-technique.md) §7.2, non mesurée en P0 si aucun Android n'est emprunté (n° 218).
+- Chaque testeur passe sur un seul appareil, en alternant 15 Pro, XR, PC dans l'ordre de passage (§1.8.4, n° 295).
 - L'iPhone XR est bloqué à iOS 18 : iOS 18.7.9 est la dernière version disponible pour cet appareil (vérifié le 2026-09-25). Or des défauts du calcul graphique de MediaPipe sont signalés sur iOS 18 ([D4](D4-architecture-technique.md) §7.1). Noter la version d'iOS et le mode de calcul dans le journal.
 - Les iPhone fournissent une image en portrait (480 × 640), le PC en paysage (640 × 480).
 
@@ -75,7 +76,7 @@ Appareils disponibles (n° 192) :
 | Élément | Valeur |
 |---|---|
 | Sessions testeurs | 1 par testeur, environ 30 min |
-| Session performance | 1 par appareil, Valentin seul, 25 min |
+| Session performance | 1 par appareil, Valentin seul, environ 15 min (séquence PERF de 10 min, n° 285, n° 297) |
 | Exposition cible | Au moins **60 min cumulées** de non-sourire en conditions N (séquences A1 à A4) |
 | Groupe de réglage | Les 2/3 premiers testeurs (5 sur 8 ; 3 sur 5) |
 | Groupe de validation | Le tiers restant, jamais utilisé pendant le réglage |
@@ -105,8 +106,8 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 
 #### 1.3.3 Accueil (3 min)
 
-1. Expliquer : on teste un détecteur de sourire ; aucune image ni aucun son n'est enregistré ; seuls des nombres sont gardés, puis supprimés à la fin du prototype 0.
-2. Recueillir l'accord oral du testeur et le noter dans la fiche (n° 78). Sans accord, pas de session.
+1. Faire lire la [fiche d'information testeur](fiche-information-testeur-P0.md) (ou la lire à voix haute) : ce qui est enregistré, où, par qui, droit d'arrêter, suppression à la clôture de P0 (n° 298).
+2. Recueillir l'accord oral du testeur et le noter dans la fiche (n° 78). Sans accord, pas de session. Lui remettre son code de testeur, qui lui permet de demander la suppression de ses mesures.
 3. Consigne : se comporter naturellement, ne pas chercher à piéger le détecteur, sauf en séquence C.
 4. Remplir la fiche testeur.
 
@@ -325,7 +326,7 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 | 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 400 et 600 ms de maintien, et avec 2 et 4 images de lissage (`maintienMs=400`, `lissage=2`…, §1.5.4), puis recalculer 1.5.2 |
 | 10 | Vérification | Journal du groupe de validation | Rejouer R1 à R4 **en entier** avec les valeurs retenues, sans les retoucher, et avec le `d` du **franc le plus bas** de chaque testeur, pas celui de la séance (n° 284). Remplir la colonne « Validation » de 1.4.9 |
 
-**Pourquoi le franc le plus bas** (n° 284) : en séance, la référence est le franc au `v` le plus haut (n° 283), donc le seuil le plus haut du testeur. En jeu, R1 ne fait qu'un calibrage, souvent moins bon. Le rejeu au franc le plus bas est le pire cas réaliste. Si l'écart entre les fautes de la séance et celles de ce rejeu est grand, un calibrage à deux sourires en jeu (meilleur des deux) sera envisagé après P0. Seuil d'écart : **À confirmer (P0)**.
+**Pourquoi le franc le plus bas** (n° 284) : en séance, la référence est le franc au `v` le plus haut (n° 283), donc le seuil le plus haut du testeur. En jeu, R1 ne fait qu'un calibrage, souvent moins bon. Le rejeu au franc le plus bas est le pire cas réaliste. Un calibrage à deux sourires en jeu (meilleur des deux) sera envisagé après P0 si **au moins un testeur du groupe de validation** a plus de faux positifs en A1 à A4 au `franc_bas` qu'au `direct` : un seul suffit, parce que G1 exige zéro faux positif (n° 294).
 
 Les pourcentages et marges de ce tableau sont des règles de méthode, pas des réglages du jeu : ils ne passent pas dans [D2](D2-regles-jeu-arbitrage.md).
 
@@ -729,6 +730,71 @@ Constats :
 - Journaux et rejeux rangés dans le dossier chiffré `C:\Users\Vartax\Journaux-P0`.
 
 Conclusion : **L0.7 terminé**. Le code du prototype 0 est complet (L0.1 à L0.7).
+
+### 1.8 Préparation de la première séance P0
+
+Le code du prototype 0 est complet (n° 293). Liste à suivre avant et pendant la première séance.
+
+#### 1.8.1 En ouverture : séances PERF réelles (Valentin seul, T00)
+
+| Ordre | Appareil | Enjeu |
+|---|---|---|
+| 1 | iPhone XR | Décide G3 |
+| 2 | iPhone 15 Pro | Performance sur un iOS récent |
+
+- Procédure de §1.3.8, environ 15 min par appareil ; grille §1.4.8.
+- Avant : appareil à 100 % et débranché ; verrouillage automatique sur « Jamais » ; luminosité automatique désactivée ; Wi-Fi allumé. Aucune capture d'écran pendant la séquence.
+- Si le XR échoue à G3 : [D6](D6-lots-developpement.md) §4 s'applique, et la décision est prise avant de faire venir des testeurs. Rien n'est décidé d'avance (n° 287).
+
+#### 1.8.2 Matériel
+
+- Support, visage à 50–80 cm ; pièce N (lumière allumée, pas de fenêtre derrière le testeur).
+- B1 : pénombre (écran seul ou lampe éloignée) ; B2 : lampe ou fenêtre derrière le testeur ; B3 : une seule source sur le côté.
+- Chargeur, pour recharger entre deux testeurs.
+
+#### 1.8.3 Documents
+
+- La [fiche d'information testeur](fiche-information-testeur-P0.md), imprimée ou lue à voix haute avant l'accord oral (n° 298), et un papier où noter le code remis au testeur.
+- La fiche testeur (§1.4.2), sans nom.
+- Les grilles de §1.4.
+
+#### 1.8.4 Répartition des testeurs (n° 295)
+
+Chaque testeur passe sur **un seul appareil**, en alternant dans l'ordre de passage :
+
+| Ordre | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| Appareil | 15 Pro | XR | PC | 15 Pro | XR | PC | 15 Pro | XR |
+| Groupe (8 testeurs) | Réglage | Réglage | Réglage | Réglage | Réglage | Validation | Validation | Validation |
+
+Avec 8 testeurs, les deux groupes contiennent les trois appareils. Avec 5 à 7 testeurs, le groupe de validation n'en contient que deux ou trois : à 5 testeurs (réglage T01 à T03, validation T04 et T05), le PC manque à la validation.
+
+#### 1.8.5 Déroulé par testeur (environ 30 min)
+
+1. **Recharger la page avant chaque testeur.** Le journal n'est jamais vidé pendant une séance : changer de code efface les calibrages, pas le journal. Sans rechargement, le fichier de T02 contiendrait aussi les lignes de T01.
+2. Accueil (§1.3.3) : lecture de la [fiche d'information testeur](fiche-information-testeur-P0.md), accord oral, code remis au testeur, saisie du code.
+3. A0 : deux calibrages francs, puis un timide avec la case cochée.
+4. A1 à A5, revue après chacune ; A6 ; A7.
+5. B1 à B3 : calibrer avec la séquence sélectionnée, puis la lancer.
+6. C : calibrage exagéré, puis 60 s.
+7. Questions de fin, export du journal.
+
+Aucune capture d'écran pendant une séquence ; une séquence « À REFAIRE » est refaite.
+
+#### 1.8.6 Rangement et rejeu
+
+- PC : le fichier arrive dans Téléchargements. Le renommer `journal_T0x_date.csv` (sans suffixe « (1) »), le déplacer dans le dossier chiffré `C:\Users\Vartax\Journaux-P0`, l'effacer des Téléchargements.
+- iPhone : partager depuis l'application Fichiers vers le PC, puis effacer le fichier du téléphone.
+- Rejeu de chaque journal (§1.5.4) : toutes les lignes `direct` doivent dire « identique » ; un écart est expliqué avant d'aller plus loin.
+- Réglage (§1.5) sur le groupe de réglage seulement ; validation sur l'autre groupe, G1 jugé au `franc_bas` (n° 284).
+
+#### 1.8.7 Décisions prises pour la séance
+
+| Sujet | Décision |
+|---|---|
+| Calibrage à deux sourires | Envisagé après P0 si **au moins un testeur du groupe de validation** a plus de faux positifs en A1 à A4 au `franc_bas` qu'au `direct` (n° 294) |
+| Parade 4 (rythme du signal, [D2](D2-regles-jeu-arbitrage.md) Q17) | Évaluée **après** les séances, par le rejeu ; les séances ne l'attendent pas : le journal garde `s` et les 52 blendshapes (n° 296) |
+| Q17 (parole) | Reste ouverte ; décision finale sur A2, A3, A5 et A6 des testeurs. Parade 6 en attendant (n° 264) |
 
 ## 2. Prototype 1 — appel vidéo seul
 
