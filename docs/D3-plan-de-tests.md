@@ -175,6 +175,8 @@ Mesuré automatiquement, par fenêtre de 10 s consécutive (une ligne `perf fene
 
 Chauffe excessive (précise n° 51) : une fenêtre de 10 s sous 10 images/s dans une étape de 5 min, ou un ralentissement visible de l'affichage, ou un appareil brûlant au toucher. **À confirmer (P0)**. Les deux derniers jugements restent manuels.
 
+Planning (n° 287) : la séance PERF réelle se fait au début de la première séance P0, avant tout visage testeur, sur l'iPhone XR puis l'iPhone 15 Pro. Le PC en est dispensé.
+
 La mesure sans charge est optimiste : elle ignore l'appel vidéo. Le critère s'applique aux deux mesures, sans charge et avec charge (n° 81).
 
 ### 1.4 Mesures et grille de résultats
@@ -607,6 +609,55 @@ Vérification : tests automatiques des trois règles (`tests/protocole.test.mjs`
 Conclusion : **L0.6a terminé** sur le PC, sans troisième test manuel (décision de Valentin, n° 280). Le contrôle de l'export sur l'iPhone, prévu au critère de D6, n'a pas été fait : il est reporté à la première séance P0 sur l'iPhone.
 
 **Export sur l'iPhone** (iPhone 15 Pro, Safari), relevés de Valentin (n° 282). Journal complet et lisible : 239 lignes, 70 colonnes dont 52 `bs_`, marque d'encodage présente. Fichier récupéré et partagé depuis l'application Fichiers. Contenu : un calibrage sous A0 (v 0,74, d 0,29), puis A1 interrompue avec sa ligne `sequence debut` ; 14,8 lignes par seconde, aucun trou de plus de 0,15 s. La réserve du n° 280 est levée : **L0.6a terminé** sur le PC et l'iPhone 15 Pro.
+
+#### 1.7.7 Lot L0.6b — session performance (2026-09-27)
+
+**Vérification du code** (n° 285). Vérification automatique : 89 tests passent. PERF complète (10 min) dans Chrome sans interface, avec la caméra simulée de Chrome (sans visage, calibrage injecté par l'outil d'essai) :
+
+| Étape | Fenêtres | Cadence médiane | Plus basse | Temps d'analyse 1re / dernière min | Charge |
+|---|---|---|---|---|---|
+| Sans charge | 30 | 14,0 | 13,8 | 18 / 17 ms | — |
+| Avec charge | 30 | 14,0 | 13,8 | 17 / 17 ms | Appel connecté en H.264, plafond 1,7 Mbit/s ; 20,0 images encodées et 20,0 décodées/s ; 223 kbit/s |
+
+Journal : 8 471 lignes, dont 60 lignes `perf fenetre`. G3 automatique conforme sur les deux étapes. Ces chiffres valident le code, pas l'appareil : la caméra simulée tourne à 20 im/s, sans visage.
+
+Incident des essais : sur 9 lancements, la caméra simulée s'est arrêtée 3 fois. Deux causes sont établies : un Chrome resté ouvert qui gardait la caméra ; une piste coupée 10 s après le lancement, avant l'appel. La troisième ne l'est pas : les images se sont arrêtées environ 8 s après le début de l'appel. L'appel n'est pas exclu. Non reproduit ensuite.
+
+**Prévision simulée** (n° 286). Statut : **Simulé, à confirmer (P0)**. Ce ne sont **pas** des relevés.
+
+Modèle : caméra à cadence fixe avec gigue ; analyse plafonnée à 15 im/s ; temps d'analyse lognormal et bloquant ; la charge vidéo et la chauffe multiplient ce temps.
+
+Calage sur les relevés (im/s) :
+
+| Appareil | Mesuré | Simulé |
+|---|---|---|
+| PC, le soir | 13,4 | 13,6 |
+| iPhone 15 Pro | 15,0 | 14,4 |
+| iPhone XR | 14,4 à 15,0 | 13,8 |
+
+Prévisions (im/s) :
+
+| Appareil | Scénario | Médiane | Fenêtre de 10 s la plus basse |
+|---|---|---|---|
+| PC, journée | Sans charge | 14,4 | 13,9 |
+| PC, journée | Charge +60 %, chauffe +40 % | 14,0 | 13,2 |
+| PC, soir | Sans charge | 13,6 | 12,7 |
+| PC, soir | Charge ×2, chauffe +60 % | 11,1 | 9,1 |
+| iPhone 15 Pro | Sans charge | 14,4 | 13,9 |
+| iPhone 15 Pro | Charge +60 %, chauffe +40 % | 14,0 | 13,5 |
+| iPhone 15 Pro | Charge ×2 | 12,8 | 11,3 |
+| iPhone XR | Sans charge | 13,8 | 13,3 |
+| iPhone XR | Charge +30 %, chauffe +20 % | 12,8 | 12,1 |
+| iPhone XR | Charge +60 %, chauffe +40 % | 11,0 | 9,7 |
+| iPhone XR | Charge ×2 | 8,6 | 7,2 |
+
+Point de rupture (une fenêtre sous 10 im/s) : temps d'analyse moyen d'environ **75 ms** avec une caméra à 27-30 im/s, **60 ms** avec une caméra à 15 im/s. L'iPhone XR est aujourd'hui à 34 ms (L0.2, processeur).
+
+Non simulable : le poids réel de l'encodage vidéo sur chaque appareil, la chauffe réelle, et l'arrêt de la caméra observé une fois 8 s après le début de l'appel.
+
+Lecture : sur le XR, G3 tient dans le scénario charge +30 % et chauffe +20 %. Il passe sous 10 im/s avec charge +60 % et chauffe +40 %, et échoue nettement à charge ×2. Seule la séance réelle tranche.
+
+Conclusion : **L0.6b terminé pour le code** (n° 287). Le PC est dispensé de la séance PERF réelle. Les séances réelles sur l'iPhone XR (décisive pour G3), puis sur l'iPhone 15 Pro, ont lieu au début de la première séance P0, avant tout visage testeur. **G3 reste À confirmer (P0).** Si le XR échoue, [D6](D6-lots-developpement.md) §4 s'applique ; rien n'est décidé d'avance.
 
 ## 2. Prototype 1 — appel vidéo seul
 

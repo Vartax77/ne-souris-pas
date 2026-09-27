@@ -151,9 +151,10 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 |---|---|
 | Tâches | Séquence PERF ([D3](D3-plan-de-tests.md) §1.3.8) : 5 min sans charge puis 5 min avec charge vidéo simulée, enchaînées (n° 285) ; appel WebRTC en boucle sur le même appareil, sans serveur, H.264 plafonné à 1,7 Mbit/s, vidéo reçue affichée ; fenêtres de 10 s consécutives au journal (cadence analysée, temps d'analyse, caméra, affichage, charge prouvée par `getStats`) ; bilan par étape et G3 automatique. Calibrage de référence au `v` le plus haut (n° 283). Fichiers : `app/js/perf.js` ; vérification `tests/perf.test.mjs` |
 | Modules | Détection, WebRTC |
-| Terminé quand | La vérification automatique passe ; PERF complète, sans pause, sur le PC, l'iPhone 15 Pro et l'iPhone XR, avec « appel connecté » et des images encodées et décodées à chaque fenêtre de l'étape avec charge ; journaux exportés ; grille [D3](D3-plan-de-tests.md) §1.4.8 remplie ; verdict G3 relevé sur le XR. Le lot est terminé même si G3 échoue : l'échec renvoie au §4 (ajustement de L0.2) |
+| Terminé quand | **Code** : la vérification automatique passe et une PERF complète est conforme dans Chrome sans interface (n° 287, modifie n° 285). **Séances réelles**, reportées au début de la première séance P0, avant tout visage testeur : iPhone XR (décisive pour G3), puis iPhone 15 Pro ; PERF complète, sans pause, « appel connecté », images encodées et décodées à chaque fenêtre de l'étape avec charge, journal exporté, grille [D3](D3-plan-de-tests.md) §1.4.8 remplie. Le PC en est dispensé. G3 reste **À confirmer (P0)** ; si le XR échoue, le §4 s'applique, rien n'est décidé d'avance |
 | Test | [D3](D3-plan-de-tests.md) §1.3.8, critère G3 |
 | Dépend de | L0.6a |
+| Statut | **Terminé pour le code** le 2026-09-27 : 89 tests, PERF complète conforme dans Chrome sans interface ; prévision simulée en [D3](D3-plan-de-tests.md) §1.7.7 (n° 286, n° 287). Séances réelles sur l'iPhone XR puis l'iPhone 15 Pro : au début de la première séance P0 |
 
 #### L0.7 — Rejeu
 
