@@ -114,7 +114,7 @@ Réalisable par Valentin seul, avec un testeur à la fois. Le prototype affiche 
 
 | Code | Séquence | Durée | Consigne au testeur | Ce qu'on cherche |
 |---|---|---|---|---|
-| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc. **Trois calibrages réussis consécutifs**, deux francs, puis un volontairement timide, déclaré comme tel (case « Calibrage timide »). Le timide ne sert jamais aux séquences : A1 à A7 prennent le **calibrage de référence**, dernier réussi et non timide sous A0 ; B1 à B3 et C, leur propre calibrage (n° 279) | Essais, causes de rejet, `n`, `v`, `d` ; dispersion de `v` par testeur ; effet d'un `v` bas sur les faux positifs, **mesuré au rejeu** (L0.7) : fautes d'A2 et d'A3 recalculées avec le `d` du calibrage timide (n° 279, modifie n° 258) |
+| A0 | Calibrage | 5 s par essai | Selon [D2](D2-regles-jeu-arbitrage.md) R1 : 3 s neutre, puis 2 s de sourire franc. **Trois calibrages réussis consécutifs**, deux francs, puis un volontairement timide, déclaré comme tel (case « Calibrage timide »). Le timide ne sert jamais aux séquences : A1 à A7 et PERF prennent le **calibrage de référence**, franc (non timide) au `v` le plus haut sous A0, avec le code testeur en cours ; B1 à B3 et C, leur propre calibrage (n° 279, n° 283) | Essais, causes de rejet, `n`, `v`, `d` ; dispersion de `v` par testeur ; effet d'un `v` bas sur les faux positifs, **mesuré au rejeu** (L0.7) : fautes d'A2 et d'A3 recalculées avec le `d` du calibrage timide (n° 279, modifie n° 258), et fautes d'A1 à A5 avec le `d` du franc le plus bas (n° 284) |
 | A1 | Neutre silencieux | 60 s | Regarder l'écran, visage détendu, sans parler | Bruit de fond ; réglage de `m` |
 | A2 | Parole libre | 4 min 30 | Raconter sa journée, sans chercher à rire | Faux positifs dus à la parole |
 | A3 | Voyelles tenues | 60 s | Lire une liste : « iii », « ouistiti », « cheese », « pipi », « merci », chacun tenu 1 s ; puis répéter « pi-pi-pi-pi » sans pause pendant 5 s (syllabes enchaînées, pauses d'une image : n° 256) | Pire cas de la parole : fautes, P, r |
@@ -315,7 +315,9 @@ Exemple : `max(k_min)` = 0,30 et `min(k_max)` = 0,70 donnent `k` = 0,50.
 | 7 | Lacet, tangage, largeur minimale | A7 | Juste sous le point de décrochage le plus bas observé |
 | 8 | Délai de visage perdu, perte continue maximale | A1 à A6 | Aucune perte comptée en jeu normal. Sinon, allonger le délai |
 | 9 | Durée de maintien, fenêtre de lissage | Journal | Seulement si l'intervalle de `k` est vide : rejouer le journal avec 400 et 600 ms de maintien, et avec 2 et 4 images de lissage, puis recalculer 1.5.2 |
-| 10 | Vérification | Journal du groupe de validation | Rejouer R1 à R4 **en entier** avec les valeurs retenues, sans les retoucher. Remplir la colonne « Validation » de 1.4.9 |
+| 10 | Vérification | Journal du groupe de validation | Rejouer R1 à R4 **en entier** avec les valeurs retenues, sans les retoucher, et avec le `d` du **franc le plus bas** de chaque testeur, pas celui de la séance (n° 284). Remplir la colonne « Validation » de 1.4.9 |
+
+**Pourquoi le franc le plus bas** (n° 284) : en séance, la référence est le franc au `v` le plus haut (n° 283), donc le seuil le plus haut du testeur. En jeu, R1 ne fait qu'un calibrage, souvent moins bon. Le rejeu au franc le plus bas est le pire cas réaliste. Si l'écart entre les fautes de la séance et celles de ce rejeu est grand, un calibrage à deux sourires en jeu (meilleur des deux) sera envisagé après P0. Seuil d'écart : **À confirmer (P0)**.
 
 Les pourcentages et marges de ce tableau sont des règles de méthode, pas des réglages du jeu : ils ne passent pas dans [D2](D2-regles-jeu-arbitrage.md).
 
@@ -325,7 +327,7 @@ Les pourcentages et marges de ce tableau sont des règles de méthode, pas des r
 
 | Code | Critère | Mesure (1.4.9) |
 |---|---|---|
-| G1 | Aucun faux positif ni litigieuse en conditions N, sur le groupe de validation | Rejeu de l'étape 10 |
+| G1 | Aucun faux positif ni litigieuse en conditions N, sur le groupe de validation | Rejeu de l'étape 10, au `d` du franc le plus bas de chaque testeur, et non la séance (n° 284) |
 | G2 | Aucun faux positif ni litigieuse dans une condition dégradée acceptée par le calibrage | 1.4.7 |
 | G3 | Au moins 10 images/s sur chaque fenêtre de 10 s pendant 5 min, sans chauffe excessive, sur l'appareil le plus ancien, sans charge et avec charge vidéo (n° 81) | 1.4.8 |
 | G4 | Calibrage réussi en N pour tous les testeurs | 1.4.3 |

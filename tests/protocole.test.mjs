@@ -77,13 +77,24 @@ test("revue : exactement A1 à A5 et B1 à B3 (D3 §1.3.4)", () => {
   assert.deepEqual(SEQUENCES.filter((s) => s.revue).map((s) => s.code), ["A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3"]);
 });
 
-test("calibragePour : référence = dernier réussi non timide sous A0 ; B et C, leur propre calibrage (n° 279)", () => {
+test("calibragePour : référence = franc au v le plus haut sous A0 ; B et C, leur propre calibrage (n° 279, n° 283)", () => {
   const seq = (code) => SEQUENCES.find((s) => s.code === code);
   const franc1 = { n: 0.01, v: 0.71, d: 0.28, seq: "A0", timide: false };
   const franc2 = { n: 0.02, v: 0.65, d: 0.26, seq: "A0", timide: false };
   const timide = { n: 0.01, v: 0.39, d: 0.16, seq: "A0", timide: true };
   const b1 = { n: 0.03, v: 0.6, d: 0.24, seq: "B1", timide: false };
-  assert.equal(calibragePour(seq("A1"), [franc1, franc2, timide]), franc2);
+  // Relevé du PC : deux francs à 6 s d'écart, v 0,52 puis 0,40 : la référence reste 0,52.
+  const pc1 = { n: 0, v: 0.52, d: 0.21, seq: "A0", timide: false };
+  const pc2 = { n: 0, v: 0.40, d: 0.16, seq: "A0", timide: false };
+  assert.equal(calibragePour(seq("A1"), [pc1, pc2]), pc1);
+  assert.equal(calibragePour(seq("A1"), [franc1, franc2, timide]), franc1);
+  // Un timide au v plus haut ne sert jamais ; à égalité de v, le plus récent.
+  assert.equal(calibragePour(seq("A1"), [franc2, { ...timide, v: 0.9 }]), franc2);
+  const egal = { ...franc1, d: 0.29 };
+  assert.equal(calibragePour(seq("A1"), [franc1, egal]), egal);
+  // B1 : dernier B1, même si un A0 a un v plus haut.
+  const b1bis = { ...b1, v: 0.5 };
+  assert.equal(calibragePour(seq("B1"), [b1, franc1, b1bis]), b1bis);
   assert.equal(calibragePour(seq("A7"), [franc1, timide]), franc1);
   assert.equal(calibragePour(null, [franc1, timide]), franc1); // manche d'essai
   assert.equal(calibragePour(seq("A1"), [timide]), null);

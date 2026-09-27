@@ -155,12 +155,12 @@ function terminerCalibrage() {
 let calibre = null, manche = null, cameraPrete = false;
 const calibrages = creerCalibrages();
 
-// Calibrage de référence pour la manche d'essai : dernier réussi et non timide sous A0.
+// Calibrage de référence pour la manche d'essai : franc au v le plus haut sous A0 (n° 283).
 function choisirReference() {
   calibre = calibrages.pour(null);
   $("manche-bouton").disabled = !calibre;
   $("manche-calibre").textContent = calibre
-    ? `n ${f(calibre.n, 2)} · d ${f(calibre.d, 2)} (calibrage de référence : dernier réussi non timide)`
+    ? `n ${f(calibre.n, 2)} · v ${f(calibre.v, 2)} · d ${f(calibre.d, 2)} (calibrage de référence : franc au v le plus haut)`
     : "Aucun calibrage de référence (non timide).";
 }
 const nomCalibrage = (c) => (c.seq === "A0" ? "référence" : c.seq);

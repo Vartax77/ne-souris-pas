@@ -19,7 +19,7 @@ const DEGRADEE = (code, titre, preparation) => ({
 
 export const SEQUENCES = Object.freeze([
   { code: "A0", titre: "Calibrage", calibrage: true,
-    preparation: "Trois calibrages réussis de suite : deux francs, puis un volontairement timide, case « Calibrage timide » cochée. Le timide ne sert qu'à mesurer la dispersion de v ; son effet est mesuré au rejeu (n° 279). Utilisez le bouton « Commencer » du calibrage." },
+    preparation: "Trois calibrages réussis de suite : deux francs, puis un volontairement timide, case « Calibrage timide » cochée. Le franc au v le plus haut sert de référence (n° 283). Le timide ne sert qu'à mesurer la dispersion de v ; son effet est mesuré au rejeu (n° 279). Utilisez le bouton « Commencer » du calibrage." },
   { code: "A1", titre: "Neutre silencieux", revue: true,
     etapes: [["Regardez l'écran, visage détendu, sans parler", 60]] },
   { code: "A2", titre: "Parole libre", revue: true,
@@ -57,13 +57,17 @@ export const SEQUENCES = Object.freeze([
 // Code testeur : T00 à T99 (T00 : essais de Valentin), jamais de nom (D3 §1.4.2). Sans code, ni calibrage ni séquence (n° 281).
 export const codeTesteurValide = (code) => /^T\d{2}$/.test(code);
 
-// Calibrage d'une séquence (D8 n° 279, n° 281) : A1 à A7 et la manche d'essai prennent le calibrage de
-// référence, dernier réussi et non timide sous A0 ; B1 à B3 et C, le dernier réussi fait avec la séquence
-// sélectionnée. Seuls comptent les calibrages du testeur en cours.
+// Calibrage d'une séquence (D8 n° 279, n° 281, n° 283) : A1 à A7, PERF et la manche d'essai prennent le
+// calibrage de référence, franc (non timide) au v le plus haut sous A0, le plus récent à égalité : v varie
+// de 0,39 à 0,82 pour un même visage, et prendre le dernier rendrait l'arbitrage plus sévère par hasard.
+// B1 à B3 et C : le dernier réussi fait avec la séquence sélectionnée (l'éclairage du moment).
+// Seuls comptent les calibrages du testeur en cours.
 // calibrages : calibrages réussis { n, v, d, seq, timide, testeur }, dans l'ordre. null si aucun ne convient.
 export function calibragePour(seq, calibrages, testeur) {
   const code = seq?.calibrageAvant ? seq.code : "A0";
-  return calibrages.findLast((c) => c.seq === code && !c.timide && c.testeur === testeur) ?? null;
+  const ok = calibrages.filter((c) => c.seq === code && !c.timide && c.testeur === testeur);
+  if (code !== "A0") return ok.at(-1) ?? null;
+  return ok.reduce((best, c) => (best && best.v > c.v ? best : c), null);
 }
 
 // Calibrages réussis en mémoire vive (n° 281) : vidés à chaque changement du code testeur, pour qu'un

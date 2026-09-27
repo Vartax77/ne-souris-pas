@@ -159,7 +159,7 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Relire un journal CSV et rejouer R1 à R4 avec d'autres valeurs de réglage (maintien, lissage, `k`, `m`, angles) ; sortie : fautes par séquence |
+| Tâches | Relire un journal CSV et rejouer R1 à R4 avec d'autres valeurs de réglage (maintien, lissage, `k`, `m`, angles) et d'autres calibrages : `d` du timide (n° 279) et du franc le plus bas de chaque testeur, sur lequel G1 est jugé (n° 284) ; sortie : fautes par séquence |
 | Modules | Arbitrage (le même code qu'en jeu, pas une copie) |
 | Terminé quand | Le rejeu d'un journal avec les valeurs de départ redonne exactement les fautes observées en direct |
 | Test | [D3](D3-plan-de-tests.md) §1.5, étapes 9 et 10 |
