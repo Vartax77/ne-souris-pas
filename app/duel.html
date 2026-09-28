@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Prototype 1 (D6 L1.1, D8 n° 303). Même règle qu'en P0 (n° 221) : rien hors du site, sauf le serveur de
+       mise en relation PeerJS (D4 §8.4), seul tiers autorisé à recevoir une connexion. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com; img-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Ne souris pas — prototype 1</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="duel.css">
+</head>
+<body>
+  <main>
+    <h1>Ne souris pas</h1>
+    <p class="lot">Prototype 1 — lot L1.1 : salon</p>
+
+    <!-- E1 réduit (D5 §3.1) : l'appel, la caméra et la case d'âge arrivent avec les lots suivants. -->
+    <section id="accueil-hote" hidden>
+      <p>Défiez un ami : le premier qui sourit perd.</p>
+      <button id="creer" type="button">Créer un duel</button>
+    </section>
+
+    <section id="accueil-invite" hidden>
+      <p>Vous êtes défié au jeu Ne souris pas.</p>
+      <button id="rejoindre" type="button">Rejoindre le duel</button>
+    </section>
+
+    <!-- E3 (D5 §3.3) -->
+    <section id="attente" hidden>
+      <h2>Envoyez ce lien à votre adversaire</h2>
+      <p id="lien" class="lien"></p>
+      <button id="partager" type="button" hidden>Partager le lien</button>
+      <button id="copier" type="button">Copier</button>
+      <p>En attente de votre adversaire…</p>
+      <p class="version">Le lien expire dans 15 minutes s'il n'est pas utilisé.</p>
+      <button id="annuler" type="button">Annuler</button>
+    </section>
+
+    <section id="connexion" hidden>
+      <p>Connexion à votre adversaire…</p>
+    </section>
+
+    <section id="trouve" hidden>
+      <h2 class="ok">Adversaire trouvé</h2>
+      <p id="trouve-temps" class="version"></p>
+      <button id="quitter" type="button">Quitter</button>
+    </section>
+
+    <!-- Écrans d'erreur (D5 §4) : ce qui s'est passé, un seul bouton principal. -->
+    <section id="erreur" hidden>
+      <p id="erreur-message" class="erreur"></p>
+      <button id="erreur-bouton" type="button"></button>
+    </section>
+
+    <pre id="mesures">Chargement…</pre>
+  </main>
+  <script src="vendor/peerjs-1.5.5/peerjs.min.js"></script>
+  <script type="module" src="js/duel.js"></script>
+</body>
+</html>

@@ -352,7 +352,8 @@ Conditions à vérifier en P1 :
 
 - Le serveur public PeerJS permet-il de savoir si l'autre appareil est encore relié (forfait, n° 101) ? Méthode envisagée : tenter une connexion vers l'identifiant de l'autre ; l'erreur « pair introuvable » signifie qu'il est absent. **À confirmer (P1)**
 - Le relais Metered passe-t-il les réseaux les plus fermés (TLS sur 443) ? **À confirmer (P1)**
-- Le relais par défaut de PeerJS (identifiants publics) et le serveur STUN de Google qu'il utilise [S25] doivent être remplacés, dans la configuration, par ceux du relais choisi.
+- Le relais par défaut de PeerJS (identifiants publics) et le serveur STUN de Google qu'il utilise [S25] doivent être remplacés, dans la configuration, par ceux du relais choisi. Fait dès L1.1 : STUN de Metered seul (n° 303).
+- **Clé d'API Metered** (n° 305) : en P1, elle est écrite dans la page, publique. L'API d'identifiants d'Open Relay est prévue pour être appelée depuis la page (seule la clé secrète reste côté serveur) ; l'offre gratuite est sans carte bancaire, donc sans risque financier ; aucune restriction par domaine n'est documentée. Si la clé est abusée, le relais s'arrête jusqu'au mois suivant et Valentin la régénère. Une fonction serveur produisant des identifiants temporaires devient nécessaire avant tout ajout d'un moyen de paiement (P2 ou ouverture au public).
 
 ## 9. Coûts, volumes et journaux
 

@@ -31,10 +31,11 @@ flowchart LR
         L06a --> L07["L0.7 Rejeu"]
     end
     subgraph P1["P1 — appel vidéo seul"]
-        L11["L1.1 Salon"] --> L12["L1.2 Appel et relais"]
-        L12 --> L13["L1.3 Canal de jeu"]
+        L11["L1.1 Salon"] --> L12a["L1.2a Appel direct"]
+        L12a --> L12b["L1.2b Relais et journal P1"]
+        L12b --> L13["L1.3 Canal de jeu"]
         L13 --> L14["L1.4 Horloges"]
-        L12 --> L15["L1.5 Charge réelle"]
+        L12b --> L15["L1.5 Charge réelle"]
     end
     subgraph P2["P2 — duel complet"]
         L21a["L2.1a Déroulé : accueil à calibrage"] --> L21b["L2.1b Déroulé : écran noir à score"]
@@ -45,7 +46,7 @@ flowchart LR
         L24 --> L25
         L25 --> L26["L2.6 Pages légales"]
     end
-    L07 -- "Go P0" --> L11
+    L07 -- "code P0 complet (n° 302)" --> L11
     L14 -- "Go P1" --> L21a
     L15 -- "Go P1" --> L21a
 ```
@@ -61,7 +62,8 @@ flowchart LR
 | L0.6b | P0 | Session performance avec charge vidéo simulée | Détection, WebRTC | §1.3.8, G3 |
 | L0.7 | P0 | Rejouer un journal avec d'autres valeurs | Arbitrage | §1.5, étapes 9 et 10 |
 | L1.1 | P1 | Créer un salon, partager le lien, se rejoindre | Mise en relation, Interface | §2.3.1 |
-| L1.2 | P1 | Appel audio et vidéo, direct ou relayé | WebRTC | §2.3.1, §2.3.2, C1, C2 |
+| L1.2a | P1 | Appel audio et vidéo direct (STUN seul) | WebRTC, Interface | §2.3.1, C2, C6 |
+| L1.2b | P1 | Relais TURN, relais forcé, journal P1, navigateurs intégrés | WebRTC | §2.3.2, §2.3.7, C1 |
 | L1.3 | P1 | Canal de jeu, battement, coupure, reconnexion, présence | WebRTC, Mise en relation | §2.3.4, C4 |
 | L1.4 | P1 | Synchroniser les horloges et mesurer l'erreur réelle | Arbitrage, WebRTC | §2.3.3, C3 |
 | L1.5 | P1 | Mesurer la cadence avec un vrai appel en cours | Détection, WebRTC | §2.3.5, C5 |
@@ -173,21 +175,35 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Code de salon aléatoire ; lien d'invitation ; ouverture et entrée dans le salon par le service de mise en relation retenu ([D4](D4-architecture-technique.md) §8) ; bibliothèque cliente PeerJS servie par l'hébergement de la PWA, version figée ([D4](D4-architecture-technique.md) §1, principe 5, n° 176) ; erreurs « lien plus valable » ; verrouillage à deux ; expiration à 15 min sans invité, puis à la fin de la session (n° 159) |
+| Tâches | Code de salon aléatoire (20 caractères, `crypto.getRandomValues`) ; lien d'invitation, code après le « # » ; ouverture et entrée dans le salon par le serveur public PeerJS ([D4](D4-architecture-technique.md) §8.4) ; bibliothèque cliente PeerJS 1.5.5 servie par l'hébergement de la PWA, version figée ([D4](D4-architecture-technique.md) §1, principe 5, n° 176) ; erreurs « lien plus valable » ; verrouillage à deux ; expiration à 15 min sans invité, puis à la fin de la session (n° 159). Page séparée `app/duel.html`, sans caméra ; STUN de Metered seul (n° 303). Fichiers : `app/duel.html`, `app/js/salon.js`, `app/js/duel.js` ; vérification `tests/salon.test.mjs` |
 | Modules | Mise en relation, Interface |
-| Terminé quand | Deux appareils se trouvent par le lien ; un troisième reçoit « Ce lien n'est plus valable » |
-| Test | [D3](D3-plan-de-tests.md) §2.3.1 |
-| Dépend de | Go P0 |
+| Terminé quand | La vérification automatique passe, sans modifier aucun fichier de P0 ; l'essai à trois onglets avec le vrai serveur PeerJS est conforme dans Chrome sans interface ; sur le PC et les deux iPhone, deux appareils se trouvent par le lien, y compris Wi-Fi contre 4G, et un troisième reçoit « Ce lien n'est plus valable » ; essai d'ouverture dans le navigateur intégré de Messenger noté |
+| Test | [D3](D3-plan-de-tests.md) §2.3.1 (partie « se trouver ») ; relevés en §2.7.1 |
+| Dépend de | Code P0 complet (n° 293), et non plus « Go P0 » : P1 commence en parallèle des séances P0 (n° 302) |
 
-#### L1.2 — Appel et relais
+L1.2 a été coupé en deux avant de commencer : tout en une séance dépassait la règle du §1 (n° 304).
+
+#### L1.2a — Appel direct
 
 | Rubrique | Contenu |
 |---|---|
-| Tâches | Connexion WebRTC audio et vidéo ; vidéo envoyée en 640 × 480, 1,7 Mbit/s au plus, en H.264 quand un iPhone joue ([D4](D4-architecture-technique.md) §7.3, §7.4, n° 177) ; serveurs STUN et TURN (UDP, TCP, TLS sur 443) ; option « relais forcé » pour le test ; journal P1 : type de candidat, temps d'établissement, aller-retour, débit, codec, pertes |
-| Modules | WebRTC |
-| Terminé quand | Appel établi entre un téléphone en 4G et un ordinateur en Wi-Fi, direct puis relais forcé |
-| Test | [D3](D3-plan-de-tests.md) §2.3.1, §2.3.2, critères C1 et C2 |
+| Tâches | Caméra et micro (E2, ER1, ER2, ER12) ; connexion WebRTC audio et vidéo ; vidéo envoyée en 640 × 480, 1,7 Mbit/s au plus, en H.264 quand un iPhone joue ([D4](D4-architecture-technique.md) §7.3, §7.4, n° 177) ; E4 « Connexion » et ER4 après 20 s ; STUN seul ; lecture après un geste sur iOS (RT8) |
+| Modules | WebRTC, Interface |
+| Terminé quand | Appel établi avec image et son des deux côtés entre le PC et un iPhone, puis entre les deux iPhone, dont un en 4G |
+| Test | [D3](D3-plan-de-tests.md) §2.3.1, critères C2 et C6 |
 | Dépend de | L1.1 |
+
+#### L1.2b — Relais et journal P1
+
+| Rubrique | Contenu |
+|---|---|
+| Tâches | Relais Metered Open Relay (UDP, TCP, TLS sur 443), identifiants demandés à l'API de Metered avec la clé d'API **écrite dans la page** (n° 305) ; option « relais forcé » ; journal P1 ([D3](D3-plan-de-tests.md) §2.4) : type de candidat, temps d'établissement, aller-retour, débit, codec, pertes ; export ; navigateurs intégrés M1 à M3 ([D3](D3-plan-de-tests.md) §2.3.7) |
+| Modules | WebRTC |
+| Terminé quand | Appel établi entre un téléphone en 4G et un ordinateur en Wi-Fi, direct puis relais forcé ; journal P1 exporté |
+| Test | [D3](D3-plan-de-tests.md) §2.3.2, §2.3.7, critère C1 |
+| Dépend de | L1.2a |
+
+Clé d'API Metered (n° 305) : l'API d'identifiants d'Open Relay est prévue pour être appelée depuis la page ; seule la clé secrète reste côté serveur. L'offre gratuite (20 Go par mois) est sans carte bancaire : aucun risque financier. Si la clé est abusée, le relais s'arrête jusqu'au mois suivant et Valentin la régénère. Une fonction serveur produisant des identifiants temporaires deviendra nécessaire avant tout ajout d'un moyen de paiement (P2 ou ouverture au public).
 
 #### L1.3 — Canal de jeu
 
@@ -197,7 +213,7 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 | Modules | WebRTC, Mise en relation |
 | Terminé quand | Couper le Wi-Fi 10 s puis le rétablir : l'appel reprend ; le couper 40 s : le serveur désigne l'appareil absent |
 | Test | [D3](D3-plan-de-tests.md) §2.3.4, critère C4 |
-| Dépend de | L1.2 |
+| Dépend de | L1.2b |
 
 #### L1.4 — Horloges
 
@@ -217,7 +233,7 @@ L0.6 a été coupé en deux avant de commencer : tout en une séance dépassait 
 | Modules | Détection, WebRTC |
 | Terminé quand | Cadence journalisée pendant 10 min d'appel réel sur l'iPhone XR (le plus ancien), avec le codec et la résolution effectivement utilisés |
 | Test | [D3](D3-plan-de-tests.md) §2.3.5, critère C5 |
-| Dépend de | L1.2 |
+| Dépend de | L1.2b ; jugé seulement après la séance PERF réelle de l'iPhone XR (n° 302) |
 
 ### 3.3 Prototype 2 — duel complet
 

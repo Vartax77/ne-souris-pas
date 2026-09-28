@@ -91,6 +91,7 @@ Les sources sont numérotées en section 10.
 ### 2.9 Transferts hors de l'Union européenne
 
 - Pendant les prototypes, des prestataires hors UE ou non localisés peuvent voir les adresses IP : serveur public PeerJS (localisation non publiée), Metered (société canadienne, réseau mondial), hébergement statique américain. **À vérifier** (V7).
+- Le serveur public PeerJS voit aussi l'identifiant de l'hôte, « nsp-<code> », donc le **code du salon**. Le code ne sert qu'à se retrouver et ne désigne personne ; il devient invalide à la fin de la session. Acceptable entre proches en v1 (n° 306). L'hébergement statique ne le voit pas : il est après le « # » du lien.
 - Vers les États-Unis, le transfert repose sur la décision d'adéquation du 10 juillet 2023 (Data Privacy Framework), pour un destinataire certifié [J19]. Le Tribunal de l'UE a rejeté le recours Latombe le 3 septembre 2025 ; un pourvoi (C-703/25 P) est pendant [J20]. Une annulation ferait tomber ces transferts.
 - Après les prototypes, tout est hébergé en France (n° 120) : **aucun transfert**.
 

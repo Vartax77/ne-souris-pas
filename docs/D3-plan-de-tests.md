@@ -998,6 +998,25 @@ Valeurs relevées **à titre d'information**, sans critère ni effet sur la déc
 
 Enseignement pour P2 : si `W` dépasse souvent 200 ms (réseaux lents), s'attendre à plus de manches nulles et le vérifier par le critère A2 (§3.7).
 
+### 2.7 Relevés des lots P1
+
+#### 2.7.1 Lot L1.1 — salon (2026-09-28)
+
+Vérification automatique : `tests/salon.test.mjs` (11 tests, avec un faux serveur PeerJS), en tout 105 tests qui passent. Aucun fichier de P0 modifié.
+
+Essai avec le **vrai serveur public PeerJS**, dans Chrome sans interface, trois onglets :
+
+| Étape | Résultat |
+|---|---|
+| Hôte : « Créer un duel » | Salon ouvert en 0,1 à 0,2 s ; lien avec un code de 20 caractères après le « # » |
+| Invité : ouvre le lien, « Rejoindre le duel » | « Adversaire trouvé » des deux côtés ; mise en relation en 0,2 s |
+| Troisième onglet sur le même lien | « Ce lien n'est plus valable. » ; l'hôte garde son invité |
+| Invité : « Quitter » | Hôte : « Votre adversaire est parti. » ; le lien rouvert donne « Ce lien n'est plus valable. » |
+| Fragment invalide (`#abc`) | « Ce lien n'est plus valable. » |
+| Politique de sécurité | 0 chargement bloqué dans tous les onglets |
+
+Relevés sur appareils réels (PC, iPhone 15 Pro, iPhone XR ; Wi-Fi contre 4G ; navigateur intégré de Messenger) : à venir.
+
 ## 3. Prototype 2 — duel complet
 
 ### 3.1 Objectif et risques testés

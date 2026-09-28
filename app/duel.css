@@ -1,0 +1,5 @@
+/* Page du prototype 1 (L1.1). Complète style.css sans le modifier (page P0 en service). */
+.lien {
+  word-break: break-all;
+  font-size: .9rem;
+}

@@ -6,7 +6,7 @@
 | Statut | Brouillon — à faire relire avec [D7](D7-juridique-confidentialite.md) V10 |
 | Date | 2026-09-27 |
 | Dépend de | [D7](D7-juridique-confidentialite.md) §1, §2.2, §6 ; [D3](D3-plan-de-tests.md) §1.2, §1.3.3, §1.4 ; [D8](D8-journal-decisions.md) n° 26, 73, 78, 216, 222, 223, 225, 298, 299 |
-| Utilisé par | [D3](D3-plan-de-tests.md) §1.3.3 (accueil) et §1.8 (préparation) |
+| Utilisé par | [D3](D3-plan-de-tests.md) §1.3.3 (accueil) et §1.8 (préparation) ; essais d'appel P1 ([D3](D3-plan-de-tests.md) §2) |
 
 Texte à lire au testeur :
 
@@ -31,3 +31,9 @@ Texte à lire au testeur :
 > Êtes-vous d'accord pour participer ?
 
 Votre code de testeur : **T\_\_** (à remettre au testeur).
+
+## Prototype 1 — essais d'appel
+
+Phrase à remettre par écrit au proche qui participe aux essais d'appel (n° 306) :
+
+> Pendant les essais d'appel, le serveur de mise en relation puis le relais voient l'adresse IP de votre appareil, rien d'autre.
