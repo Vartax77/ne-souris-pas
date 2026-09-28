@@ -1013,6 +1013,7 @@ Essai avec le **vrai serveur public PeerJS**, dans Chrome sans interface, trois 
 | Troisième onglet sur le même lien | « Ce lien n'est plus valable. » ; l'hôte garde son invité |
 | Invité : « Quitter » | Hôte : « Votre adversaire est parti. » ; le lien rouvert donne « Ce lien n'est plus valable. » |
 | Fragment invalide (`#abc`) | « Ce lien n'est plus valable. » |
+| 15 min 10 s sans invité (essai séparé) | Hôte : « Personne n'a rejoint. Le lien a expiré. » ; un invité tardif : « Ce lien n'est plus valable. » |
 | Politique de sécurité | 0 chargement bloqué dans tous les onglets |
 
 Relevés sur appareils réels (PC, iPhone 15 Pro, iPhone XR ; Wi-Fi contre 4G ; navigateur intégré de Messenger) : à venir.
