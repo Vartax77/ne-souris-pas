@@ -205,6 +205,7 @@ Clé d'API Metered (n° 305) : l'API d'identifiants d'Open Relay est prévue pou
 | Terminé quand | Couper le Wi-Fi 10 s puis le rétablir : l'appel reprend ; le couper 40 s : le serveur désigne l'appareil absent |
 | Test | [D3](D3-plan-de-tests.md) §2.3.4, critère C4 |
 | Dépend de | L1.2 |
+| Statut | **Terminé côté code** le 2026-09-28 : canal, battement, coupure et reprise, sonde de présence ; coupures simulées dans Chrome sans interface ([D3](D3-plan-de-tests.md) §2.7.3, n° 310) ; vraies coupures (Wi-Fi, 4G, autre application) en fin de vague 1 |
 
 #### L1.4 — Horloges
 

@@ -29,24 +29,45 @@ export const codeDuLien = (fragment) => {
   return FORMAT.test(c) ? c : null;
 };
 
+export const RECONNEXION_MS = 30000; // coupure : reprise possible pendant 30 s (D2 §6.4.1)
+const ESSAI_REPRISE_MS = 2000; // l'invité retente de joindre l'hôte toutes les 2 s pendant la coupure
+const ESSAI_OUVERTURE_MS = 5000; // une tentative de reprise qui ne s'ouvre pas en 5 s est abandonnée
+const SONDE_MS = 3000; // sonde de présence : sans verdict en 3 s, aucun vainqueur
+const VEILLE_MS = 60000; // le vainqueur par forfait reste joignable 60 s pour le dire à l'absent qui revient
+
 // États annoncés par surEtat(etat, info) :
 //   "attente" (hôte, info : { code, ms }) ; "trouve" (info : { ms, hote, peer, conn, autre }) : la connexion
 //   de données sert ensuite de canal de jeu, et le pair à l'appel vidéo (L1.2) ;
-//   "er4" connexion impossible (D5 ER4, info : { cause }) ; "er5" adversaire parti ;
-//   "er6" lien plus valable ; "er11" personne n'a rejoint ; "ferme" (Quitter, Annuler).
-// creerPeer(id) : objet compatible PeerJS (on, connect, reconnect, destroy).
+//   "coupure" (info : { depuis }) : adversaire injoignable, reprise possible pendant 30 s (L1.3) ;
+//   "reprise" (info : { conn, hote, autre }) : nouvelle connexion après une coupure ; "retabli" : l'ancienne
+//   connexion a repris d'elle-même ;
+//   après 30 s, arbitrage du serveur de présence (D2 §6.4.3) : "forfait_gagne" (l'autre n'est plus relié au
+//   serveur), "forfait_perdu" (cet appareil n'était plus relié, l'autre l'est : ER13), "interrompu" (aucun
+//   vainqueur : ER10) ;
+//   "er4" connexion impossible (D5 ER4, info : { cause }) ; "er5" adversaire parti ; "er6" lien plus valable ;
+//   "er11" personne n'a rejoint ; "ferme" (Quitter, Annuler).
+// creerPeer(id) : objet compatible PeerJS (on, connect, disconnect, reconnect, destroy, open, disconnected).
 // horloge : { maintenant() en ms, minuterie(fn, ms) → fonction d'annulation }.
-// surMessage(m) : messages qui ne concernent pas le salon (canal de jeu, L1.3).
+// surMessage(m) : messages qui ne concernent pas le salon (canal de jeu).
 export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {}, nouveauCode = creerCode }) {
-  let peer = null, conn = null, fini = true, trouve = false;
+  let peer = null, conn = null, fini = true, trouve = false, hote = false, autre = null, jeton = null;
+  let coupure = null; // { depuis, serveurPerdu } pendant une coupure
   const annulations = [];
   const minuterie = (fn, ms) => annulations.push(horloge.minuterie(fn, ms));
+  const annuler = () => annulations.splice(0).forEach((a) => a());
 
-  function fin(etat, info) {
+  let enVeille = false; // vainqueur par forfait : répond « forfait » aux sondes pendant 60 s
+  function fin(etat, info, veille = false) {
     if (fini) return;
     fini = true;
-    annulations.splice(0).forEach((a) => a());
-    peer?.destroy(); // le code devient invalide (n° 159)
+    annuler();
+    if (veille) {
+      enVeille = true;
+      const p = peer;
+      horloge.minuterie(() => { enVeille = false; p.destroy(); }, VEILLE_MS);
+    } else {
+      peer?.destroy(); // le code devient invalide (n° 159)
+    }
     surEtat(etat, info);
   }
 
@@ -54,49 +75,177 @@ export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {},
     fini = false;
     trouve = false;
     conn = null;
+    coupure = null;
   }
 
-  // Le serveur perd la connexion (page masquée sur iPhone, réseau) : se réinscrire sous le même identifiant.
+  // Le serveur perd la connexion (page masquée sur iPhone, réseau) : se réinscrire sous le même identifiant,
+  // toutes les 2 s tant qu'il ne répond pas. Pendant une coupure, noter que cet appareil l'a perdu.
+  // Critère : p.open (inscrit au serveur), pas p.disconnected : pendant une coupure, une réinscription peut
+  // rester bloquée « en cours » (disconnected faux, open faux) ; on repart alors d'une déconnexion propre.
+  let reinscription = false;
   function suivreServeur(p) {
-    p.on("disconnected", () => { if (!fini && p === peer) p.reconnect(); });
+    p.on("disconnected", () => {
+      if (fini || p !== peer) return;
+      if (coupure) coupure.serveurPerdu = true;
+      if (reinscription) return;
+      reinscription = true;
+      const retenter = () => {
+        if (fini || p !== peer || p.open) { reinscription = false; return; }
+        try {
+          if (!p.disconnected) p.disconnect();
+          p.reconnect();
+        } catch { /* réseau absent : on retentera */ }
+        horloge.minuterie(retenter, ESSAI_REPRISE_MS);
+      };
+      retenter();
+    });
   }
+  const surServeur = () => Boolean(peer?.open);
 
   // Messages du salon, dans l'enveloppe de D4 §4.2 : { v, type: "bienvenue" | "complet" | "au_revoir" }.
-  const message = (type) => ({ v: VERSION, type });
-  const annoncerTrouve = (ms, hote) => surEtat("trouve", { ms, hote, peer, conn, autre: conn.peer });
-  // hote : chez l'hôte, une connexion qui tombe avant d'avoir abouti remet le salon en attente.
-  function suivreConnexion(c, t0, hote = false) {
+  const message = (type, data) => ({ v: VERSION, type, ...(data ? { data } : {}) });
+  const annoncerTrouve = (ms) => surEtat("trouve", { ms, hote, peer, conn, autre });
+
+  function suivreConnexion(c, t0) {
     c.on("data", (m) => {
+      if (c !== conn) return;
       if (m?.type === "bienvenue") {
         if (trouve) return;
         trouve = true;
-        annulations.splice(0).forEach((a) => a());
-        annoncerTrouve(horloge.maintenant() - t0, hote);
+        jeton = m.data?.jeton ?? null;
+        annuler();
+        annoncerTrouve(horloge.maintenant() - t0);
       } else if (m?.type === "complet") fin("er6");
       else if (m?.type === "au_revoir") fin("er5");
       else if (!fini) surMessage(m);
     });
-    // Connexion fermée sans message : avant la rencontre, le salon n'est plus valable ; après, l'autre est parti.
+    // Connexion fermée sans « au revoir » : avant la rencontre, le salon n'est plus valable (invité) ou revient
+    // en attente (hôte) ; après, c'est une coupure (L1.3).
     c.on("close", () => {
-      if (c !== conn) return;
-      if (hote && !trouve) conn = null;
-      else fin(trouve ? "er5" : "er6");
+      if (c !== conn || fini) return;
+      if (!trouve) {
+        if (hote) conn = null;
+        else fin("er6");
+        return;
+      }
+      conn = null;
+      signalerCoupure();
     });
+  }
+
+  // Coupure : silence de 3 s constaté par le canal (duel.js), ou connexion fermée. Reprise pendant 30 s ; l'invité
+  // retente de joindre l'hôte ; au-delà, le serveur de présence arbitre.
+  function signalerCoupure() {
+    if (fini || !trouve || coupure) return;
+    coupure = { depuis: horloge.maintenant(), serveurPerdu: !surServeur() };
+    surEtat("coupure", { depuis: coupure.depuis });
+    if (!hote) retenterReprise();
+    minuterie(() => arbitrer(), RECONNEXION_MS);
+  }
+
+  // Une tentative à la fois, que l'ancienne connexion soit signalée fermée ou non : une coupure constatée par le
+  // silence laisse souvent l'ancienne connexion « ouverte » mais morte. Tentative abandonnée après 5 s sans
+  // ouverture, ou sur la réponse « pair introuvable » du serveur (surErreurApresRencontre).
+  function retenterReprise() {
+    if (fini || !coupure || hote || coupure.arbitrage) return;
+    if (!coupure.essai && surServeur()) {
+      const c = peer.connect(autre, { reliable: true, metadata: { reprise: jeton } });
+      coupure.essai = c;
+      const abandonner = horloge.minuterie(() => {
+        if (coupure?.essai !== c) return;
+        coupure.essai = null;
+        try { c.close(); } catch { /* déjà fermée */ }
+      }, ESSAI_OUVERTURE_MS);
+      c.on("open", () => {
+        abandonner();
+        if (fini || !coupure || coupure.essai !== c) return c.close();
+        coupure.essai = null;
+        const ancienne = conn;
+        conn = c;
+        suivreConnexion(c, horloge.maintenant());
+        try { if (ancienne && ancienne !== c) ancienne.close(); } catch { /* déjà fermée */ }
+        reprendre();
+      });
+    }
+    minuterie(() => retenterReprise(), ESSAI_REPRISE_MS);
+  }
+
+  function reprendre() {
+    coupure = null;
+    annuler();
+    surEtat("reprise", { conn, hote, autre, peer });
+  }
+
+  // L'ancienne connexion a repris d'elle-même (coupure courte) : plus de coupure.
+  function retablir() {
+    if (!coupure || fini) return;
+    coupure = null;
+    annuler();
+    surEtat("retabli", {});
+  }
+
+  // Sonde de présence (D2 §6.4.3, n° 187) : le serveur dit si l'autre appareil lui est encore relié
+  // (« pair introuvable » : absent) ; s'il l'est, il répond par un verdict : « forfait » s'il a gagné par
+  // forfait, sinon « pas de forfait ». rendre({ present, forfait }).
+  function sonder(rendre) {
+    let rendu = false;
+    const une = (r) => { if (!rendu) { rendu = true; sondeEnCours = null; rendre(r); } };
+    sondeEnCours = () => une({ present: false, forfait: false });
+    const c = peer.connect(autre, { reliable: true, metadata: { sonde: true } });
+    c.on("data", (m) => { if (m?.type === "verdict") { une({ present: true, forfait: Boolean(m.data?.forfait) }); c.close(); } });
+    horloge.minuterie(() => une({ present: true, forfait: false }), SONDE_MS);
+  }
+
+  // Réponse à la sonde de l'autre appareil.
+  function repondreSonde(c) {
+    c.on("open", () => {
+      c.send(message("verdict", { forfait: enVeille }));
+      horloge.minuterie(() => c.close(), DELAI_FERMETURE_MS);
+    });
+  }
+  let sondeEnCours = null;
+
+  function arbitrer() {
+    if (fini || !coupure) return;
+    coupure.arbitrage = true; // plus de tentative de reprise : la réponse du serveur irait à la sonde
+    // Cet appareil a perdu le serveur : attendre de le retrouver, puis sonder l'autre.
+    if (coupure.serveurPerdu || !surServeur()) {
+      const attendreServeur = () => {
+        if (fini) return;
+        if (!surServeur()) return horloge.minuterie(attendreServeur, 1000);
+        sonder((r) => fin(r.present && r.forfait ? "forfait_perdu" : "interrompu"));
+      };
+      return attendreServeur();
+    }
+    sonder((r) => (r.present ? fin("interrompu") : fin("forfait_gagne", {}, true)));
+  }
+
+  function surErreurApresRencontre(e) {
+    // Réponse du serveur à une sonde ou à une tentative de reprise : l'autre n'est pas (encore) revenu.
+    if (e?.type === "peer-unavailable") {
+      if (sondeEnCours) sondeEnCours();
+      else if (coupure?.essai) coupure.essai = null; // l'autre n'est pas encore revenu : on retentera
+      return;
+    }
+    // Autres erreurs réseau pendant une coupure : la reprise et l'arbitrage s'en chargent.
   }
 
   function creer(essai = 1) {
     debut();
+    hote = true;
+    jeton = creerCode(); // jeton de reprise, remis à l'invité dans « bienvenue »
     const t0 = horloge.maintenant();
     const code = nouveauCode();
     const p = (peer = creerPeer(PREFIXE + code));
     suivreServeur(p);
     p.on("open", () => {
-      if (fini || p !== peer) return;
+      if (fini || p !== peer || trouve) return;
       surEtat("attente", { code, ms: horloge.maintenant() - t0 });
       minuterie(() => { if (!trouve) fin("er11"); }, EXPIRATION_MS);
     });
     p.on("error", (e) => {
       if (p !== peer) return;
+      if (trouve) return surErreurApresRencontre(e);
       if (e?.type === "unavailable-id" && essai === 1) {
         fini = true; // identifiant déjà pris : un nouveau code, une seule fois
         peer.destroy();
@@ -106,7 +255,23 @@ export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {},
     });
     p.on("connection", (c) => {
       if (p !== peer) return;
-      if (conn) {
+      if (fini && !(enVeille && c.metadata?.sonde)) return;
+      const meta = c.metadata ?? {};
+      if (meta.sonde) return repondreSonde(c);
+      // Reprise après une coupure : l'invité revient avec son jeton.
+      if (trouve && meta.reprise && meta.reprise === jeton && c.peer === autre) {
+        const ancienne = conn;
+        conn = c;
+        suivreConnexion(c, horloge.maintenant());
+        c.on("open", () => {
+          if (c !== conn) return;
+          try { ancienne?.close(); } catch { /* déjà fermée */ }
+          if (coupure) reprendre();
+          else surEtat("reprise", { conn, hote, autre, peer });
+        });
+        return;
+      }
+      if (conn || trouve) {
         // Salon verrouillé à deux (n° 159) : le troisième est refusé.
         c.on("open", () => {
           c.send(message("complet"));
@@ -115,14 +280,16 @@ export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {},
         return;
       }
       conn = c;
+      autre = c.peer;
       const tc = horloge.maintenant();
-      suivreConnexion(c, tc, true);
+      suivreConnexion(c, tc);
       c.on("open", () => {
-        c.send(message("bienvenue"));
+        if (c !== conn) return;
+        c.send(message("bienvenue", { jeton }));
         if (!trouve) {
           trouve = true;
-          annulations.splice(0).forEach((a) => a());
-          annoncerTrouve(horloge.maintenant() - tc, true);
+          annuler();
+          annoncerTrouve(horloge.maintenant() - tc);
         }
       });
     });
@@ -130,16 +297,20 @@ export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {},
 
   function rejoindre(code) {
     debut();
+    hote = false;
+    autre = PREFIXE + code;
     const t0 = horloge.maintenant();
     peer = creerPeer(PREFIXE + "i-" + nouveauCode());
     suivreServeur(peer);
     minuterie(() => { if (!trouve) fin("er4", { cause: "délai de 20 s dépassé" }); }, CONNEXION_MS);
     peer.on("open", () => {
-      if (fini || conn) return;
-      conn = peer.connect(PREFIXE + code, { reliable: true });
+      if (fini || conn || trouve) return;
+      conn = peer.connect(autre, { reliable: true });
       suivreConnexion(conn, t0);
     });
+    peer.on("connection", (c) => { if (c.metadata?.sonde) repondreSonde(c); else c.close(); });
     peer.on("error", (e) => {
+      if (trouve) return surErreurApresRencontre(e);
       if (e?.type === "peer-unavailable") fin("er6"); // salon introuvable, expiré ou fermé (T6)
       else fin("er4", { cause: e?.type ?? String(e) });
     });
@@ -152,5 +323,5 @@ export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {},
     fin("ferme");
   }
 
-  return { creer: () => creer(1), rejoindre, quitter };
+  return { creer: () => creer(1), rejoindre, quitter, signalerCoupure, retablir, enCoupure: () => Boolean(coupure) };
 }

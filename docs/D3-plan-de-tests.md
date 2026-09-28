@@ -1038,6 +1038,30 @@ Essais dans Chrome sans interface, **un Chrome par joueur** (une page cachée n'
 - Défaut trouvé et corrigé : l'hôte voyait l'écran du lien avant l'ouverture du salon, avec un lien vide pendant quelques dixièmes de seconde ; « Copier » aurait copié un lien vide. Le lien affiche désormais « Préparation du lien… » et « Copier » reste inactif jusqu'à l'ouverture.
 - Échecs de l'outil d'essai, non du code : pages cachées sans image, Chrome lancés trop vite l'un après l'autre. Aucun ne s'est reproduit en 6 essais séparés.
 
+#### 2.7.3 Lot L1.3 — canal de jeu et coupures (2026-09-28)
+
+Vérification automatique : `tests/canal.test.mjs` (enveloppe, battement, silence de 3 s, retour, version) et scénarios de coupure dans `tests/salon.test.mjs` avec un faux serveur PeerJS et une coupure simulée (appareil désinscrit du serveur, connexions fermées, réinscription bloquée pendant la coupure) : invité coupé 10 s, hôte coupé 10 s, silence avec ancienne connexion « ouverte » mais morte (reprise) ; invité coupé 40 s (victoire par forfait de l'hôte, « Match perdu par forfait » au retour de l'invité) ; les deux coupés 40 s, K7 (aucun vainqueur) ; silence puis retour (« rétabli »).
+
+Essais dans Chrome sans interface, un Chrome par joueur, vrais serveurs PeerJS et Metered :
+
+| Essai | Hôte | Invité |
+|---|---|---|
+| Mode hors ligne de Chrome sur l'hôte, 10 s | Appel établi, rien ne change | Vidéo de l'hôte toujours reçue (12,1 s lues en 10 s) : **ce mode ne coupe pas WebRTC** |
+| Hôte coupé 10 s (connexions WebRTC et signalisation fermées) | Bandeau « Votre adversaire a perdu la connexion » à 0,1 s ; reprise à 16,4 s | Même bandeau à 0,1 s ; reprise à 16,4 s ; la vidéo repart (13,3 s lues ensuite) |
+| Hôte coupé 40 s | Bandeau à 0,0 s ; au retour du réseau (41,9 s) : « Match perdu par forfait. » (ER13) | Bandeau à 0,0 s ; à 30,7 s : « Votre adversaire n'est pas revenu. Victoire par forfait. » |
+
+La reprise vient environ 6 s après le retour du réseau : réinscription de l'hôte au serveur (tentative toutes les 2 s), puis tentative de l'invité (toutes les 2 s), puis nouvel appel vidéo.
+
+Caméra simulée de Chrome : sur les essais de ce lot, elle s'est arrêtée seule plusieurs fois avant l'établissement de l'appel (piste « ended », déjà vu en L0.6b) ; l'outil recommence alors l'essai et le dit (jusqu'à 5 fois). Aucun échec n'est venu d'une autre cause.
+
+**Ce que Chrome ne permet pas de simuler** : le mode hors ligne de Chrome (`Network.emulateNetworkConditions`) **ne coupe pas WebRTC** : la vidéo de l'hôte a continué chez l'invité (12,1 s lues en 10 s). La coupure a donc été simulée au plus près par l'outil d'essai (script injecté dans la page d'essai seulement, jamais publié) : fermeture de toutes les connexions WebRTC et de la signalisation de l'appareil, et aucune signalisation possible pendant la coupure. Une vraie coupure (Wi-Fi coupé, ascenseur, 4G perdue), où le réseau disparaît sans que rien ne se ferme proprement, et les scénarios K3 à K6 (autre application, écran verrouillé, onglet fermé) restent pour la séance sur appareils.
+
+Défauts trouvés dans Chrome et corrigés, chacun reproduit par un test qui échouait sur l'ancien code :
+
+- l'invité ne retentait la reprise que si l'ancienne connexion était signalée fermée ; une coupure constatée par le silence la laisse « ouverte » mais morte : aucune reprise ;
+- pendant la coupure, la réinscription au serveur de mise en relation restait bloquée « en cours » (PeerJS : ni inscrit, ni déconnecté) ; la page ne retentait plus et l'arbitrage croyait l'appareil encore relié au serveur. Le critère est désormais « inscrit au serveur » (`open`), avec une déconnexion propre avant chaque nouvelle tentative ;
+- l'arbitrage à 30 s : un vainqueur par forfait qui fermait aussitôt son salon aurait fait croire à l'absent de retour que l'autre était parti (« interrompu » au lieu de « perdu par forfait ») ; et deux appareils coupés ensemble (K7) se seraient chacun déclarés perdants. La sonde de présence porte donc un verdict : le vainqueur reste joignable 60 s et répond « forfait » ; un appareil lui-même coupé répond « pas de forfait ».
+
 ## 3. Prototype 2 — duel complet
 
 ### 3.1 Objectif et risques testés

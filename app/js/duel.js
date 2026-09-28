@@ -1,7 +1,9 @@
-// Page du prototype 1 : salon (L1.1), appel et relais (L1.2). Branche l'automate du salon (salon.js) et les
-// fonctions de l'appel (appel.js) sur la page, sur PeerJS et sur WebRTC. Textes exacts de D5.
+// Page du prototype 1 : salon (L1.1), appel et relais (L1.2), canal de jeu et coupures (L1.3).
+// Branche l'automate du salon (salon.js), le canal (canal.js) et les fonctions de l'appel (appel.js) sur la page,
+// sur PeerJS et sur WebRTC. Textes exacts de D5.
 
-import { creerSalon, codeDuLien, lienDuSalon, VERSION } from "./salon.js";
+import { creerSalon, codeDuLien, lienDuSalon } from "./salon.js";
+import { creerCanal } from "./canal.js";
 import { METERED, STUN_SEUL, DEBIT_MAX, filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1 } from "./appel.js";
 
 const $ = (id) => document.getElementById(id);
@@ -55,7 +57,13 @@ const ERREURS = {
   er5: ["Votre adversaire est parti.", "Créer un nouveau duel"],
   er6: ["Ce lien n'est plus valable. Demandez un nouveau lien à votre adversaire.", "Créer mon propre duel"],
   er11: ["Personne n'a rejoint. Le lien a expiré.", "Créer un nouveau duel"],
+  er9: ["Votre adversaire utilise une autre version du jeu. Rechargez tous les deux la page.", "Recharger"],
+  er10: ["Connexion perdue. Match interrompu.", "Créer un nouveau duel"],
+  er13: ["Match perdu par forfait.", "Créer un nouveau duel"],
+  forfait: ["Votre adversaire n'est pas revenu. Victoire par forfait.", "Créer un nouveau duel"], // D2 §6.4.3
 };
+// Bandeau de coupure (D3 §2.3.4, K1).
+const BANDEAU_COUPURE = "Votre adversaire a perdu la connexion";
 
 let codeInvite = codeDuLien(location.hash); // présent : cet appareil est l'invité
 let etat = "—", detail = "", echecsConnexion = 0, relaisIndispo = "";
@@ -115,11 +123,14 @@ function noterEssai(reussi, message = "") {
     codec_envoye: r.codecEnvoye ?? "", codec_recu: r.codecRecu ?? "", resolution: r.resolution ?? "", role: essai.role,
   });
   essai.appel?.close();
+  canal?.arreter();
 }
 
 let fermetureSilencieuse = false;
 function erreur(code, cause = "") {
-  noterEssai(false, code);
+  canal?.arreter();
+  $("bandeau").hidden = true;
+  noterEssai(code === "forfait" ? Boolean(essai?.etabli) : false, code);
   // Erreur constatée par la page (délai, appel) : le salon est fermé sans afficher « fermé ».
   fermetureSilencieuse = true;
   salon.quitter();
@@ -144,7 +155,24 @@ function devenirHote() {
   afficherMesures();
 }
 
-// Messages du canal de jeu (D4 §4.2). L1.2 : « bonjour », qui dit si l'autre appareil est un iPhone.
+// Canal de jeu (D4 §4.2, L1.3) : enveloppe, battement, silence de 3 s ; transport = connexion du moment.
+let canal = null, connActuelle = null;
+function ouvrirCanal(conn) {
+  canal?.arreter();
+  connActuelle = conn;
+  canal = creerCanal({
+    envoyer: (m) => connActuelle?.send(m), horloge,
+    surEvenement(nom, info) {
+      if (nom === "message") surMessage(info);
+      else if (nom === "injoignable") salon.signalerCoupure();
+      else if (nom === "revenu") salon.retablir();
+      else if (nom === "version") erreur("er9", `version ${info.autre}`);
+    },
+  });
+  canal.demarrer();
+}
+
+// Messages du canal de jeu. L1.2 : « bonjour », qui dit si l'autre appareil est un iPhone.
 function surMessage(m) {
   if (m?.type === "bonjour" && essai) {
     essai.autreAppareil = m.data?.appareil;
@@ -157,37 +185,46 @@ function surMessage(m) {
 // H.264 en tête si un des deux appareils est un iPhone (n° 177), débit plafonné à 1,7 Mbit/s.
 function commencerAppel({ hote, peer, conn, autre }) {
   const bonjour = new Promise((ok) => { essai.bonjourRecu = ok; });
-  conn.send({ v: VERSION, type: "bonjour", data: { role: hote ? "hote" : "invite", ios: estIOS(), appareil: appareil() } });
-  const transformer = () => (estIOS() || essai.autreIOS ? preferH264 : (sdp) => sdp);
-  const suivre = (appel) => {
-    essai.appel = appel;
-    appel.on("stream", (distant) => recevoir(appel, distant));
-    appel.on("error", (e) => erreur("er4", e?.type ?? String(e)));
-  };
+  ouvrirCanal(conn);
+  canal.envoyer("bonjour", { role: hote ? "hote" : "invite", ios: estIOS(), appareil: appareil() });
   if (hote) {
+    // L'hôte répond à chaque appel de l'invité : le premier, puis celui qui suit une reprise.
     peer.on("call", async (appel) => {
-      if (essai?.appel) return appel.close(); // un seul appel par essai
-      suivre(appel);
       await bonjour;
+      suivreAppel(appel);
       appel.answer(flux, { sdpTransform: transformer() });
     });
   } else {
-    bonjour.then(() => suivre(peer.call(autre, flux, { sdpTransform: transformer() })));
+    bonjour.then(() => appeler(peer, autre));
   }
 }
 
+const transformer = () => (estIOS() || essai?.autreIOS ? preferH264 : (sdp) => sdp);
+function suivreAppel(appel) {
+  const ancien = essai.appel;
+  essai.appel = appel;
+  if (ancien && ancien !== appel) ancien.close();
+  appel.on("stream", (distant) => recevoir(appel, distant));
+  appel.on("error", (e) => { if (!essai?.etabli) erreur("er4", e?.type ?? String(e)); });
+}
+const appeler = (peer, autre) => suivreAppel(peer.call(autre, flux, { sdpTransform: transformer() }));
+
 function recevoir(appel, distant) {
   const v = $("video-adverse");
-  if (v.srcObject === distant) return;
+  if (!essai || appel !== essai.appel || v.srcObject === distant) return;
   v.srcObject = distant;
   // Lecture avec le son ; si iOS la refuse sans geste (RT8), lecture muette et bouton « Activer le son ».
   v.play().catch(() => { v.muted = true; v.play().catch(() => {}); $("activer-son").hidden = false; });
   // Établi à la première image de l'adversaire affichée (critère C2).
+  // Après une reprise, les mesures repartent sur le nouvel appel.
   v.requestVideoFrameCallback(async () => {
-    if (!essai || essai.etabli) return;
-    essai.etabli = true;
-    essai.tEtab = performance.now() - essai.debut;
-    clearTimeout(essai.delai);
+    if (!essai || appel !== essai.appel) return;
+    if (!essai.etabli) {
+      essai.etabli = true;
+      essai.tEtab = performance.now() - essai.debut;
+      clearTimeout(essai.delai);
+    }
+    if (!appel.peerConnection) return; // appel déjà fermé (coupure) : la reprise refera un appel
     const envoi = appel.peerConnection.getSenders().find((s) => s.track?.kind === "video");
     const p = envoi?.getParameters();
     if (p?.encodings?.length) {
@@ -195,9 +232,11 @@ function recevoir(appel, distant) {
       await envoi.setParameters(p).catch(() => {});
     }
     const relever = async () => lireAppel((await appel.peerConnection.getStats()).values(), performance.now());
-    essai.premier = await relever();
+    try { essai.premier = await relever(); } catch { return; }
+    clearInterval(essai.stats);
     essai.stats = setInterval(async () => {
-      essai.dernier = await relever();
+      // Appel fermé pendant une coupure : pas de relevé, on garde le dernier.
+      try { essai.dernier = await relever(); } catch { return; }
       afficherMesures();
     }, 2000);
     etat = "appel établi";
@@ -208,7 +247,7 @@ function recevoir(appel, distant) {
 }
 
 const salon = creerSalon({
-  creerPeer, horloge, surMessage,
+  creerPeer, horloge, surMessage: (m) => canal?.recevoir(m), // tout message passe par le canal (battement compris)
   surEtat(e, info = {}) {
     etat = e;
     detail = "";
@@ -226,6 +265,23 @@ const salon = creerSalon({
       essai.delai = setTimeout(() => { if (!essai?.etabli) erreur("er4", "appel non établi en 20 s"); }, ETABLISSEMENT_MS);
       montrer("connexion");
       commencerAppel(info);
+    } else if (e === "coupure") {
+      $("bandeau").textContent = BANDEAU_COUPURE;
+      $("bandeau").hidden = false;
+      essai.coupures = (essai.coupures ?? 0) + 1;
+      detail = "reprise possible pendant 30 s";
+    } else if (e === "retabli") {
+      $("bandeau").hidden = true;
+      etat = "appel établi";
+      detail = "connexion revenue d'elle-même";
+    } else if (e === "reprise") {
+      $("bandeau").hidden = true;
+      detail = "reprise après coupure";
+      ouvrirCanal(info.conn);
+      if (!info.hote) appeler(info.peer, info.autre); // l'invité rappelle ; l'hôte répondra
+    } else if (e === "forfait_gagne" || e === "forfait_perdu" || e === "interrompu") {
+      canal?.arreter();
+      erreur({ forfait_gagne: "forfait", forfait_perdu: "er13", interrompu: "er10" }[e]);
     } else if (e === "ferme") {
       if (fermetureSilencieuse) return;
       noterEssai(essai?.etabli ?? false, "quitté avant l'appel");
@@ -272,6 +328,7 @@ if (navigator.share) {
   $("partager").addEventListener("click", () => navigator.share({ url: $("lien").textContent }).catch(() => {}));
 }
 $("erreur-bouton").addEventListener("click", () => {
+  if (etat === "er9") return location.reload();
   if (["er1", "er2", "er12", "er4"].includes(etat) && codeInvite) demarrer("invite");
   else if (["er1", "er2", "er12", "er4"].includes(etat)) demarrer("hote");
   else devenirHote();

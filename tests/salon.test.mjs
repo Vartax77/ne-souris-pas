@@ -27,9 +27,9 @@ function fauxServeur({ injoignables = new Set() } = {}) {
       inscrits.set(id, p);
       plusTard(() => p.emit("open", id));
     };
-    p.connect = (cible) => {
+    p.connect = (cible, options = {}) => {
       // Comme PeerJS : conn.peer est l'identifiant de l'autre côté.
-      const a = { ...emetteur(), ouverte: false, peer: cible }, b = { ...emetteur(), ouverte: false, peer: id };
+      const a = { ...emetteur(), ouverte: false, peer: cible }, b = { ...emetteur(), ouverte: false, peer: id, metadata: options.metadata };
       const relier = (x, y) => {
         x.send = (m) => { if (x.ouverte) plusTard(() => y.emit("data", m)); };
         x.close = () => {
@@ -39,6 +39,7 @@ function fauxServeur({ injoignables = new Set() } = {}) {
         };
       };
       relier(a, b); relier(b, a);
+      if (p.injoignable) return a; // réseau coupé : rien ne part
       p.conns.push(a);
       const autre = inscrits.get(cible);
       if (!autre || injoignables.has(cible)) {
@@ -52,7 +53,19 @@ function fauxServeur({ injoignables = new Set() } = {}) {
       });
       return a;
     };
-    p.reconnect = () => { p.reconnexions = (p.reconnexions ?? 0) + 1; };
+    // Comme PeerJS : open vrai quand l'appareil est inscrit au serveur ; disconnected vrai après la perte du
+    // serveur ; reconnect() réinscrit le même identifiant. Pendant une coupure, comme observé dans Chrome
+    // (L1.3), la réinscription reste bloquée « en cours » : disconnected faux et open faux.
+    p.on("open", () => { p.open = true; });
+    p.on("disconnected", () => { p.disconnected = true; p.open = false; });
+    p.disconnect = () => { p.disconnected = true; p.open = false; };
+    p.reconnect = () => {
+      p.reconnexions = (p.reconnexions ?? 0) + 1;
+      p.disconnected = false;
+      if (p.injoignable) return; // réseau coupé : bloquée, sans nouvel événement
+      inscrits.set(id, p);
+      plusTard(() => p.emit("open", id));
+    };
     p.destroy = () => {
       if (p.detruit) return;
       p.detruit = true;
@@ -62,7 +75,15 @@ function fauxServeur({ injoignables = new Set() } = {}) {
     inscrire();
     return p;
   }
-  return { creerPeer, inscrits };
+  // Coupure du réseau d'un appareil : il quitte le serveur, ses connexions tombent, rien ne passe jusqu'au retour.
+  const couper = (p) => {
+    p.injoignable = true;
+    if (inscrits.get(p.id) === p) inscrits.delete(p.id);
+    p.emit("disconnected");
+    for (const c of p.conns) c.close();
+  };
+  const retablir = (p) => { p.injoignable = false; };
+  return { creerPeer, inscrits, couper, retablir };
 }
 
 function fausseHorloge() {
@@ -272,4 +293,97 @@ test("canal : les messages hors salon sont transmis ; « trouve » donne le pair
   trouveHote.conn.send({ v: 1, type: "bonjour", data: { ios: true } });
   await attendre();
   assert.deepEqual(recus, [{ v: 1, type: "bonjour", data: { ios: true } }]);
+});
+
+// Coupures (lot L1.3, D2 §6.4) : l'horloge avance par pas de 500 ms, le réseau simulé répond entre deux pas.
+async function avancer(h, ms) {
+  for (let t = 0; t < ms; t += 500) { h.avancer(500); await attendre(); await attendre(); }
+}
+async function duo() {
+  const s = fauxServeur(), h = fausseHorloge();
+  const hote = joueur(s, h), invite = joueur(s, h);
+  hote.salon.creer();
+  await attendre();
+  const code = hote.etats[0].code;
+  invite.salon.rejoindre(code);
+  await attendre(); await attendre();
+  const peerHote = s.inscrits.get(PREFIXE + code);
+  const peerInvite = [...s.inscrits.values()].find((p) => p !== peerHote);
+  return { s, h, hote, invite, peerHote, peerInvite };
+}
+const etatsDepuis = (j, n) => j.etats.slice(n).map((e) => e.etat);
+
+test("coupure de l'invité pendant 10 s : « coupure » des deux côtés, puis reprise avec le jeton", async () => {
+  const { s, h, hote, invite, peerInvite } = await duo();
+  const nh = hote.etats.length, ni = invite.etats.length;
+  s.couper(peerInvite);
+  await attendre(); await attendre();
+  assert.deepEqual(etatsDepuis(hote, nh), ["coupure"]);
+  assert.deepEqual(etatsDepuis(invite, ni), ["coupure"]);
+  await avancer(h, 10000);
+  s.retablir(peerInvite);
+  await avancer(h, 5000);
+  assert.deepEqual(etatsDepuis(hote, nh), ["coupure", "reprise"]);
+  assert.deepEqual(etatsDepuis(invite, ni), ["coupure", "reprise"]);
+  await avancer(h, 40000); // plus d'arbitrage après la reprise
+  assert.equal(hote.dernier(), "reprise");
+});
+
+test("coupure de l'hôte pendant 10 s : l'invité le retrouve sous le même identifiant", async () => {
+  const { s, h, hote, invite, peerHote } = await duo();
+  const nh = hote.etats.length, ni = invite.etats.length;
+  s.couper(peerHote);
+  await avancer(h, 10000);
+  s.retablir(peerHote);
+  await avancer(h, 6000);
+  assert.deepEqual(etatsDepuis(hote, nh), ["coupure", "reprise"]);
+  assert.deepEqual(etatsDepuis(invite, ni), ["coupure", "reprise"]);
+});
+
+test("coupure de l'invité pendant 40 s : victoire par forfait pour l'hôte ; « perdu par forfait » au retour de l'invité", async () => {
+  const { s, h, hote, invite, peerInvite } = await duo();
+  s.couper(peerInvite);
+  await avancer(h, 29500);
+  assert.equal(hote.dernier(), "coupure");
+  await avancer(h, 5000); // 30 s : sonde, l'invité n'est plus relié au serveur
+  assert.equal(hote.dernier(), "forfait_gagne");
+  assert.equal(invite.dernier(), "coupure");
+  await avancer(h, 5500); // 40 s : retour de l'invité
+  s.retablir(peerInvite);
+  await avancer(h, 8000);
+  assert.equal(invite.dernier(), "forfait_perdu");
+});
+
+test("coupure des deux appareils pendant 40 s (K7) : aucun vainqueur des deux côtés", async () => {
+  const { s, h, hote, invite, peerHote, peerInvite } = await duo();
+  s.couper(peerHote);
+  s.couper(peerInvite);
+  await avancer(h, 40000);
+  s.retablir(peerHote);
+  s.retablir(peerInvite);
+  await avancer(h, 10000);
+  assert.equal(hote.dernier(), "interrompu");
+  assert.equal(invite.dernier(), "interrompu");
+});
+
+test("silence de 3 s signalé par le canal, puis messages revenus : « retabli », sans arbitrage", async () => {
+  const { h, hote } = await duo();
+  hote.salon.signalerCoupure();
+  assert.equal(hote.dernier(), "coupure");
+  await avancer(h, 5000);
+  hote.salon.retablir();
+  assert.equal(hote.dernier(), "retabli");
+  await avancer(h, 40000);
+  assert.equal(hote.dernier(), "retabli");
+});
+
+test("coupure constatée par le silence, ancienne connexion « ouverte » mais morte : l'invité retente quand même", async () => {
+  // Défaut trouvé dans Chrome (L1.3) : l'invité ne retentait que si l'ancienne connexion était signalée fermée.
+  const { h, hote, invite } = await duo();
+  const nh = hote.etats.length, ni = invite.etats.length;
+  hote.salon.signalerCoupure();
+  invite.salon.signalerCoupure();
+  await avancer(h, 6000);
+  assert.deepEqual(etatsDepuis(invite, ni), ["coupure", "reprise"]);
+  assert.deepEqual(etatsDepuis(hote, nh), ["coupure", "reprise"]);
 });
