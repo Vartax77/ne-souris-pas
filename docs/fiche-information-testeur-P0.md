@@ -4,7 +4,7 @@
 |---|---|
 | Objet | Informer chaque testeur du prototype 0, avant son accord oral, de ce qui est enregistré, où, par qui, et de ses droits. Lue par le testeur, ou à voix haute par Valentin |
 | Statut | Brouillon — à faire relire avec [D7](D7-juridique-confidentialite.md) V10 |
-| Date | 2026-09-27 |
+| Date | 2026-09-28 |
 | Dépend de | [D7](D7-juridique-confidentialite.md) §1, §2.2, §6 ; [D3](D3-plan-de-tests.md) §1.2, §1.3.3, §1.4 ; [D8](D8-journal-decisions.md) n° 26, 73, 78, 216, 222, 223, 225, 298, 299 |
 | Utilisé par | [D3](D3-plan-de-tests.md) §1.3.3 (accueil) et §1.8 (préparation) ; essais d'appel P1 ([D3](D3-plan-de-tests.md) §2) |
 
@@ -34,6 +34,8 @@ Votre code de testeur : **T\_\_** (à remettre au testeur).
 
 ## Prototype 1 — essais d'appel
 
-Phrase à remettre par écrit au proche qui participe aux essais d'appel (n° 306) :
+Phrases à remettre par écrit au proche qui participe aux essais d'appel (n° 306, n° 316) :
 
 > Pendant les essais d'appel, le serveur de mise en relation puis le relais voient l'adresse IP de votre appareil, rien d'autre.
+>
+> Le journal des essais d'appel (mesures techniques, sans image, sans son, sans adresse) reste dans le navigateur de votre appareil jusqu'à ce que vous touchiez « Effacer le journal ».

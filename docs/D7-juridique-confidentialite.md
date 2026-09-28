@@ -65,6 +65,7 @@ Les sources sont numérotées en section 10.
 
 - L'accès à la caméra et au micro relève de l'article 82 de la loi Informatique et Libertés, mais il est exempté de consentement quand il est nécessaire au service expressément demandé [J3, J9]. Un duel vidéo l'exige : la demande du navigateur, précédée de l'écran d'explication ([D5](D5-parcours-maquettes.md) E1), suffit.
 - Aucun cookie ni stockage de donnée personnelle dans le navigateur n'est prévu. Seul le cache des fichiers de l'application est écrit par le service worker ([D4](D4-architecture-technique.md) §3) : il est strictement nécessaire au service demandé et ne contient aucune donnée personnelle (n° 180). Il n'y a donc **aucun bandeau de consentement** à afficher. Si un autre stockage apparaît plus tard, il devra rester strictement nécessaire (préférence d'affichage, par exemple) [J9].
+- **Prototype 1 seulement** : le journal des essais d'appel (mesures techniques, sans image, sans son, sans adresse) est conservé dans le stockage local du navigateur de chaque appareil qui joue, jusqu'au bouton « Effacer le journal » ([D8](D8-journal-decisions.md) n° 315). Ce stockage sert le test, pas le service : il n'est pas « strictement nécessaire ». Il repose sur l'information écrite du proche, donnée dans la [fiche d'information](fiche-information-testeur-P0.md) avant son accord (n° 316). Il disparaît avec P1 et n'existera pas dans l'application publiée.
 
 ### 2.5 Registre et analyse d'impact
 
