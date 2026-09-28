@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Prototype 1 (D6 L1.1, D8 n° 303). Même règle qu'en P0 (n° 221) : rien hors du site, sauf le serveur de
-       mise en relation PeerJS (D4 §8.4), seul tiers autorisé à recevoir une connexion. -->
+  <!-- Prototype 1 (D6 L1.1 à L1.4, D8 n° 303). Même règle qu'en P0 (n° 221) : rien hors du site, sauf le serveur
+       de mise en relation PeerJS et l'API d'identifiants du relais Metered (D4 §8.4), seuls tiers autorisés. -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com; img-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+        content="default-src 'self'; script-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com https://nojoke.metered.live; img-src 'self'; media-src 'self' blob:; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <title>Ne souris pas — prototype 1</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="duel.css">
@@ -14,9 +14,9 @@
 <body>
   <main>
     <h1>Ne souris pas</h1>
-    <p class="lot">Prototype 1 — lot L1.1 : salon</p>
+    <p class="lot">Prototype 1 — vague 1 : salon, appel, canal de jeu, horloges</p>
 
-    <!-- E1 réduit (D5 §3.1) : l'appel, la caméra et la case d'âge arrivent avec les lots suivants. -->
+    <!-- E1 réduit (D5 §3.1) : la case d'âge et les règles arrivent avec P2. -->
     <section id="accueil-hote" hidden>
       <p>Défiez un ami : le premier qui sourit perd.</p>
       <button id="creer" type="button">Créer un duel</button>
@@ -25,6 +25,12 @@
     <section id="accueil-invite" hidden>
       <p>Vous êtes défié au jeu Ne souris pas.</p>
       <button id="rejoindre" type="button">Rejoindre le duel</button>
+    </section>
+
+    <!-- E2 (D5 §3.2) -->
+    <section id="autorisation" hidden>
+      <h2>Autorisez la caméra et le micro</h2>
+      <p>Votre navigateur vous le demande. Sans caméra, pas de duel.</p>
     </section>
 
     <!-- E3 (D5 §3.3) -->
@@ -38,21 +44,49 @@
       <button id="annuler" type="button">Annuler</button>
     </section>
 
+    <!-- E4 (D5 §3.4) -->
     <section id="connexion" hidden>
       <p>Connexion à votre adversaire…</p>
+      <button id="annuler-connexion" type="button">Annuler</button>
     </section>
 
-    <section id="trouve" hidden>
-      <h2 class="ok">Adversaire trouvé</h2>
-      <p id="trouve-temps" class="version"></p>
+    <section id="appel" hidden>
+      <p id="bandeau" class="erreur" hidden></p>
+      <video id="video-adverse" autoplay playsinline></video>
+      <button id="activer-son" type="button" hidden>Activer le son</button>
+      <button id="mesurer" type="button" hidden>Mesurer les horloges</button>
       <button id="quitter" type="button">Quitter</button>
     </section>
+
+    <video id="video-moi" autoplay muted playsinline hidden></video>
 
     <!-- Écrans d'erreur (D5 §4) : ce qui s'est passé, un seul bouton principal. -->
     <section id="erreur" hidden>
       <p id="erreur-message" class="erreur"></p>
       <button id="erreur-bouton" type="button"></button>
     </section>
+
+    <details id="options">
+      <summary>Options de test (P1)</summary>
+      <label><input id="opt-relais" type="checkbox"> Relais forcé</label>
+      <label>Protocole du relais
+        <select id="opt-proto">
+          <option value="tous">tous</option>
+          <option value="udp">UDP</option>
+          <option value="tcp">TCP</option>
+          <option value="tls">TLS sur 443</option>
+        </select>
+      </label>
+      <label>Combinaison
+        <select id="opt-combi">
+          <option value="">—</option>
+          <option>R1</option><option>R2</option><option>R3</option><option>R4</option>
+          <option>R5</option><option>R6</option><option>RF</option>
+          <option>M1</option><option>M2</option><option>M3</option>
+        </select>
+      </label>
+      <button id="export" type="button">Exporter le journal P1</button>
+    </details>
 
     <pre id="mesures">Chargement…</pre>
   </main>

@@ -7,7 +7,8 @@ export const LONGUEUR_CODE = 20; // ≈ 119 bits : impossible à deviner (D4 §4
 export const PREFIXE = "nsp-"; // identifiant PeerJS de l'hôte : nsp-<code>
 export const EXPIRATION_MS = 15 * 60 * 1000; // salon sans invité (D2 T7, n° 159)
 export const CONNEXION_MS = 20000; // invité sans réponse de l'hôte (D2 T9, critère C2)
-const DELAI_FERMETURE_MS = 1000; // laisse partir « complet » avant de fermer la connexion refusée
+const DELAI_FERMETURE_MS = 1000;
+export const VERSION = 1; // version du protocole entre appareils (D4 §4.2) : champ v de chaque message // laisse partir « complet » avant de fermer la connexion refusée
 
 // Code tiré par crypto.getRandomValues, sans biais : les octets ≥ 248 (4 × 62) sont rejetés.
 export function creerCode(octets = (n) => crypto.getRandomValues(new Uint8Array(n))) {
@@ -29,12 +30,14 @@ export const codeDuLien = (fragment) => {
 };
 
 // États annoncés par surEtat(etat, info) :
-//   "attente" (hôte, info : { code, ms }) ; "trouve" (info : { ms }) ;
+//   "attente" (hôte, info : { code, ms }) ; "trouve" (info : { ms, hote, peer, conn, autre }) : la connexion
+//   de données sert ensuite de canal de jeu, et le pair à l'appel vidéo (L1.2) ;
 //   "er4" connexion impossible (D5 ER4, info : { cause }) ; "er5" adversaire parti ;
 //   "er6" lien plus valable ; "er11" personne n'a rejoint ; "ferme" (Quitter, Annuler).
 // creerPeer(id) : objet compatible PeerJS (on, connect, reconnect, destroy).
 // horloge : { maintenant() en ms, minuterie(fn, ms) → fonction d'annulation }.
-export function creerSalon({ creerPeer, horloge, surEtat, nouveauCode = creerCode }) {
+// surMessage(m) : messages qui ne concernent pas le salon (canal de jeu, L1.3).
+export function creerSalon({ creerPeer, horloge, surEtat, surMessage = () => {}, nouveauCode = creerCode }) {
   let peer = null, conn = null, fini = true, trouve = false;
   const annulations = [];
   const minuterie = (fn, ms) => annulations.push(horloge.minuterie(fn, ms));
@@ -58,16 +61,20 @@ export function creerSalon({ creerPeer, horloge, surEtat, nouveauCode = creerCod
     p.on("disconnected", () => { if (!fini && p === peer) p.reconnect(); });
   }
 
-  // Messages entre les deux appareils : { t: "bienvenue" | "complet" | "au_revoir" }.
+  // Messages du salon, dans l'enveloppe de D4 §4.2 : { v, type: "bienvenue" | "complet" | "au_revoir" }.
+  const message = (type) => ({ v: VERSION, type });
+  const annoncerTrouve = (ms, hote) => surEtat("trouve", { ms, hote, peer, conn, autre: conn.peer });
   // hote : chez l'hôte, une connexion qui tombe avant d'avoir abouti remet le salon en attente.
   function suivreConnexion(c, t0, hote = false) {
     c.on("data", (m) => {
-      if (m?.t === "bienvenue" && !trouve) {
+      if (m?.type === "bienvenue") {
+        if (trouve) return;
         trouve = true;
         annulations.splice(0).forEach((a) => a());
-        surEtat("trouve", { ms: horloge.maintenant() - t0 });
-      } else if (m?.t === "complet") fin("er6");
-      else if (m?.t === "au_revoir") fin("er5");
+        annoncerTrouve(horloge.maintenant() - t0, hote);
+      } else if (m?.type === "complet") fin("er6");
+      else if (m?.type === "au_revoir") fin("er5");
+      else if (!fini) surMessage(m);
     });
     // Connexion fermée sans message : avant la rencontre, le salon n'est plus valable ; après, l'autre est parti.
     c.on("close", () => {
@@ -102,7 +109,7 @@ export function creerSalon({ creerPeer, horloge, surEtat, nouveauCode = creerCod
       if (conn) {
         // Salon verrouillé à deux (n° 159) : le troisième est refusé.
         c.on("open", () => {
-          c.send({ t: "complet" });
+          c.send(message("complet"));
           horloge.minuterie(() => c.close(), DELAI_FERMETURE_MS);
         });
         return;
@@ -111,11 +118,11 @@ export function creerSalon({ creerPeer, horloge, surEtat, nouveauCode = creerCod
       const tc = horloge.maintenant();
       suivreConnexion(c, tc, true);
       c.on("open", () => {
-        c.send({ t: "bienvenue" });
+        c.send(message("bienvenue"));
         if (!trouve) {
           trouve = true;
           annulations.splice(0).forEach((a) => a());
-          surEtat("trouve", { ms: horloge.maintenant() - tc });
+          annoncerTrouve(horloge.maintenant() - tc, true);
         }
       });
     });
@@ -141,7 +148,7 @@ export function creerSalon({ creerPeer, horloge, surEtat, nouveauCode = creerCod
   // « Quitter » ou « Annuler » : prévenir l'autre, puis fermer le salon.
   function quitter() {
     if (fini) return;
-    try { conn?.send({ t: "au_revoir" }); } catch { /* connexion déjà fermée */ }
+    try { conn?.send(message("au_revoir")); } catch { /* connexion déjà fermée */ }
     fin("ferme");
   }
 

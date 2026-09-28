@@ -28,7 +28,8 @@ function fauxServeur({ injoignables = new Set() } = {}) {
       plusTard(() => p.emit("open", id));
     };
     p.connect = (cible) => {
-      const a = { ...emetteur(), ouverte: false }, b = { ...emetteur(), ouverte: false };
+      // Comme PeerJS : conn.peer est l'identifiant de l'autre côté.
+      const a = { ...emetteur(), ouverte: false, peer: cible }, b = { ...emetteur(), ouverte: false, peer: id };
       const relier = (x, y) => {
         x.send = (m) => { if (x.ouverte) plusTard(() => y.emit("data", m)); };
         x.close = () => {
@@ -247,4 +248,28 @@ test("serveur perdu (page masquée sur iPhone) : réinscription sous le même id
   hote.salon.quitter();
   peer.emit("disconnected"); // après la fin : aucune réinscription
   assert.equal(peer.reconnexions, 1);
+});
+
+test("canal : les messages hors salon sont transmis ; « trouve » donne le pair, la connexion et l'autre identifiant", async () => {
+  const s = fauxServeur(), h = fausseHorloge();
+  const recus = [];
+  const hote = joueur(s, h);
+  const invite = { etats: [] };
+  invite.salon = creerSalon({
+    creerPeer: s.creerPeer, horloge: h, surEtat: (etat, info) => invite.etats.push({ etat, ...info }),
+    surMessage: (m) => recus.push(m),
+  });
+  hote.salon.creer();
+  await attendre();
+  const code = hote.etats[0].code;
+  invite.salon.rejoindre(code);
+  await attendre(); await attendre();
+  const trouveHote = hote.etats.at(-1), trouveInvite = invite.etats.at(-1);
+  assert.equal(trouveHote.hote, true);
+  assert.equal(trouveInvite.hote, false);
+  assert.equal(trouveInvite.autre, PREFIXE + code);
+  assert.ok(trouveInvite.peer && trouveInvite.conn);
+  trouveHote.conn.send({ v: 1, type: "bonjour", data: { ios: true } });
+  await attendre();
+  assert.deepEqual(recus, [{ v: 1, type: "bonjour", data: { ios: true } }]);
 });

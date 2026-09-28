@@ -192,6 +192,7 @@ L1.2 reste un seul lot : la règle des vagues (§1, n° 307) rend inutile la cou
 | Terminé quand | Côté code : vérification automatique ; essai sans interface en relais forcé entre deux onglets (connexion, vidéo reçue, débit et codec effectifs). Sur appareils, en fin de vague 1 : appel établi entre un téléphone en 4G et un ordinateur en Wi-Fi, direct puis relais forcé ; journal P1 exporté |
 | Test | [D3](D3-plan-de-tests.md) §2.3.1, §2.3.2, §2.3.7, critères C1, C2, C6 |
 | Dépend de | L1.1 |
+| Statut | **Terminé côté code** le 2026-09-28 : relais forcé UDP, TCP, TLS et H.264 vérifiés dans Chrome sans interface ([D3](D3-plan-de-tests.md) §2.7.2, n° 309) ; appareils en fin de vague 1 |
 
 Clé d'API Metered (n° 305) : l'API d'identifiants d'Open Relay est prévue pour être appelée depuis la page ; seule la clé secrète reste côté serveur. L'offre gratuite (20 Go par mois) est sans carte bancaire : aucun risque financier. Si la clé est abusée, le relais s'arrête jusqu'au mois suivant et Valentin la régénère. Une fonction serveur produisant des identifiants temporaires deviendra nécessaire avant tout ajout d'un moyen de paiement (P2 ou ouverture au public).
 

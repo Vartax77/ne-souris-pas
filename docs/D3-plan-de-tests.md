@@ -1018,6 +1018,26 @@ Essai avec le **vrai serveur public PeerJS**, dans Chrome sans interface, trois 
 
 Relevés sur appareils réels (PC, iPhone 15 Pro, iPhone XR ; Wi-Fi contre 4G ; navigateur intégré de Messenger) : à venir.
 
+#### 2.7.2 Lot L1.2 — appel et relais (2026-09-28)
+
+Vérification automatique : `tests/appel.test.mjs` (filtre des relais UDP, TCP, TLS ; H.264 en tête du SDP ; statistiques ; journal P1) et test du canal dans `tests/salon.test.mjs` ; 112 tests en tout.
+
+Essais dans Chrome sans interface, **un Chrome par joueur** (une page cachée n'affiche aucune image), caméra et micro simulés, vrais serveurs PeerJS et Metered (API d'identifiants de `nojoke.metered.live`) :
+
+| Essai | Chemin retenu (des deux côtés) | Établi (hôte / invité) | Vidéo reçue | Débit reçu | Aller-retour | Pertes, gels |
+|---|---|---|---|---|---|---|
+| Direct | direct local | 0,3 / 0,6 s | VP8, 640 × 480, image et son | 437 à 448 kbit/s | 1 à 3 ms | 0 % ; 0 gel |
+| Relais forcé UDP (`iceTransportPolicy: "relay"`) | relais UDP | 0,6 / 1,3 s | VP8, 640 × 480, image et son | 407 à 437 kbit/s | 12 à 23 ms | 0 à 0,2 % ; 0 gel |
+| Relais forcé TCP | relais TCP | 1,6 / 2,3 s | VP8, 640 × 480, image et son | 283 à 420 kbit/s | 10 à 19 ms | 0 % ; 2 gels en 17 s |
+| Relais forcé TLS sur 443 | relais TLS | 0,4 / 1,1 s | VP8, 640 × 480, image et son | 438 à 447 kbit/s | 12 à 18 ms | 0 % ; 0 gel |
+| Invité se présentant comme un iPhone (3 essais) | direct local | 0,4 à 0,6 / 0,8 à 1,0 s | **H.264** dans les deux sens, 640 × 480 | 216 kbit/s | 1 ms | 0 % |
+
+- Le relais forcé est le pire cas réseau : il prouve la connexion par le relais Metered dans les trois protocoles (n° 308). Le test 4G reste à la séance de fin de vague.
+- Débit : la caméra simulée de Chrome produit une image simple, d'où 200 à 450 kbit/s, loin du plafond de 1,7 Mbit/s ; le débit d'une vraie caméra se mesure sur appareils.
+- Chargements bloqués par la politique de sécurité : 0 dans tous les essais. « Quitter » d'un côté donne « Votre adversaire est parti. » de l'autre, et une ligne au journal P1.
+- Défaut trouvé et corrigé : l'hôte voyait l'écran du lien avant l'ouverture du salon, avec un lien vide pendant quelques dixièmes de seconde ; « Copier » aurait copié un lien vide. Le lien affiche désormais « Préparation du lien… » et « Copier » reste inactif jusqu'à l'ouverture.
+- Échecs de l'outil d'essai, non du code : pages cachées sans image, Chrome lancés trop vite l'un après l'autre. Aucun ne s'est reproduit en 6 essais séparés.
+
 ## 3. Prototype 2 — duel complet
 
 ### 3.1 Objectif et risques testés
