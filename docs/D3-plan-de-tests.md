@@ -918,7 +918,7 @@ Résultat : il informe [D5](D5-parcours-maquettes.md) Q8 (proposer « Ouvrir dan
 
 ### 2.4 Journal P1
 
-Une ligne par essai de connexion. Aucune image, aucun son.
+Une ligne par essai de connexion. Aucune image, aucun son, aucune adresse. Conservé sur l'appareil qui joue jusqu'à « Effacer le journal » : il survit au rafraîchissement de la page (n° 315).
 
 | Colonne | Contenu |
 |---|---|
@@ -927,13 +927,18 @@ Une ligne par essai de connexion. Aucune image, aucun son.
 | `app_a`, `app_b` | Appareil et navigateur |
 | `reussi` | 1 ou 0 ; message si échec |
 | `t_etab` | Temps d'établissement, s |
-| `candidat` | Direct local, direct public, relais |
+| `candidat` | Chemin jugé sur la paire retenue (n° 312) : relais si l'un des deux candidats est un relais ; direct local si les deux adresses sont locales (IPv4 privée, IPv6 fe80::/10 ou fc00::/7, nom mDNS `.local`) ; sinon direct public |
+| `paire` | Types des deux candidats, local/distant (ex. `host/prflx`) |
 | `relais_proto` | UDP, TCP, TLS |
 | `rtt` | Aller-retour médian, ms |
 | `debit` | Débit vidéo reçu, kbit/s |
 | `pertes` | Paquets perdus, % |
 | `gels` | Nombre de gels d'image en 60 s |
-| `son_img` | Image et son présents des deux côtés : 1 ou 0 |
+| `son_img` | Image et son reçus **et son réellement joué** (vidéo lue, non muette) : 1 ou 0 (n° 313) |
+| `son_erreur` | Nom de l'erreur de lecture, s'il y en a eu (ex. `NotAllowedError`, `AbortError`) |
+| `cause` | Cause d'un échec ; pour ER4, diagnostic (n° 314) : « bonjour » reçu, appel émis ou reçu, pour la connexion de données du salon et pour l'appel : `iceConnectionState`, `iceGatheringState`, types de candidats locaux rassemblés et distants reçus ; relais obtenu ; page masquée pendant l'attente |
+
+Autres colonnes : `codec_envoye`, `codec_recu`, `resolution`, `role`.
 
 Journal des flashs : combinaison, numéro, écart mesuré (ms), `e`, `i`, `W`, aller-retour minimal.
 
@@ -1078,6 +1083,36 @@ L'écart de θ d'une mesure à l'autre (0,3 et 1,2 ms) reste sous e : la borne t
 - Hôte et invité affichent la même mesure (numéro, θ, e, W) : le résultat est envoyé par l'hôte (`sync_resultat`). Seul l'hôte a le bouton « Mesurer les horloges » ; la synchronisation est aussi lancée à l'établissement de l'appel et après chaque reprise.
 - Sur la même machine, l'aller-retour est de l'ordre de la milliseconde : e reste très petit et W au plancher de 100 ms. Les valeurs utiles (e et W entre deux appareils, en Wi-Fi et en 4G) et la **mesure par flash commun** (écran `flash.html`, caméras des deux appareils) ne peuvent pas être simulées : la caméra de Chrome sans interface ne filme pas d'écran. Elles restent pour la séance de fin de vague.
 - Correction de D4 §4.2 : le décalage de l'exemple `sync_resultat` (−11 693,6 ms) ne découlait pas des horodatages de l'exemple `sync_ping` / `sync_pong` ; il vaut −11 710,1 ms (n° 311).
+
+#### 2.7.5 Correctifs après la séance sur appareils du 2026-09-28
+
+Quatre défauts relevés à la séance de fin de vague 1, corrigés sans toucher au prototype 0 :
+
+| N° | Défaut | Correctif |
+|---|---|---|
+| 312 | Chemin jugé sur le seul candidat local : un PC derrière sa box (local `host`, distant `prflx`) face à un iPhone en 4G affichait « direct local » | Chemin jugé sur la paire ; colonne `paire` (ex. `host/prflx`) au panneau et au journal |
+| 313 | Toute erreur de lecture traitée comme un refus de lecture automatique ; `son_img` à 1 même quand la vidéo restait muette | `NotAllowedError` : lecture muette et bouton « Activer le son » ; autre erreur : nouvelle tentative (3 au plus) ; nom de l'erreur au panneau et dans `son_erreur` ; `son_img` = 1 seulement si le son joue ; bouton masqué dès que le son joue |
+| 314 | ER4 sans explication | Diagnostic au panneau et dans la colonne `cause` (§2.4) |
+| 315 | Journal P1 perdu au rafraîchissement de la page | Journal conservé dans le stockage local du navigateur ; bouton « Effacer le journal » |
+
+Vérification automatique : `tests/appel.test.mjs` (chemin sur la paire, dont le cas PC `host` contre iPhone `prflx` en 4G ; adresses locales ; diagnostic de ER4), `tests/sans-stockage.test.mjs` (seule exception : la clé du journal P1 dans `duel.js`) ; 133 tests en tout.
+
+Essais dans Chrome sans interface, un Chrome par joueur, vrais serveurs PeerJS et Metered :
+
+| Essai | Résultat |
+|---|---|
+| Direct | « direct local (host/host) » des deux côtés ; son joué ; `son_img` = 1 |
+| Relais forcé UDP | « relais (relay/relay) UDP » des deux côtés |
+| Lecture avec son refusée (`NotAllowedError` simulé dans la page d'essai) | Vidéo muette, bouton affiché, « erreur de lecture NotAllowedError », « image et son non » ; après « Activer le son » : son joué, bouton masqué, `son_img` = 1 |
+| Lecture interrompue une fois (`AbortError` simulé) | Nouvelle tentative : son joué, bouton jamais affiché ; `son_erreur` = `AbortError` |
+| ER4 : relais forcé, API Metered bloquée (aucun candidat possible) | Invité : ER4 à 20 s ; « bonjour reçu non · appel ni émis ni reçu · canal : ICE new, collecte gathering, locaux aucun, distants aucun · appel : aucune connexion · relais obtenu non · page masquée non », au panneau et dans `cause` |
+| Journal : « Quitter », rafraîchissement, « Effacer le journal » | 1 essai conservé après rafraîchissement ; 0 après effacement ; aucune adresse dans le stockage |
+
+- L'essai ER4 a montré que l'échec peut venir **avant** l'appel vidéo : la connexion de données du salon n'aboutit pas. Le diagnostic suit donc les deux connexions (canal et appel), pas seulement l'appel.
+- Chrome accepte le son sans geste quand la caméra est active : le refus d'iOS a été simulé dans la page d'essai seulement (script injecté, jamais publié). Le vrai refus se vérifie sur iPhone.
+- Non simulé : « page masquée pendant l'attente » (changement d'application sur téléphone) ; paire `host/prflx` réelle (PC en Wi-Fi, iPhone en 4G). À revoir à la prochaine séance sur appareils.
+- Limite connue : quand le navigateur cache l'adresse du candidat distant (cas fréquent pour `prflx`), la paire est jugée « direct public », même si les deux appareils sont sur le même Wi-Fi. La colonne `paire` permet de le relire.
+- Caméra simulée arrêtée seule avant l'appel : 6 relances de l'outil en 8 essais d'appel (déjà vu en L1.3).
 
 ## 3. Prototype 2 — duel complet
 

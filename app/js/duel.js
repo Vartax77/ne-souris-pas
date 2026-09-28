@@ -4,7 +4,8 @@
 
 import { creerSalon, codeDuLien, lienDuSalon } from "./salon.js";
 import { creerCanal } from "./canal.js";
-import { METERED, STUN_SEUL, DEBIT_MAX, filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1 } from "./appel.js";
+import { METERED, STUN_SEUL, DEBIT_MAX, filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1,
+  typesCandidats, diagnosticER4 } from "./appel.js";
 import { synchroniser, ECHANGES, ESPACEMENT_MS, CADENCE_P1, creerDetecteurFlash, apparier, csvFlashs } from "./horloges.js";
 import { luminance } from "./mesures.js";
 
@@ -28,7 +29,15 @@ const horloge = {
 // choisi ; « relais forcé » = iceTransportPolicy « relay » (D3 §2.3.2). Le STUN de Google et le relais public
 // de PeerJS, mis par défaut dans la bibliothèque, ne sont jamais utilisés (D4 §8.4).
 let config = { iceServers: STUN_SEUL };
-const creerPeer = (id) => new window.Peer(id, { config, debug: 0 });
+// Diagnostic de ER4 (n° 314) : la connexion de données du salon (canal) est suivie comme l'appel ; un échec avant
+// l'appel vidéo vient d'elle. Sondes de présence exclues.
+const creerPeer = (id) => {
+  const p = new window.Peer(id, { config, debug: 0 });
+  const connecter = p.connect.bind(p);
+  p.connect = (...a) => { const c = connecter(...a); if (!c.metadata?.sonde) suivreIce(c.peerConnection, "canal"); return c; };
+  p.on("connection", (c) => { if (!c.metadata?.sonde) suivreIce(c.peerConnection, "canal"); });
+  return p;
+};
 
 async function preparerRelais() {
   let serveurs = STUN_SEUL;
@@ -71,7 +80,14 @@ let codeInvite = codeDuLien(location.hash); // présent : cet appareil est l'inv
 let etat = "—", detail = "", echecsConnexion = 0, relaisIndispo = "";
 let flux = null; // caméra et micro, arrêtés à la fin de chaque essai
 let essai = null; // essai en cours : { debut, role, appel, autre, etabli, premier, dernier, ... }
-const journal = []; // journal P1 (D3 §2.4), en mémoire jusqu'à l'export
+// Journal P1 (D3 §2.4), conservé sur l'appareil jusqu'à « Effacer le journal » (n° 315) : il survit au rafraîchissement.
+// Rien d'autre n'est stocké : ni image, ni son, ni adresse (n° 26). Stockage refusé (navigation privée) : en mémoire.
+const CLE_JOURNAL = "nsp_journal_P1";
+const journal = (() => { try { return JSON.parse(localStorage.getItem(CLE_JOURNAL)) ?? []; } catch { return []; } })();
+const sauverJournal = () => { try { localStorage.setItem(CLE_JOURNAL, JSON.stringify(journal)); } catch { /* en mémoire seulement */ } };
+
+// Son de l'adversaire (n° 313) : joué seulement si la vidéo reçue est lue et non muette.
+const sonJoue = () => { const v = $("video-adverse"); return Boolean(v.srcObject) && !v.muted && !v.paused; };
 
 function afficherMesures() {
   const r = essai?.premier && essai.dernier ? resumeAppel(essai.premier, essai.dernier) : null;
@@ -79,11 +95,13 @@ function afficherMesures() {
     `Rôle : ${codeInvite ? "invité" : "hôte"} · ${appareil()}`,
     `État : ${etat}${detail ? ` — ${detail}` : ""}`,
     `Relais : ${config.iceTransportPolicy === "relay" ? "forcé" : "si nécessaire"} · protocole ${$("opt-proto").value}${relaisIndispo ? ` · ${relaisIndispo}` : ""}`,
-    r ? `Appel : ${r.candidat}${r.relaisProto ? ` ${r.relaisProto}` : ""} · aller-retour ${f(r.rtt, 0)} ms · débit reçu ${f(r.debit, 0)} kbit/s · pertes ${f(r.pertes, 2)} % · gels ${r.gels}` : null,
-    r ? `Vidéo : envoyée ${r.codecEnvoye} · reçue ${r.codecRecu} ${r.resolution} · image et son ${r.sonImg ? "oui" : "non"} · établi en ${f(essai.tEtab / 1000)} s` : null,
+    r ? `Appel : ${r.candidat} (${r.paire})${r.relaisProto ? ` ${r.relaisProto}` : ""} · aller-retour ${f(r.rtt, 0)} ms · débit reçu ${f(r.debit, 0)} kbit/s · pertes ${f(r.pertes, 2)} % · gels ${r.gels}` : null,
+    r ? `Vidéo : envoyée ${r.codecEnvoye} · reçue ${r.codecRecu} ${r.resolution} · image et son ${r.sonImg && sonJoue() ? "oui" : "non"} · établi en ${f(essai.tEtab / 1000)} s` : null,
+    essai?.appel ? `Son : ${sonJoue() ? "joué" : "muet"}${essai.sonErreur ? ` · erreur de lecture ${essai.sonErreur}` : ""}` : null,
+    essai?.diag ? `Diagnostic ER4 : ${essai.diag}` : null,
     sync ? `Horloges : mesure n° ${sync.n} · aller-retour minimal ${f(sync.aMin, 1)} ms · θ ${f(sync.theta, 1)} ms · e ${f(sync.e, 1)} ms · W ${f(sync.w, 0)} ms` : null,
     flash.actif || flash.lignes.length ? resumeFlashs() : null,
-    `Journal P1 : ${journal.length} essai(s)`,
+    `Journal P1 : ${journal.length} essai(s), conservé sur cet appareil`,
     `Chargements externes bloqués : ${bloques.length}`,
     ...bloques.map((b) => `  ${b}`),
   ].filter(Boolean).join("\n");
@@ -113,7 +131,7 @@ function arreterCamera() {
 }
 
 // Fin d'un essai : une ligne au journal P1 (réussi ou non), puis caméra et appel arrêtés.
-function noterEssai(reussi, message = "") {
+function noterEssai(reussi, message = "", cause = "") {
   if (!essai || essai.note) return;
   essai.note = true;
   clearInterval(essai.stats);
@@ -123,9 +141,11 @@ function noterEssai(reussi, message = "") {
     essai: journal.length + 1, combi: $("opt-combi").value || (config.iceTransportPolicy === "relay" ? "RF" : ""),
     app_a: appareil(), app_b: essai.autreAppareil ?? "", reussi: reussi ? 1 : `0 ${message}`.trim(),
     t_etab: essai.tEtab != null ? essai.tEtab / 1000 : "", candidat: r.candidat ?? "", relais_proto: r.relaisProto ?? "",
-    rtt: r.rtt, debit: r.debit, pertes: r.pertes, gels: r.gels, son_img: r.sonImg ?? 0,
+    rtt: r.rtt, debit: r.debit, pertes: r.pertes, gels: r.gels, son_img: r.sonImg && sonJoue() ? 1 : 0,
     codec_envoye: r.codecEnvoye ?? "", codec_recu: r.codecRecu ?? "", resolution: r.resolution ?? "", role: essai.role,
+    paire: r.paire ?? "", son_erreur: essai.sonErreur ?? "", cause,
   });
+  sauverJournal();
   essai.appel?.close();
   canal?.arreter();
   flash.actif = false;
@@ -135,7 +155,13 @@ let fermetureSilencieuse = false;
 function erreur(code, cause = "") {
   canal?.arreter();
   $("bandeau").hidden = true;
-  noterEssai(code === "forfait" ? Boolean(essai?.etabli) : false, code);
+  // ER4 : état de la connexion au moment de l'échec (n° 314), au panneau et au journal.
+  if (code === "er4" && essai) {
+    essai.diag = diagnosticER4({
+      bonjour: essai.bonjour, appel: essai.sens, canal: essai.ice?.canal, media: essai.ice?.appel, masquee: essai.masquee,
+    });
+  }
+  noterEssai(code === "forfait" ? Boolean(essai?.etabli) : false, code, [cause, code === "er4" && essai?.diag].filter(Boolean).join(" ; "));
   // Erreur constatée par la page (délai, appel) : le salon est fermé sans afficher « fermé ».
   fermetureSilencieuse = true;
   salon.quitter();
@@ -184,6 +210,7 @@ function surMessage(m) {
   if (m?.type === "bonjour" && essai) {
     essai.autreAppareil = d.appareil;
     essai.autreIOS = Boolean(d.ios);
+    essai.bonjour = true;
     essai.bonjourRecu?.();
   } else if (m?.type === "sync_ping") {
     const t2 = performance.now(); // réception, puis réponse aussitôt (D4 §5.1)
@@ -300,9 +327,11 @@ function commencerAppel({ hote, peer, conn, autre }) {
   if (hote) {
     // L'hôte répond à chaque appel de l'invité : le premier, puis celui qui suit une reprise.
     peer.on("call", async (appel) => {
+      essai.sens = "reçu";
       await bonjour;
       suivreAppel(appel);
       appel.answer(flux, { sdpTransform: transformer() });
+      suivreIce(appel.peerConnection, "appel");
     });
   } else {
     bonjour.then(() => appeler(peer, autre));
@@ -317,14 +346,56 @@ function suivreAppel(appel) {
   appel.on("stream", (distant) => recevoir(appel, distant));
   appel.on("error", (e) => { if (!essai?.etabli) erreur("er4", e?.type ?? String(e)); });
 }
-const appeler = (peer, autre) => suivreAppel(peer.call(autre, flux, { sdpTransform: transformer() }));
+function appeler(peer, autre) {
+  const appel = peer.call(autre, flux, { sdpTransform: transformer() });
+  essai.sens = "émis";
+  suivreAppel(appel);
+  suivreIce(appel.peerConnection, "appel");
+}
+
+// Diagnostic de ER4 (n° 314) : états ICE et types de candidats de chaque connexion (« canal » ou « appel »),
+// relevés pendant l'attente, chaque seconde, pour qu'ils restent connus même si PeerJS ferme la connexion avant le
+// constat de l'échec. Seule la dernière connexion de chaque sorte est suivie.
+function suivreIce(pc, cle) {
+  const e = essai;
+  if (!pc || !e || e.etabli) return;
+  e.ice ??= {};
+  const d = (e.ice[cle] = {});
+  const noter = () => {
+    if (pc.signalingState === "closed" || e.ice[cle] !== d) return; // fermée : garder le dernier état vu
+    d.ice = pc.iceConnectionState;
+    d.collecte = pc.iceGatheringState;
+  };
+  pc.addEventListener("iceconnectionstatechange", noter);
+  pc.addEventListener("icegatheringstatechange", noter);
+  noter();
+  const h = setInterval(async () => {
+    if (e.etabli || e.note || pc.signalingState === "closed" || e.ice[cle] !== d) return clearInterval(h);
+    try { Object.assign(d, typesCandidats((await pc.getStats()).values())); } catch { /* fermée entre-temps */ }
+  }, 1000);
+}
+
+// Lecture de la vidéo reçue avec le son (n° 313). Lecture automatique refusée (NotAllowedError, RT8) : lecture
+// muette et bouton « Activer le son ». Autre erreur (AbortError quand la source change, etc.) : nouvelle tentative,
+// jusqu'à 3. Le nom de l'erreur est affiché et journalisé ; le bouton disparaît dès que le son joue.
+function lire(v, tentative = 1) {
+  v.play().then(() => { if (sonJoue()) $("activer-son").hidden = true; }).catch((e) => {
+    if (essai) essai.sonErreur = e?.name ?? String(e);
+    if (e?.name === "NotAllowedError") {
+      v.muted = true;
+      v.play().catch(() => {});
+      $("activer-son").hidden = false;
+    } else if (tentative < 3) setTimeout(() => lire(v, tentative + 1), 500);
+    afficherMesures();
+  });
+}
 
 function recevoir(appel, distant) {
   const v = $("video-adverse");
   if (!essai || appel !== essai.appel || v.srcObject === distant) return;
   v.srcObject = distant;
   // Lecture avec le son ; si iOS la refuse sans geste (RT8), lecture muette et bouton « Activer le son ».
-  v.play().catch(() => { v.muted = true; v.play().catch(() => {}); $("activer-son").hidden = false; });
+  lire(v);
   // Établi à la première image de l'adversaire affichée (critère C2).
   // Après une reprise, les mesures repartent sur le nouvel appel.
   v.requestVideoFrameCallback(async () => {
@@ -432,8 +503,11 @@ $("rejoindre").addEventListener("click", () => demarrer("invite"));
 for (const id of ["annuler", "annuler-connexion", "quitter"]) $(id).addEventListener("click", () => salon.quitter());
 $("activer-son").addEventListener("click", () => {
   $("video-adverse").muted = false;
-  $("activer-son").hidden = true;
+  lire($("video-adverse")); // dans le geste : iOS accepte alors le son
 });
+for (const ev of ["playing", "volumechange"]) $("video-adverse").addEventListener(ev, () => { if (sonJoue()) $("activer-son").hidden = true; });
+// Page masquée pendant l'attente de l'appel (diagnostic de ER4, n° 314).
+document.addEventListener("visibilitychange", () => { if (document.hidden && essai && !essai.etabli) essai.masquee = true; });
 $("copier").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText($("lien").textContent);
@@ -458,6 +532,12 @@ $("export").addEventListener("click", () => {
   lien.download = `journal_P1_${new Date().toLocaleDateString("sv")}.csv`;
   lien.click();
   URL.revokeObjectURL(lien.href);
+});
+$("effacer").addEventListener("click", () => {
+  if (!journal.length || !confirm(`Effacer les ${journal.length} essai(s) du journal P1 ?`)) return;
+  journal.length = 0;
+  sauverJournal();
+  afficherMesures();
 });
 for (const id of ["opt-relais", "opt-proto"]) $(id).addEventListener("change", afficherMesures);
 $("mesurer").addEventListener("click", synchroniserHorloges);

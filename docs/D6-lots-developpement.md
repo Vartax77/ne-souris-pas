@@ -17,7 +17,7 @@
 - On ne commence pas un prototype avant la décision « Go » du précédent ([D3](D3-plan-de-tests.md) §1.6, §2.6, §3.7).
 - **Terminé** : terminé côté code, puis critère vérifié sur un appareil réel à la séance de fin de vague ; le lot est versionné.
 - Les **modules** sont ceux de [D4](D4-architecture-technique.md) §2 : Interface, Capture, Détection, Arbitrage, WebRTC, Mise en relation, Hébergement.
-- Aucun lot ne stocke d'image ni de son (n° 26). Seul le journal numérique de test (n° 73) est écrit, sur l'ordinateur de Valentin, dans un dossier chiffré séparé (n° 216).
+- Aucun lot ne stocke d'image ni de son (n° 26). Seul le journal numérique de test (n° 73) est écrit, sur l'ordinateur de Valentin, dans un dossier chiffré séparé (n° 216). En P1, le journal P1 (mesures de connexion, sans image, son ni adresse) est en plus conservé dans le stockage local du navigateur de chaque appareil qui joue, jusqu'à « Effacer le journal » (n° 315).
 
 ## 2. Vue d'ensemble
 
@@ -192,7 +192,7 @@ L1.2 reste un seul lot : la règle des vagues (§1, n° 307) rend inutile la cou
 | Terminé quand | Côté code : vérification automatique ; essai sans interface en relais forcé entre deux onglets (connexion, vidéo reçue, débit et codec effectifs). Sur appareils, en fin de vague 1 : appel établi entre un téléphone en 4G et un ordinateur en Wi-Fi, direct puis relais forcé ; journal P1 exporté |
 | Test | [D3](D3-plan-de-tests.md) §2.3.1, §2.3.2, §2.3.7, critères C1, C2, C6 |
 | Dépend de | L1.1 |
-| Statut | **Terminé côté code** le 2026-09-28 : relais forcé UDP, TCP, TLS et H.264 vérifiés dans Chrome sans interface ([D3](D3-plan-de-tests.md) §2.7.2, n° 309) ; appareils en fin de vague 1 |
+| Statut | **Terminé côté code** le 2026-09-28 : relais forcé UDP, TCP, TLS et H.264 vérifiés dans Chrome sans interface ([D3](D3-plan-de-tests.md) §2.7.2, n° 309) ; appareils en fin de vague 1. **Correctifs** après la séance du 2026-09-28 ([D3](D3-plan-de-tests.md) §2.7.5) : chemin jugé sur la paire (n° 312), lecture du son (n° 313), diagnostic de ER4 (n° 314), journal P1 conservé au rafraîchissement (n° 315) ; à revérifier sur appareils |
 
 Clé d'API Metered (n° 305) : l'API d'identifiants d'Open Relay est prévue pour être appelée depuis la page ; seule la clé secrète reste côté serveur. L'offre gratuite (20 Go par mois) est sans carte bancaire : aucun risque financier. Si la clé est abusée, le relais s'arrête jusqu'au mois suivant et Valentin la régénère. Une fonction serveur produisant des identifiants temporaires deviendra nécessaire avant tout ajout d'un moyen de paiement (P2 ou ouverture au public).
 

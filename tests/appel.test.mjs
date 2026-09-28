@@ -3,7 +3,8 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1, COLONNES_P1 } from "../app/js/appel.js";
+import { filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1, COLONNES_P1,
+  adresseLocale, typesCandidats, diagnosticER4 } from "../app/js/appel.js";
 
 // Réponse réelle de l'API Metered (identifiants masqués).
 const METERED = [
@@ -82,13 +83,57 @@ test("statistiques : candidat, protocole du relais, aller-retour, débit, pertes
   assert.equal(resumeAppel(a, lireAppel(stats(1000, 10, 0, 5, 0, 0), 1000)).sonImg, 0); // image sans son
 });
 
-test("statistiques : direct, sans relais", () => {
+// Paire retenue sans relais : local et distant donnés (type, adresse).
+const direct = (typeL, adrL, typeR, adrR) => {
   const s = stats(0, 0, 0, 0, 0, 0);
-  s[2] = { type: "local-candidate", id: "L", candidateType: "host" };
-  s[3] = { type: "remote-candidate", id: "R", candidateType: "host" };
-  const r = lireAppel(s, 0);
+  s[2] = { type: "local-candidate", id: "L", candidateType: typeL, address: adrL };
+  s[3] = { type: "remote-candidate", id: "R", candidateType: typeR, address: adrR };
+  return lireAppel(s, 0);
+};
+
+test("chemin jugé sur la paire (n° 312) : direct local seulement si les deux adresses sont locales", () => {
+  const r = direct("host", "a1b2c3.local", "host", "192.168.1.20");
   assert.equal(r.candidat, "direct local");
+  assert.equal(r.paire, "host/host");
   assert.equal(r.relaisProto, "");
+  // Séance du 2026-09-28 : PC derrière sa box (host) face à un iPhone en 4G (prflx), affiché à tort « direct local ».
+  const pc4g = direct("host", "192.168.1.20", "prflx", "92.184.105.7");
+  assert.equal(pc4g.candidat, "direct public");
+  assert.equal(pc4g.paire, "host/prflx");
+  assert.equal(direct("host", "192.168.1.20", "prflx", undefined).candidat, "direct public"); // adresse cachée
+  assert.equal(direct("srflx", "82.64.1.2", "srflx", "92.184.105.7").candidat, "direct public");
+  assert.equal(direct("host", "fe80::1c2d:3e4f", "host", "fd12:3456::1").candidat, "direct local");
+  assert.equal(direct("host", "2a01:cb00::1", "host", "fd12:3456::1").candidat, "direct public");
+  const r2 = stats(0, 0, 0, 0, 0, 0); // relais du côté distant seulement
+  r2[2] = { type: "local-candidate", id: "L", candidateType: "host", address: "192.168.1.20" };
+  r2[3] = { type: "remote-candidate", id: "R", candidateType: "relay", address: "10.0.0.1" };
+  assert.equal(lireAppel(r2, 0).candidat, "relais");
+  assert.equal(lireAppel(r2, 0).paire, "host/relay");
+});
+
+test("adresse locale : IPv4 privées, fe80::/10, fc00::/7, .local ; le reste non", () => {
+  for (const a of ["10.0.0.1", "172.16.0.1", "172.31.255.1", "192.168.0.1", "fe80::1", "febf::1", "fc00::1", "fdff::1", "x.local"]) assert.ok(adresseLocale(a), a);
+  for (const a of ["172.32.0.1", "11.0.0.1", "92.184.105.7", "fec0::1", "2a01::1", "fe8::1", "", undefined]) assert.ok(!adresseLocale(a), String(a));
+});
+
+test("diagnostic de ER4 (n° 314) : types de candidats, relais, états ; aucune adresse", () => {
+  const s = [
+    { type: "local-candidate", candidateType: "host", address: "192.168.1.20" },
+    { type: "local-candidate", candidateType: "srflx", address: "82.64.1.2" },
+    { type: "local-candidate", candidateType: "host", address: "x.local" },
+    { type: "remote-candidate", candidateType: "prflx", address: "92.184.105.7" },
+  ];
+  const t = typesCandidats(s);
+  assert.deepEqual(t, { locaux: ["host", "srflx"], distants: ["prflx"] });
+  const d = diagnosticER4({ bonjour: true, appel: "émis", canal: { ice: "connected", collecte: "complete", locaux: ["host"], distants: ["host"] },
+    media: { ice: "checking", collecte: "complete", ...t }, masquee: true });
+  assert.equal(d, "bonjour reçu oui · appel émis · canal : ICE connected, collecte complete, locaux host, distants host"
+    + " · appel : ICE checking, collecte complete, locaux host,srflx, distants prflx · relais obtenu non · page masquée oui");
+  assert.ok(!/\d+\.\d+\.\d+/.test(d));
+  // Échec avant l'appel vidéo : la connexion de données du salon n'aboutit pas (essai dans Chrome, relais bloqué).
+  assert.equal(diagnosticER4({ canal: { ice: "checking", collecte: "complete" } }), "bonjour reçu non · appel ni émis ni reçu"
+    + " · canal : ICE checking, collecte complete, locaux aucun, distants aucun · appel : aucune connexion · relais obtenu non · page masquée non");
+  assert.match(diagnosticER4({ media: { locaux: ["host", "relay"] } }), /relais obtenu oui/);
 });
 
 test("journal P1 : colonnes de D3 §2.4, virgule décimale, marque d'encodage", () => {

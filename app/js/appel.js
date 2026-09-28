@@ -51,7 +51,18 @@ export function appareil(ua = navigator.userAgent) {
   return `${app} ${nav}`;
 }
 
-const TYPE_CANDIDAT = { host: "direct local", srflx: "direct public", prflx: "direct public", relay: "relais" };
+// Adresse locale (n° 312) : IPv4 privée, IPv6 fe80::/10 ou fc00::/7, nom mDNS « .local ». Adresse inconnue : non locale.
+export const adresseLocale = (a = "") =>
+  /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(a) || /^(fe[89ab][0-9a-f]|f[cd][0-9a-f]{2}):/i.test(a) || /\.local$/i.test(a);
+
+// Chemin jugé sur la paire retenue (n° 312) : « relais » si l'un des deux candidats est un relais ; « direct local »
+// si les deux adresses sont locales ; sinon « direct public ». Un PC « host » derrière sa box face à un iPhone en 4G
+// (« prflx ») est donc « direct public ». Les adresses servent au classement et ne sortent jamais d'ici.
+function chemin(local, distant) {
+  if (!local) return "?";
+  if ([local, distant].some((c) => c?.candidateType === "relay")) return "relais";
+  return [local, distant].every((c) => adresseLocale(c?.address ?? c?.ip)) ? "direct local" : "direct public";
+}
 
 // Relevé cumulé d'un appel à l'instant t, tiré des statistiques WebRTC (liste de stats).
 export function lireAppel(stats, t) {
@@ -71,7 +82,8 @@ export function lireAppel(stats, t) {
     ? (local.relayProtocol ?? "?").toUpperCase() : relais ? "relais distant" : "";
   return {
     t,
-    candidat: TYPE_CANDIDAT[relais ? "relay" : local?.candidateType] ?? "?",
+    candidat: chemin(local, distant),
+    paire: local ? `${local.candidateType}/${distant?.candidateType ?? "?"}` : "",
     relaisProto: proto,
     rtt: paire?.currentRoundTripTime != null ? paire.currentRoundTripTime * 1000 : NaN,
     octetsVideo: v.bytesReceived ?? 0,
@@ -90,7 +102,7 @@ export function resumeAppel(debut, fin) {
   const s = (fin.t - debut.t) / 1000;
   const paquets = fin.paquets - debut.paquets, perdus = fin.perdus - debut.perdus;
   return {
-    candidat: fin.candidat, relaisProto: fin.relaisProto, rtt: fin.rtt,
+    candidat: fin.candidat, paire: fin.paire, relaisProto: fin.relaisProto, rtt: fin.rtt,
     debit: s > 0 ? ((fin.octetsVideo - debut.octetsVideo) * 8) / 1000 / s : NaN,
     pertes: paquets + perdus > 0 ? (100 * perdus) / (paquets + perdus) : 0,
     gels: fin.gels - debut.gels,
@@ -104,7 +116,8 @@ export function resumeAppel(debut, fin) {
 
 // Journal P1 (D3 §2.4) : une ligne par essai. Aucune image, aucun son, aucune adresse.
 export const COLONNES_P1 = ["essai", "combi", "app_a", "app_b", "reussi", "t_etab", "candidat", "relais_proto",
-  "rtt", "debit", "pertes", "gels", "son_img", "codec_envoye", "codec_recu", "resolution", "role"];
+  "rtt", "debit", "pertes", "gels", "son_img", "codec_envoye", "codec_recu", "resolution", "role",
+  "paire", "son_erreur", "cause"];
 
 const nombre = (x, d) => (Number.isFinite(x) ? String(Number(x.toFixed(d))).replace(".", ",") : "");
 const cellule = (v) => {
@@ -114,4 +127,22 @@ const cellule = (v) => {
 
 export function csvP1(lignes) {
   return "﻿" + [COLONNES_P1.join(";"), ...lignes.map((l) => COLONNES_P1.map((c) => cellule(l[c])).join(";"))].join("\r\n") + "\r\n";
+}
+
+// Types de candidats vus dans les statistiques : locaux rassemblés, distants reçus (diagnostic de ER4, n° 314).
+export function typesCandidats(stats) {
+  const types = (t) => [...new Set([...stats].filter((s) => s.type === t).map((s) => s.candidateType))].sort();
+  return { locaux: types("local-candidate"), distants: types("remote-candidate") };
+}
+
+// Diagnostic de ER4 (n° 314), pour le panneau et la colonne « cause » du journal. Aucune adresse.
+// canal (connexion de données du salon) et media (appel vidéo) : { ice, collecte, locaux, distants }, ou absents.
+export function diagnosticER4({ bonjour, appel, canal, media, masquee }) {
+  const liste = (l = []) => (l.length ? l.join(",") : "aucun");
+  const connexion = (nom, c) => (c
+    ? `${nom} : ICE ${c.ice ?? "?"}, collecte ${c.collecte ?? "?"}, locaux ${liste(c.locaux)}, distants ${liste(c.distants)}`
+    : `${nom} : aucune connexion`);
+  const relais = [canal, media].some((c) => c?.locaux?.includes("relay"));
+  return [`bonjour reçu ${bonjour ? "oui" : "non"}`, `appel ${appel ?? "ni émis ni reçu"}`, connexion("canal", canal), connexion("appel", media),
+    `relais obtenu ${relais ? "oui" : "non"}`, `page masquée ${masquee ? "oui" : "non"}`].join(" · ");
 }
