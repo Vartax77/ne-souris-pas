@@ -1,0 +1,24 @@
+/* Écran de flash commun (L1.4) : plein écran, noir ou blanc. */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: #888;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+body.blanc {
+  background: #fff;
+}
+
+#consigne {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+#consigne[hidden] {
+  display: none;
+}

@@ -216,6 +216,7 @@ Clé d'API Metered (n° 305) : l'API d'identifiants d'Open Relay est prévue pou
 | Terminé quand | `e` et `W` s'affichent à chaque mesure ; le test du flash produit un écart par flash |
 | Test | [D3](D3-plan-de-tests.md) §2.3.3, critère C3 |
 | Dépend de | L1.3 |
+| Statut | **Terminé côté code** le 2026-09-28 : e et W mesurés entre deux Chrome sans interface, en direct et en relais forcé ([D3](D3-plan-de-tests.md) §2.7.4, n° 311) ; mesure par flash commun en fin de vague 1 |
 
 #### L1.5 — Charge réelle
 

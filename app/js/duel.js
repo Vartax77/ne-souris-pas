@@ -1,10 +1,12 @@
-// Page du prototype 1 : salon (L1.1), appel et relais (L1.2), canal de jeu et coupures (L1.3).
+// Page du prototype 1 : salon (L1.1), appel et relais (L1.2), canal de jeu et coupures (L1.3), horloges (L1.4).
 // Branche l'automate du salon (salon.js), le canal (canal.js) et les fonctions de l'appel (appel.js) sur la page,
 // sur PeerJS et sur WebRTC. Textes exacts de D5.
 
 import { creerSalon, codeDuLien, lienDuSalon } from "./salon.js";
 import { creerCanal } from "./canal.js";
 import { METERED, STUN_SEUL, DEBIT_MAX, filtrerRelais, preferH264, estIOS, appareil, lireAppel, resumeAppel, csvP1 } from "./appel.js";
+import { synchroniser, ECHANGES, ESPACEMENT_MS, CADENCE_P1, creerDetecteurFlash, apparier, csvFlashs } from "./horloges.js";
+import { luminance } from "./mesures.js";
 
 const $ = (id) => document.getElementById(id);
 const f = (n, d = 1) => (Number.isFinite(n) ? n.toFixed(d).replace(".", ",") : "—");
@@ -79,6 +81,8 @@ function afficherMesures() {
     `Relais : ${config.iceTransportPolicy === "relay" ? "forcé" : "si nécessaire"} · protocole ${$("opt-proto").value}${relaisIndispo ? ` · ${relaisIndispo}` : ""}`,
     r ? `Appel : ${r.candidat}${r.relaisProto ? ` ${r.relaisProto}` : ""} · aller-retour ${f(r.rtt, 0)} ms · débit reçu ${f(r.debit, 0)} kbit/s · pertes ${f(r.pertes, 2)} % · gels ${r.gels}` : null,
     r ? `Vidéo : envoyée ${r.codecEnvoye} · reçue ${r.codecRecu} ${r.resolution} · image et son ${r.sonImg ? "oui" : "non"} · établi en ${f(essai.tEtab / 1000)} s` : null,
+    sync ? `Horloges : mesure n° ${sync.n} · aller-retour minimal ${f(sync.aMin, 1)} ms · θ ${f(sync.theta, 1)} ms · e ${f(sync.e, 1)} ms · W ${f(sync.w, 0)} ms` : null,
+    flash.actif || flash.lignes.length ? resumeFlashs() : null,
     `Journal P1 : ${journal.length} essai(s)`,
     `Chargements externes bloqués : ${bloques.length}`,
     ...bloques.map((b) => `  ${b}`),
@@ -124,6 +128,7 @@ function noterEssai(reussi, message = "") {
   });
   essai.appel?.close();
   canal?.arreter();
+  flash.actif = false;
 }
 
 let fermetureSilencieuse = false;
@@ -173,12 +178,117 @@ function ouvrirCanal(conn) {
 }
 
 // Messages du canal de jeu. L1.2 : « bonjour », qui dit si l'autre appareil est un iPhone.
+// L1.4 : synchronisation des horloges (sync_ping, sync_pong, sync_resultat) et flashs de l'invité.
 function surMessage(m) {
+  const d = m?.data ?? {};
   if (m?.type === "bonjour" && essai) {
-    essai.autreAppareil = m.data?.appareil;
-    essai.autreIOS = Boolean(m.data?.ios);
+    essai.autreAppareil = d.appareil;
+    essai.autreIOS = Boolean(d.ios);
     essai.bonjourRecu?.();
+  } else if (m?.type === "sync_ping") {
+    const t2 = performance.now(); // réception, puis réponse aussitôt (D4 §5.1)
+    canal?.envoyer("sync_pong", { k: d.k, t1: d.t1, t2, t3: performance.now() });
+  } else if (m?.type === "sync_pong" && pings) {
+    pings.echanges.push({ t1: d.t1, t2: d.t2, t3: d.t3, t4: performance.now() });
+    if (pings.echanges.length === ECHANGES) terminerSynchro();
+  } else if (m?.type === "sync_resultat") {
+    sync = { aMin: d.a_min, theta: d.decalage, e: d.e, w: d.w, cadence: d.cadence, i: 1000 / d.cadence, n: d.n };
+    afficherMesures();
+  } else if (m?.type === "flash") {
+    flash.invite.push(d);
+    comparerFlashs();
   }
+}
+
+// Synchronisation des horloges (D4 §5.1, L1.4) : l'hôte mène 5 allers-retours espacés de 100 ms, garde le plus
+// court, calcule θ, e et W, et envoie le résultat. Cadence commune : 15 im/s en P1, sans détection.
+let sync = null, pings = null, numeroSync = 0;
+function synchroniserHorloges() {
+  if (!canal || !essai?.etabli || essai.role !== "hote" || pings) return;
+  pings = { echanges: [] };
+  for (let k = 0; k < ECHANGES; k += 1) {
+    setTimeout(() => canal?.envoyer("sync_ping", { k, t1: performance.now() }), k * ESPACEMENT_MS);
+  }
+  pings.delai = setTimeout(terminerSynchro, ECHANGES * ESPACEMENT_MS + 1000);
+}
+function terminerSynchro() {
+  const p = pings;
+  pings = null;
+  clearTimeout(p?.delai);
+  const s = p && synchroniser(p.echanges, CADENCE_P1);
+  if (!s) return;
+  numeroSync += 1;
+  sync = { ...s, n: numeroSync };
+  canal?.envoyer("sync_resultat", { decalage: s.theta, e: s.e, w: s.w, cadence: s.cadence, a_min: s.aMin, n: numeroSync });
+  afficherMesures();
+}
+
+// Mesure par flash commun (D3 §2.3.3, L1.4) : chaque appareil repère les sauts de luminance de sa caméra (et de la
+// vidéo reçue, pour le retard vidéo) ; l'invité envoie les siens ; l'hôte les convertit avec θ et note l'écart.
+// Resynchronisation tous les 5 flashs.
+const flash = { actif: false, hote: [], invite: [], locaux: [], retards: [], lignes: [], dernier: -Infinity, intervalle: NaN };
+const toileFlash = document.createElement("canvas");
+toileFlash.width = 32;
+toileFlash.height = 24;
+const ctxFlash = toileFlash.getContext("2d", { willReadFrequently: true });
+const TOUT = { x0: 0, y0: 0, x1: 1, y1: 1 };
+function lumiere(video) {
+  ctxFlash.drawImage(video, 0, 0, 32, 24);
+  return luminance(ctxFlash.getImageData(0, 0, 32, 24).data, 32, 24, TOUT);
+}
+function suivreFlashs(video, surSaut, mesurerIntervalle = false) {
+  const detecter = creerDetecteurFlash();
+  let precedent = null;
+  const ecarts = [];
+  const tic = (maintenant) => {
+    if (!flash.actif) return;
+    if (video.videoWidth) {
+      if (mesurerIntervalle && precedent !== null) {
+        ecarts.push(maintenant - precedent);
+        if (ecarts.length > 30) ecarts.shift();
+        flash.intervalle = ecarts.reduce((a, b) => a + b, 0) / ecarts.length;
+      }
+      precedent = maintenant;
+      const saut = detecter(maintenant, lumiere(video));
+      if (saut) surSaut(saut);
+    }
+    video.requestVideoFrameCallback(tic);
+  };
+  video.requestVideoFrameCallback(tic);
+}
+function demarrerFlashs() {
+  if (flash.actif || !essai?.etabli) return;
+  flash.actif = true;
+  suivreFlashs($("video-moi"), (s) => {
+    flash.locaux.push(s);
+    if (essai?.role === "hote") { flash.hote.push(s); comparerFlashs(); } else canal?.envoyer("flash", s);
+    afficherMesures();
+  }, true);
+  // Retard vidéo : le même flash vu par sa caméra, puis dans la vidéo reçue (les deux sur son horloge).
+  suivreFlashs($("video-adverse"), (s) => {
+    const l = flash.locaux.filter((x) => x.sens === s.sens && s.t - x.t >= 0 && s.t - x.t < 1000).at(-1);
+    if (l) flash.retards.push(s.t - l.t);
+    afficherMesures();
+  });
+}
+function comparerFlashs() {
+  if (!sync || essai?.role !== "hote") return;
+  const nouvelles = apparier(flash.hote, flash.invite, sync.theta).filter((p) => p.tHote > flash.dernier);
+  for (const p of nouvelles) {
+    flash.dernier = p.tHote;
+    const i = Number.isFinite(flash.intervalle) ? flash.intervalle : sync.i;
+    flash.lignes.push({
+      combi: $("opt-combi").value, numero: flash.lignes.length + 1, ecart_ms: p.ecart, e_ms: sync.e, i_ms: i,
+      w_ms: sync.w, a_min_ms: sync.aMin, sens: p.sens, dans_e_plus_i: Math.abs(p.ecart) <= sync.e + i ? 1 : 0,
+    });
+    if (flash.lignes.length % 5 === 0) synchroniserHorloges(); // comme avant chaque manche (D3 §2.3.3)
+  }
+  afficherMesures();
+}
+const mediane = (x) => { const t = [...x].sort((a, b) => a - b); return t.length ? t[(t.length - 1) >> 1] : NaN; };
+function resumeFlashs() {
+  const dans = flash.lignes.filter((l) => l.dans_e_plus_i).length;
+  return `Flashs : ${flash.locaux.length} vus${essai?.role === "hote" ? ` · ${flash.lignes.length} appariés · écart médian ${f(mediane(flash.lignes.map((l) => l.ecart_ms)), 0)} ms · dans e + i : ${dans}/${flash.lignes.length}` : ""} · retard vidéo médian ${f(mediane(flash.retards), 0)} ms`;
 }
 
 // L'appel commence quand les deux appareils se sont trouvés : l'invité appelle, l'hôte répond.
@@ -242,6 +352,10 @@ function recevoir(appel, distant) {
     etat = "appel établi";
     detail = "";
     montrer("appel");
+    // Horloges (L1.4) : l'hôte synchronise à l'établissement et après chaque reprise, et sur demande.
+    $("mesurer").hidden = essai.role !== "hote";
+    setTimeout(synchroniserHorloges, 1500);
+    if ($("opt-flash").checked) demarrerFlashs();
     afficherMesures();
   });
 }
@@ -298,6 +412,10 @@ const salon = creerSalon({
 async function demarrer(role) {
   essai = { debut: performance.now(), role };
   relaisIndispo = "";
+  // Nouvel essai : nouvelles horloges et nouveaux flashs ; le journal des flashs, lui, s'allonge.
+  sync = null;
+  numeroSync = 0;
+  Object.assign(flash, { actif: false, hote: [], invite: [], locaux: [], retards: [], dernier: -Infinity, intervalle: NaN });
   const [camera] = await Promise.all([ouvrirCamera(), preparerRelais()]);
   if (!camera) return;
   etat = role === "hote" ? "ouverture du salon" : "connexion";
@@ -342,6 +460,16 @@ $("export").addEventListener("click", () => {
   URL.revokeObjectURL(lien.href);
 });
 for (const id of ["opt-relais", "opt-proto"]) $(id).addEventListener("change", afficherMesures);
+$("mesurer").addEventListener("click", synchroniserHorloges);
+$("opt-flash").addEventListener("change", () => { if ($("opt-flash").checked) demarrerFlashs(); });
+$("export-flash").addEventListener("click", () => {
+  if (!flash.lignes.length) return;
+  const lien = document.createElement("a");
+  lien.href = URL.createObjectURL(new Blob([csvFlashs(flash.lignes)], { type: "text/csv;charset=utf-8" }));
+  lien.download = `journal_flashs_P1_${new Date().toLocaleDateString("sv")}.csv`;
+  lien.click();
+  URL.revokeObjectURL(lien.href);
+});
 
 // Au chargement : un lien valable fait de cet appareil l'invité ; un fragment invalide est un lien plus valable.
 if (codeInvite) montrer("accueil-invite");

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Mesure des horloges par flash commun (D3 §2.3.3, lot L1.4) : ce troisième écran alterne noir et blanc
+       toutes les 2 s ; les deux appareils le filment côte à côte. Aucun tiers, aucun réseau. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Ne souris pas — flash commun</title>
+  <link rel="stylesheet" href="flash.css">
+</head>
+<body>
+  <p id="consigne">Placez les deux appareils côte à côte, caméras tournées vers cet écran, luminosité au maximum.
+    Touchez l'écran pour commencer : il passera du noir au blanc toutes les 2 secondes.</p>
+  <script type="module" src="js/flash.js"></script>
+</body>
+</html>

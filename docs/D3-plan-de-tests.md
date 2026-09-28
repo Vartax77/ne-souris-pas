@@ -1062,6 +1062,23 @@ Défauts trouvés dans Chrome et corrigés, chacun reproduit par un test qui éc
 - pendant la coupure, la réinscription au serveur de mise en relation restait bloquée « en cours » (PeerJS : ni inscrit, ni déconnecté) ; la page ne retentait plus et l'arbitrage croyait l'appareil encore relié au serveur. Le critère est désormais « inscrit au serveur » (`open`), avec une déconnexion propre avant chaque nouvelle tentative ;
 - l'arbitrage à 30 s : un vainqueur par forfait qui fermait aussitôt son salon aurait fait croire à l'absent de retour que l'autre était parti (« interrompu » au lieu de « perdu par forfait ») ; et deux appareils coupés ensemble (K7) se seraient chacun déclarés perdants. La sonde de présence porte donc un verdict : le vainqueur reste joignable 60 s et répond « forfait » ; un appareil lui-même coupé répond « pas de forfait ».
 
+#### 2.7.4 Lot L1.4 — horloges (2026-09-28)
+
+Vérification automatique : `tests/horloges.test.mjs` (aller-retour et θ ; e = a_min / 2 ; W = max(100, e + i), dont l'exemple de D4 : W ≈ 104 ms ; plancher de 100 ms et 167 ms en 4G ; borne e couvrant une asymétrie du réseau ; détecteur de flash avec période réfractaire ; appariement des flashs ; journal des flashs).
+
+Mesure de e et W entre deux Chrome sans interface, sur la même machine, vrais serveurs, cadence commune de 15 im/s en P1 (i = 66,7 ms) :
+
+| Chemin | Mesures (automatique + 5 sur demande) | Aller-retour minimal | θ (écart entre mesures) | e | W |
+|---|---|---|---|---|---|
+| Direct | 6 | 1,5 à 2,3 ms | −2 803,3 à −2 803,6 ms (0,3 ms) | 0,8 à 1,2 ms | 100 ms (plancher) |
+| Relais forcé (UDP) | 6 | 11,1 à 12,9 ms | −2 741,7 à −2 742,9 ms (1,2 ms) | 5,6 à 6,4 ms | 100 ms (plancher) |
+
+L'écart de θ d'une mesure à l'autre (0,3 et 1,2 ms) reste sous e : la borne tient sur ces essais. (θ diffère entre les deux essais parce que ce sont deux paires de Chrome lancées à des moments différents : chacun a sa propre horloge.)
+
+- Hôte et invité affichent la même mesure (numéro, θ, e, W) : le résultat est envoyé par l'hôte (`sync_resultat`). Seul l'hôte a le bouton « Mesurer les horloges » ; la synchronisation est aussi lancée à l'établissement de l'appel et après chaque reprise.
+- Sur la même machine, l'aller-retour est de l'ordre de la milliseconde : e reste très petit et W au plancher de 100 ms. Les valeurs utiles (e et W entre deux appareils, en Wi-Fi et en 4G) et la **mesure par flash commun** (écran `flash.html`, caméras des deux appareils) ne peuvent pas être simulées : la caméra de Chrome sans interface ne filme pas d'écran. Elles restent pour la séance de fin de vague.
+- Correction de D4 §4.2 : le décalage de l'exemple `sync_resultat` (−11 693,6 ms) ne découlait pas des horodatages de l'exemple `sync_ping` / `sync_pong` ; il vaut −11 710,1 ms (n° 311).
+
 ## 3. Prototype 2 — duel complet
 
 ### 3.1 Objectif et risques testés

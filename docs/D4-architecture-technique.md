@@ -140,7 +140,7 @@ Exemples :
 
 ```json
 { "v": 1, "type": "sync_resultat", "seq": 24, "t": 20745.0,
-  "data": { "manche": 2, "decalage": -11693.6, "e": 21.0,
+  "data": { "manche": 2, "decalage": -11710.1, "e": 21.0,
             "cadence": 12, "w": 104, "t0_hote": 25800.0 } }
 ```
 
